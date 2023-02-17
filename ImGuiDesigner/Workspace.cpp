@@ -3,7 +3,9 @@
 #include "imgui_internal.h"
 void WorkSpace::OnUIRender() {
 	ImGui::Begin("WorkSpace");
-	ImGui::Text("Start work space");
-	ImGui::Button("Button##toolbar_input_button");
+	for (auto& element : elements)
+	{
+		element->Render();
+	}
 	ImGui::End();
 }
