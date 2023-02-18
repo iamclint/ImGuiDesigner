@@ -5,7 +5,8 @@ class Properties : public Walnut::Layer
 {
 public:
 	ImGuiElement* active_element;
-	Properties() : active_element(nullptr) {}
+	ImGuiElement* copied_element;
+	Properties() : active_element(nullptr), copied_element(nullptr) {}
 	virtual void OnUIRender() override;
 };
 namespace igd

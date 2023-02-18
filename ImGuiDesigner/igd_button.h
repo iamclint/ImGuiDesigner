@@ -1,6 +1,7 @@
 #pragma once
 #include "ImGuiElement.h"
 #include <string>
+#include "misc/cpp/imgui_stdlib.h"
 class igd_button : ImGuiElement
 {
 public:
@@ -14,7 +15,17 @@ public:
 		v_background = ImColor(0, 0, 0, 0);
 	}
 
-	virtual void RenderProperties() override
+	virtual void Clone() override
+	{
+		igd::work->elements_buffer.push_back((ImGuiElement*)(new igd_button()));
+		igd::work->elements_buffer.back()->v_background = this->v_background;
+		igd::work->elements_buffer.back()->v_foreground = this->v_foreground;
+		igd::work->elements_buffer.back()->v_flags = this->v_flags;
+		igd::work->elements_buffer.back()->v_label = this->v_label;
+		igd::work->elements_buffer.back()->v_size = this->v_size;
+	}
+	
+	virtual void RenderPropertiesInternal() override
 	{
 		
 	}
@@ -33,8 +44,7 @@ public:
 			color_pops++;
 		}
 		
-		
-		ImGui::Button(v_label.c_str(), v_size);
+		ImGui::Button((v_label+"##"+v_id).c_str(), v_size);
 		
 
 		if (color_pops)

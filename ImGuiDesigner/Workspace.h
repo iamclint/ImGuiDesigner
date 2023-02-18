@@ -6,6 +6,7 @@ class WorkSpace : public Walnut::Layer
 {
 public:
 	std::vector<ImGuiElement*> elements;
+	std::vector<ImGuiElement*> elements_buffer;
 	virtual void OnUIRender() override;
 };
 
