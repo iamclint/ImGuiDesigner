@@ -6,6 +6,7 @@
 class ImGuiElement
 {
 public:
+	//properties
 	int v_flags;
 	ImVec2 v_size;
 	ImVec2 v_pos;
@@ -13,19 +14,31 @@ public:
 	std::string v_label;
 	ImColor v_foreground;
 	ImColor v_background;
-	ImGuiElement* parent;
-	ImVec2 last_known_cursor;
 	int border;
-	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(random_string(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), parent(nullptr), border(0), v_pos(ImVec2(0,0)) {}
-	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), parent(parent), border(0), v_pos(ImVec2(0, 0)) {}
+
+	ImGuiElement* parent;
+
+	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), parent(nullptr), border(0), v_pos(ImVec2(0,0)), is_dragging(false), is_resizing(false), current_drag_delta(0,0), last_size(0, 0) {}
+	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), parent(parent), border(0), v_pos(ImVec2(0, 0)), is_dragging(false), is_resizing(false), current_drag_delta(0, 0), last_size(0, 0) {}
+	void Render();
+	
+	//overrideable functions
+	virtual void RenderProperties() = 0;
+	virtual void RenderInternal() = 0;
 	virtual ~ImGuiElement() {};
-	virtual void Render() = 0;
-	std::string random_string(size_t length);
-	void Drag(ImVec2 Item_Location);
+
+	//helper functions
+	std::string RandomID(size_t length);
 
 private:
+	void Drag();
+	void Resize();
+	void DrawSelection();
+
 	ImVec2 current_drag_delta;
 	bool is_dragging;
-	
+	bool is_resizing;
+	ImVec2 last_size;
+	ImVec2 last_known_cursor;
 };
 

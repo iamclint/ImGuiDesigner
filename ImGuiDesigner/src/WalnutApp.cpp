@@ -31,13 +31,13 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "ImGui Designer";
 
 	Walnut::Application* app = new Walnut::Application(spec);
-	igd::work = new WorkSpace();
-	igd::properties = new Properties();
+	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	igd::work = work.get();
+	igd::properties = properties.get();
 	app->PushLayer<ToolBar>();
 	app->PushLayer(work);
-	app->PushLayer<Properties>();
+	app->PushLayer(properties);
 	app->SetMenubarCallback([app]()
 	{
 		if (ImGui::BeginMenu("File"))

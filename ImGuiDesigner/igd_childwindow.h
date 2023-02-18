@@ -14,7 +14,7 @@ public:
 		v_foreground = ImColor(255, 255, 255, 255);
 		v_background = ImColor(0, 0, 0, 255);
 	}
-	virtual void Render() override
+	virtual void RenderInternal() override
 	{
 		int color_pops = 0;
 		if (v_foreground.Value.w != 0)
