@@ -2,7 +2,8 @@
 #include "Walnut/Image.h"
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
-
+#include "ImGuiElement.h"
+#include "Workspace.h"
 void PropertyLabel(const char* lbl)
 {
 	ImGui::TableNextColumn();
@@ -10,6 +11,19 @@ void PropertyLabel(const char* lbl)
 	ImGui::TableNextColumn();
 }
 
+
+void Properties::getChildParents(ImGuiElement* parent)
+{
+	for (auto& element : parent->children)
+	{
+		if (element == active_element || !element->v_can_have_children)
+			continue;
+		if (element->children.size() > 0)
+			getChildParents(element);
+		if (ImGui::Selectable(element->v_id.c_str()))
+			active_element->v_parent = element;
+	}
+}
 
 void Properties::OnUIRender() {
 	static char* buf = new char[25];
@@ -30,24 +44,47 @@ void Properties::OnUIRender() {
 	int border;*/
 	if (active_element)
 	{
-		ImGui::BeginTable("ProprtiesTable", 2, ImGuiTableFlags_SizingFixedFit);
+		ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
+		PropertyLabel("ID:");
+		ImGui::PushItemWidth(260);
+		ImGui::InputText("##property_id", &active_element->v_id);
 		PropertyLabel("Label:");
-		ImGui::PushItemWidth(120);
+		ImGui::PushItemWidth(260);
 		ImGui::InputText("##property_label", &active_element->v_label);
-		ImGui::PopItemWidth();
 		PropertyLabel("Size:");
-		ImGui::PushItemWidth(120);
+		ImGui::PushItemWidth(260);
 		ImGui::InputFloat2("##property_size", (float*)&active_element->v_size);
-		ImGui::PopItemWidth();
 		PropertyLabel("Position:");
-		ImGui::PushItemWidth(120);
+		ImGui::PushItemWidth(260);
 		ImGui::InputFloat2("##property_pos", (float*)&active_element->v_pos);
-		ImGui::PopItemWidth();
 		PropertyLabel("Foreground:");
 		ImGui::ColorEdit4("##property_foreground", (float*)&active_element->v_foreground, ImGuiColorEditFlags_NoInputs);
 		PropertyLabel("Background:");
 		ImGui::ColorEdit4("##property_background", (float*)&active_element->v_background, ImGuiColorEditFlags_NoInputs);
+		PropertyLabel("Border:");
+		ImGui::Checkbox("##property_border", &active_element->v_border);
+		PropertyLabel("Parent:");
+		ImGui::PushItemWidth(260);
+		if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
+		{
+			if (ImGui::Selectable("None"))
+			{
+				active_element->v_parent = nullptr;
+			}
+			for (auto& element : igd::work->elements)
+			{
+				if (element == active_element || !element->v_can_have_children)
+					continue;
+				if (element->children.size()>0)
+					getChildParents(element);
+				if (ImGui::Selectable(element->v_id.c_str()))
+					active_element->v_parent = element;
+			}
+			ImGui::EndCombo();
+		}
+		
 		active_element->RenderPropertiesInternal();
+		
 		ImGui::EndTable();
 		if (ImGui::Button("Delete##property_delete"))
 			active_element->Delete();

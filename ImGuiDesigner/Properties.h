@@ -8,6 +8,8 @@ public:
 	ImGuiElement* copied_element;
 	Properties() : active_element(nullptr), copied_element(nullptr) {}
 	virtual void OnUIRender() override;
+private:
+	void getChildParents(ImGuiElement* parent);
 };
 namespace igd
 {

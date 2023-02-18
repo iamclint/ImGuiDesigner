@@ -24,7 +24,7 @@ void ImGuiElement::Drag()
 	{
 		is_dragging = true;
 		ImVec2 mouse_location = get_mouse_location();
-		current_drag_delta = { mouse_location.x - Item_Location.x,mouse_location.y - Item_Location.y };
+		current_drag_delta = { mouse_location.x - Item_Location.x - ImGui::GetScrollX(),mouse_location.y - Item_Location.y - ImGui::GetScrollY() };
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_dragging)
 	{
@@ -38,7 +38,7 @@ void ImGuiElement::KeyMove()
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 	ImGuiIO& io = g.IO;
-	ImVec2 item_location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x, g.LastItemData.Rect.Min.y - window->Pos.y);
+	ImVec2 item_location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());
 	float delta_dist = 1.f;
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
 	{
@@ -77,16 +77,31 @@ void ImGuiElement::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 	{
+		if (this->children.size() > 0)
+		{
+			for (auto& child : this->children)
+			{
+				child->Delete();
+				delete child;
+			}
+		}
 		this->Delete();
+	}
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+	{
+		igd::properties->active_element = nullptr;
 	}
 }
 
 void ImGuiElement::Delete()
 {
-	igd::properties->active_element->delete_me = true;
-	if (igd::properties->copied_element == igd::properties->active_element)
-		igd::properties->copied_element = nullptr;
-	igd::properties->active_element = nullptr;
+	if (igd::properties->active_element)
+	{
+		igd::properties->active_element->delete_me = true;
+		if (igd::properties->copied_element == igd::properties->active_element)
+			igd::properties->copied_element = nullptr;
+		igd::properties->active_element = nullptr;
+	}
 }
 
 void ImGuiElement::Resize()
@@ -144,7 +159,40 @@ void ImGuiElement::Render()
 	if (v_pos.x != 0 || v_pos.y != 0)
 		ImGui::SetCursorPos(v_pos);
 	
+	this->RenderHead();
+	if (this->children.size() > 0)
+	{
+		for (auto& child : this->children)
+		{
+			child->Render();
+		}
+		//delete from elements if delete_me is true
+		for (auto it = this->children.begin(); it != this->children.end();)
+		{
+			if (!(*it)->v_parent)
+			{
+				igd::work->elements.push_back(*it);
+				it = this->children.erase(it);
+			}
+			if ((*it)->v_parent!=this)
+			{
+				(*it)->v_parent->children.push_back(*it);
+				it = this->children.erase(it);
+			}
+			else if ((*it)->delete_me)
+			{
+				delete (*it);
+				it = children.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
 	this->RenderInternal();
+	this->RenderFoot();
+	
 	
 	//reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
 	if (v_pos.x != 0 || v_pos.y != 0)

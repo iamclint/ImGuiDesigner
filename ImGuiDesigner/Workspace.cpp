@@ -21,7 +21,12 @@ void WorkSpace::OnUIRender() {
 	//delete from elements if delete_me is true
 	for (auto it = elements.begin(); it != elements.end();)
 	{
-		if ((*it)->delete_me)
+		if ((*it)->v_parent)
+		{
+			(*it)->v_parent->children.push_back(*it);
+			it = elements.erase(it);
+		}
+		else if ((*it)->delete_me)
 		{
 			delete (*it);
 			it = elements.erase(it);
