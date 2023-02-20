@@ -3,8 +3,8 @@
 #include "imgui_internal.h"
 #include "Workspace.h"
 #include "Properties.h"
-#include "igd_button.h"
-#include "igd_childwindow.h"
+#include "igd_elements.h"
+#include "ImGuiDesigner.h"
 
 void AddNewElement(ImGuiElement* ele)
 {
@@ -15,8 +15,9 @@ void AddNewElement(ImGuiElement* ele)
 	}
 	else
 	{
-		igd::work->elements.push_back(ele);
-		igd::properties->active_element = igd::work->elements.back();
+		igd::properties->active_element = nullptr;
+		igd::active_workspace->elements.push_back(ele);
+		igd::properties->active_element = igd::active_workspace->elements.back();
 	}
 
 }
@@ -30,7 +31,11 @@ void ToolBar::OnUIRender() {
 	ImGui::Begin("ToolBar");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
 	ImGui::PushItemWidth(60);
-	
+	if (ImGui::Button("New Workspace##toolbar_new_workspace"))
+	{
+		igd::properties->active_element = nullptr;
+		igd::add_workspace = true;
+	}
 	if (ImGui::Button("Child Window##toolbar_input_child"))
 	{
 		AddNewElement((ImGuiElement*)(new igd::ChildWindow()));

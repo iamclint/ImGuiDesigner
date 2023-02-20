@@ -662,6 +662,10 @@ namespace Walnut {
 				}
 
 
+				if (m_UpdateLayerStackCallback)
+				{
+					m_UpdateLayerStackCallback();
+				}
 					
 				if (m_MenubarCallback)
 				{

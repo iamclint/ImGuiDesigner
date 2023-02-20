@@ -33,6 +33,7 @@ namespace Walnut {
 
 		void Run();
 		void SetMenubarCallback(const std::function<void()>& menubarCallback) { m_MenubarCallback = menubarCallback; }
+		void SetUpdateLayerStackCallback(const std::function<void()>& updateLayerstackCallback) { m_UpdateLayerStackCallback = updateLayerstackCallback; }
 		
 		template<typename T>
 		void PushLayer()
@@ -42,7 +43,8 @@ namespace Walnut {
 		}
 
 		void PushLayer(const std::shared_ptr<Layer>& layer) { m_LayerStack.emplace_back(layer); layer->OnAttach(); }
-
+		void PopLayer(const std::shared_ptr<Layer>& layer) { m_LayerStack.erase(std::remove(m_LayerStack.begin(), m_LayerStack.end(), layer), m_LayerStack.end()); layer->OnDetach(); }
+		std::shared_ptr<Layer> GetLayerByPtr(Layer* layer) { for (auto& l : m_LayerStack) if (l.get() == layer) return l; return nullptr; }
 		void Close();
 
 		float GetTime();
@@ -70,6 +72,7 @@ namespace Walnut {
 
 		std::vector<std::shared_ptr<Layer>> m_LayerStack;
 		std::function<void()> m_MenubarCallback;
+		std::function<void()> m_UpdateLayerStackCallback;
 	};
 
 	// Implemented by CLIENT

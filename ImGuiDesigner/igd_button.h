@@ -2,31 +2,51 @@
 #include "ImGuiElement.h"
 #include <string>
 #include "misc/cpp/imgui_stdlib.h"
+#include "ImGuiDesigner.h"
 namespace igd
 {
 	class Button : ImGuiElement
 	{
 	public:
+		std::vector<Button> undo_stack;
+		std::vector<Button> redo_stack;
 		int color_pops;
 		Button() {
 			color_pops = 0;
 			v_flags = ImGuiButtonFlags_None;
+			v_property_flags = property_flags::label | property_flags::color_background | property_flags::color_background_active | property_flags::color_background_hovered;
 			v_size = ImVec2(0, 0);
 			v_id = ("new button##" + RandomID(10)).c_str();
 			v_label = "new button";
-			v_foreground = ImColor(0, 0, 0, 0);
-			v_background = ImColor(0, 0, 0, 0);
+			v_foreground = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+			v_background = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+			v_background_hovered = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+			v_background_active = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 			v_can_have_children = false;
+			PushUndo();
+		}
+
+		virtual void Undo() override
+		{
+			if (undo_stack.size() > 0)
+			{
+				redo_stack.push_back(*this);
+				*this = undo_stack.back();
+				undo_stack.pop_back();
+			}
+		}
+
+		virtual void PushUndo() override
+		{
+			undo_stack.push_back(*this);
+			igd::active_workspace->PushUndo(this);
 		}
 
 		virtual void Clone() override
 		{
-			igd::work->elements_buffer.push_back((ImGuiElement*)(new Button()));
-			igd::work->elements_buffer.back()->v_background = this->v_background;
-			igd::work->elements_buffer.back()->v_foreground = this->v_foreground;
-			igd::work->elements_buffer.back()->v_flags = this->v_flags;
-			igd::work->elements_buffer.back()->v_label = this->v_label;
-			igd::work->elements_buffer.back()->v_size = this->v_size;
+			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new Button()));
+			*igd::active_workspace->elements_buffer.back() = *this;
+			igd::active_workspace->elements_buffer.back()->v_id = RandomID(10).c_str();
 		}
 
 		//Extends the property window with the properties specific of this element
@@ -38,16 +58,18 @@ namespace igd
 		virtual void RenderHead() override
 		{
 			color_pops = 0;
-			if (v_foreground.Value.w != 0)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, v_foreground.Value);
-				color_pops++;
-			}
-			if (v_background.Value.w != 0)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Button, v_background.Value);
-				color_pops++;
-			}
+
+			ImGui::PushStyleColor(ImGuiCol_Text, v_foreground.Value);
+			color_pops++;
+
+			ImGui::PushStyleColor(ImGuiCol_Button, v_background.Value);
+			color_pops++;
+
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, v_background_hovered.Value);
+			color_pops++;
+
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, v_background_active.Value);
+			color_pops++;
 		}
 		virtual void RenderInternal() override
 		{

@@ -1,9 +1,75 @@
 #include "Workspace.h"
 #include "Walnut/Image.h"
 #include "imgui_internal.h"
+#include "ImGuiElement.h"
+#include "ImGuiDesigner.h"
+#include <iostream>
+WorkSpace::~WorkSpace()
+{
+	for (auto& ele : elements)
+	{
+		delete ele;
+	}
+}
+
+//std string to const char* permanent
+
+WorkSpace::WorkSpace()
+{
+	if (igd::workspaces.size() == 0)
+		id = "Workspace";
+	else
+		id = "Workspace " + std::to_string(igd::workspaces.size()) + "##" + ImGuiElement::RandomID(10);
+	is_open = true;
+}
+
+void WorkSpace::KeyBinds()
+{
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)) && ImGui::GetIO().KeyCtrl)
+	{
+		std::cout << "Undo  stack size: " << undo_stack.size() << std::endl;
+		if (undo_stack.size() > 0)
+		{
+			redo_stack.push_back(undo_stack.back());
+			if (undo_stack.back()->delete_me)
+				undo_stack.back()->delete_me = false;
+			else
+				undo_stack.back()->Undo();
+			undo_stack.pop_back();
+		}
+	}
+}
+
+void WorkSpace::PushUndo(ImGuiElement* ele)
+{
+	undo_stack.push_back(ele);
+}
+
+
 void WorkSpace::OnUIRender() {
-	ImGui::Begin("WorkSpace");
-	
+	if (!is_open)
+	{
+		if (this != igd::workspaces.front()) //don't delete the top most work space
+		{
+			igd::delete_workspace.push_back(this);
+		}
+		else
+		{
+			is_open = true;
+		}
+		return;
+	}
+	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
+		//ImGui::SetNextWindowDockID(ImHashStr("workspace"), ImGuiCond_Once);
+	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
+	ImGui::Begin(id.c_str(), &is_open, ImGuiWindowFlags_NoSavedSettings);
+	if (ImGui::IsWindowFocused())
+		KeyBinds();
+	if (ImGui::IsWindowAppearing())
+	{
+		igd::properties->active_element = nullptr;
+		igd::active_workspace = this;
+	}
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)
@@ -15,6 +81,8 @@ void WorkSpace::OnUIRender() {
 	
 	for (auto& element : elements)
 	{
+		if (element->delete_me)
+			continue;
 		element->Render();
 	}
 	
@@ -26,11 +94,11 @@ void WorkSpace::OnUIRender() {
 			(*it)->v_parent->children.push_back(*it);
 			it = elements.erase(it);
 		}
-		else if ((*it)->delete_me)
-		{
-			delete (*it);
-			it = elements.erase(it);
-		}
+		//else if ((*it)->delete_me)
+		//{
+		//	delete (*it);
+		//	it = elements.erase(it);
+		//}
 		else
 		{
 			++it;

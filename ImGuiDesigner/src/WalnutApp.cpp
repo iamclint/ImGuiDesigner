@@ -4,11 +4,17 @@
 #include "..\ToolBar.h"
 #include "..\Properties.h"
 #include "..\Workspace.h"
-
+#include "..\ImGuiDesigner.h"
+#include <iostream>
 namespace igd
 { 
-	WorkSpace* work;
+	WorkSpace* active_workspace;
+	std::vector<WorkSpace*> workspaces;
 	Properties* properties;
+	Walnut::Application* app;
+	bool add_workspace = false;
+	std::vector<WorkSpace*> delete_workspace;
+	std::vector<ImGuiElement> undo_vector;
 }
 
 class ExampleLayer : public Walnut::Layer
@@ -25,29 +31,63 @@ public:
 };
 
 
+void update_layer_stack()
+{
+	if (igd::delete_workspace.size()>0)
+	{
+		igd::properties->active_element = nullptr;
+		for (auto& w : igd::delete_workspace)
+		{
+			std::cout << "Deleting workspace" << std::endl;
+			if (w == igd::active_workspace)
+			{
+				if (igd::workspaces.size() > 1)
+					igd::active_workspace = igd::workspaces[1];
+				else
+					igd::active_workspace = nullptr;
+			}
+			igd::workspaces.erase(std::remove(igd::workspaces.begin(), igd::workspaces.end(), w), igd::workspaces.end());
+			igd::app->PopLayer(igd::app->GetLayerByPtr(w));
+		}
+		igd::delete_workspace.clear();
+	}
+	
+	if (igd::add_workspace)
+	{
+		std::cout << "Adding workspace" << std::endl;
+		igd::add_workspace = false;
+		std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
+		igd::active_workspace = work.get();
+		igd::workspaces.push_back(igd::active_workspace);
+		igd::app->PushLayer(work);
+	}
+}
+
+
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
 	spec.Name = "ImGui Designer";
-
-	Walnut::Application* app = new Walnut::Application(spec);
+	igd::app = new Walnut::Application(spec);
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
-	igd::work = work.get();
+	igd::active_workspace = work.get();
+	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();
-	app->PushLayer<ToolBar>();
-	app->PushLayer(work);
-	app->PushLayer(properties);
-	app->SetMenubarCallback([app]()
-	{
+	igd::app->PushLayer<ToolBar>();
+	igd::app->PushLayer(work);
+	igd::app->PushLayer(properties);
+	igd::app->SetUpdateLayerStackCallback(update_layer_stack);
+	igd::app->SetMenubarCallback([]()
+	{			
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("Exit"))
 			{
-				app->Close();
+				igd::app->Close();
 			}
 			ImGui::EndMenu();
 		}
 	});
-	return app;
+	return igd::app;
 }
