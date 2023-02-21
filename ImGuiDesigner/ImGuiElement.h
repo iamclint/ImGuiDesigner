@@ -54,8 +54,12 @@ public:
 	ImGuiElement* v_parent;
 	std::vector<ImGuiElement*> children;
 	property_flags v_property_flags;
-	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0), v_pos(ImVec2(0,0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0,0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr) {}
-	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), v_parent(parent), v_border(0), v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr){}
+
+	bool did_move;
+	bool did_resize;
+	
+	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0), v_pos(ImVec2(0,0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0,0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false) {}
+	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), v_parent(parent), v_border(0), v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false){}
 	void Render();
 	void Delete();
 	//overrideable functions

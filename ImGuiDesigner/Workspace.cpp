@@ -27,7 +27,7 @@ void WorkSpace::KeyBinds()
 {
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)) && ImGui::GetIO().KeyCtrl)
 	{
-		std::cout << "Undo  stack size: " << undo_stack.size() << std::endl;
+		std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
 		if (undo_stack.size() > 0)
 		{
 			redo_stack.push_back(undo_stack.back());
@@ -36,12 +36,14 @@ void WorkSpace::KeyBinds()
 			else
 				undo_stack.back()->Undo();
 			undo_stack.pop_back();
+			std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
 		}
 	}
 }
 
 void WorkSpace::PushUndo(ImGuiElement* ele)
-{
+{ 
+	std::cout << "push undo" << std::endl;
 	undo_stack.push_back(ele);
 }
 
@@ -63,7 +65,7 @@ void WorkSpace::OnUIRender() {
 		//ImGui::SetNextWindowDockID(ImHashStr("workspace"), ImGuiCond_Once);
 	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
 	ImGui::Begin(id.c_str(), &is_open, ImGuiWindowFlags_NoSavedSettings);
-	if (ImGui::IsWindowFocused())
+	if (this==igd::active_workspace)
 		KeyBinds();
 	if (ImGui::IsWindowAppearing())
 	{

@@ -1,15 +1,17 @@
 #pragma once
 #include "ImGuiElement.h"
 #include <string>
+#include <map>
 #include "misc/cpp/imgui_stdlib.h"
 #include "ImGuiDesigner.h"
+#include <iostream>
 namespace igd
 {
 	class Button : ImGuiElement
 	{
 	public:
-		std::vector<Button> undo_stack;
-		std::vector<Button> redo_stack;
+		static inline std::unordered_map<Button*, std::vector<Button>> undo_stack;
+		static inline std::unordered_map<Button*, std::vector<Button>> redo_stack;
 		int color_pops;
 		Button() {
 			color_pops = 0;
@@ -28,17 +30,23 @@ namespace igd
 
 		virtual void Undo() override
 		{
-			if (undo_stack.size() > 0)
+			if (undo_stack[this].size() > 0)
 			{
-				redo_stack.push_back(*this);
-				*this = undo_stack.back();
-				undo_stack.pop_back();
+				std::cout << "undo stack size button: " << undo_stack[this].size() << std::endl;
+				redo_stack[this].push_back(*this);
+				if (undo_stack[this].size() > 1)
+					undo_stack[this].pop_back();
+				*this = undo_stack[this].back();
+				if (undo_stack[this].size() > 1)//don't remove the initial stack 
+					undo_stack[this].pop_back();
 			}
 		}
 
 		virtual void PushUndo() override
 		{
-			undo_stack.push_back(*this);
+			did_move = false;
+			did_resize = false;
+			undo_stack[this].push_back(*this);
 			igd::active_workspace->PushUndo(this);
 		}
 

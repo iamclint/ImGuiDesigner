@@ -29,6 +29,8 @@ bool ImGuiElement::Drag()
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_dragging)
 	{
+		did_move = true;
+		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		ImVec2 mouse_location = get_mouse_location();
 		v_pos = { mouse_location.x - current_drag_delta.x,mouse_location.y - current_drag_delta.y };
 	}
@@ -174,7 +176,7 @@ bool ImGuiElement::Resize()
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && resize!=resize_direction::none)
 	{
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-		
+		did_resize = true;
 		switch (resize)
 		{
 			case resize_direction::top_right:
@@ -315,12 +317,22 @@ void ImGuiElement::Render()
 		DrawSelection();
 		KeyBinds();
 	}
-	if (g.MouseCursor != ImGuiMouseCursor_ResizeNWSE && g.MouseCursor != ImGuiMouseCursor_ResizeEW)
+	if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow)
 		Select();
 	
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
+		if (did_resize)
+		{
+			PushUndo();
+			did_resize = false;
+		}
 		resize = resize_direction::none;
+		if (did_move)
+		{
+			PushUndo();
+			did_move = false;
+		}
 		is_dragging = false;
 	}
 }

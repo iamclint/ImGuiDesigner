@@ -135,7 +135,7 @@ void Properties::OnUIRender() {
 			PropertyLabel("Foreground:");
 			if (ImGui::ColorEdit4("##property_foreground", (float*)&active_element->v_foreground, ImGuiColorEditFlags_NoInputs))
 			{
-				active_element->PushUndo();
+				modified = true;
 			}
 		}
 		if (active_element->v_property_flags & property_flags::color_background)
@@ -143,7 +143,7 @@ void Properties::OnUIRender() {
 			PropertyLabel("Background:");
 			if (ImGui::ColorEdit4("##property_background", (float*)&active_element->v_background, ImGuiColorEditFlags_NoInputs))
 			{
-				active_element->PushUndo();
+				modified = true;
 			}
 		}
 		if (active_element->v_property_flags & property_flags::color_background_hovered)
@@ -151,7 +151,7 @@ void Properties::OnUIRender() {
 			PropertyLabel("Hovered:");
 			if (ImGui::ColorEdit4("##property_background_hovered", (float*)&active_element->v_background_hovered, ImGuiColorEditFlags_NoInputs))
 			{
-				active_element->PushUndo();
+				modified = true;
 			}
 		}
 		if (active_element->v_property_flags & property_flags::color_background_active)
@@ -159,9 +159,16 @@ void Properties::OnUIRender() {
 			PropertyLabel("Active:");
 			if (ImGui::ColorEdit4("##property_background_active", (float*)&active_element->v_background_active, ImGuiColorEditFlags_NoInputs)) 
 			{
-				active_element->PushUndo();
+				modified = true;
 			}
 		}
+
+		if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
+		{
+			modified = false;
+			active_element->PushUndo();
+		}
+
 		if (active_element->v_property_flags & property_flags::border)
 		{
 			PropertyLabel("Border:");
