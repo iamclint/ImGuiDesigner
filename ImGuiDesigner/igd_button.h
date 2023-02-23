@@ -28,26 +28,33 @@ namespace igd
 			PushUndo();
 		}
 
-		virtual void Undo() override
+		virtual void UndoLocal() override
 		{
-			if (undo_stack[this].size() > 0)
+			std::cout << "Undo local" << " size: " << undo_stack[this].size() <<std::endl;
+			if (undo_stack[this].size() > 1)
 			{
-				std::cout << "undo stack size button: " << undo_stack[this].size() << std::endl;
 				redo_stack[this].push_back(*this);
 				if (undo_stack[this].size() > 1)
 					undo_stack[this].pop_back();
+				
 				*this = undo_stack[this].back();
-				if (undo_stack[this].size() > 1)//don't remove the initial stack 
-					undo_stack[this].pop_back();
 			}
 		}
-
-		virtual void PushUndo() override
+		
+		virtual void RedoLocal() override
 		{
-			did_move = false;
-			did_resize = false;
+			if (redo_stack[this].size() > 0)
+			{
+				*this = redo_stack[this].back();
+				PushUndo();
+				redo_stack[this].pop_back();
+			}
+		}
+		
+		virtual void PushUndoLocal() override
+		{
+			//keep an undo stack locally for this type
 			undo_stack[this].push_back(*this);
-			igd::active_workspace->PushUndo(this);
 		}
 
 		virtual void Clone() override

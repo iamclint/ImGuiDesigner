@@ -27,7 +27,6 @@ void WorkSpace::KeyBinds()
 {
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)) && ImGui::GetIO().KeyCtrl)
 	{
-		std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
 		if (undo_stack.size() > 0)
 		{
 			redo_stack.push_back(undo_stack.back());
@@ -36,14 +35,25 @@ void WorkSpace::KeyBinds()
 			else
 				undo_stack.back()->Undo();
 			undo_stack.pop_back();
-			std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
 		}
+		std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
+	}
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Y)) && ImGui::GetIO().KeyCtrl)
+	{
+		if (redo_stack.size() > 0)
+		{
+			if (redo_stack.back()->delete_me)
+				redo_stack.back()->delete_me = false;
+			else
+				redo_stack.back()->Redo();
+			redo_stack.pop_back();
+		}
+		std::cout << "Redo stack size: " << redo_stack.size() << std::endl;
 	}
 }
 
 void WorkSpace::PushUndo(ImGuiElement* ele)
 { 
-	std::cout << "push undo" << std::endl;
 	undo_stack.push_back(ele);
 }
 

@@ -8,6 +8,27 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 //get mouse location delta of item
 
+void ImGuiElement::Undo()
+{
+	UndoLocal();
+	did_move = false;
+	did_resize = false;
+
+}
+void ImGuiElement::Redo()
+{
+	RedoLocal();
+	did_move = false;
+	did_resize = false;
+
+}
+
+void ImGuiElement::PushUndo()
+{
+	//add an undo layer to the undo stack for the workspace itself
+	igd::active_workspace->PushUndo(this);
+	PushUndoLocal();
+}
 
 ImVec2 get_mouse_location()
 {

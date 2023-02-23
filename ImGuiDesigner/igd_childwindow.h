@@ -31,13 +31,17 @@ namespace igd
 
 		}
 
-		virtual void Undo() override
+		virtual void UndoLocal() override
 		{
 			*this = undo_stack.back();
 			undo_stack.pop_back();
 		}
-
-		virtual void PushUndo() override
+		virtual void RedoLocal() override
+		{
+			*this = undo_stack.back();
+			undo_stack.pop_back();
+		}
+		virtual void PushUndoLocal() override
 		{
 			undo_stack.push_back(*this);
 			igd::active_workspace->PushUndo(this);
