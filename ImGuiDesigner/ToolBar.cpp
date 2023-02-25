@@ -5,6 +5,9 @@
 #include "Properties.h"
 #include "igd_elements.h"
 #include "ImGuiDesigner.h"
+#include "../json/single_include/nlohmann/json.hpp"
+#include <fstream>
+
 
 void AddNewElement(ImGuiElement* ele)
 {
@@ -36,6 +39,7 @@ void ToolBar::OnUIRender() {
 		igd::properties->active_element = nullptr;
 		igd::add_workspace = true;
 	}
+
 	if (ImGui::Button("Child Window##toolbar_input_child"))
 	{
 		AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
@@ -47,9 +51,73 @@ void ToolBar::OnUIRender() {
 	ImGui::InputText("##toolbar_input_text", buf, 25, ImGuiInputTextFlags_ReadOnly);
 	ImGui::PopItemWidth();
 
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Text("Custom Widgets");
+	ImGui::Separator();
+
+	//iterate all files in widgets folder
+	for (auto& p : std::filesystem::directory_iterator("widgets"))
+	{
+		if (p.path().extension() == ".igd")
+		{
+			if (ImGui::Button(p.path().filename().stem().string().c_str()))
+			{
+				//load the file
+				std::ifstream i(p.path().string());
+				nlohmann::json j;
+				try
+				{
+					j = nlohmann::json::parse(i);
+
+				ImGuiElement* parent = nullptr;
+				//check if first element is a child 
+				if (j["elements"].at(0)["type"] == "child window")
+				{
+					std::cout << "Child Window found" << std::endl;
+					igd::ChildWindow* b = new igd::ChildWindow();
+					b->FromJSON(j["elements"].at(0));
+					parent = (ImGuiElement*)b;
+					AddNewElement((ImGuiElement*)b);
+				}
+				else
+				{
+					return;
+				}
+				for (int i = 0; auto& e : j["elements"])
+				{	
+					//skip the first element since it is already added
+					if (i == 0)
+					{
+						i++;
+						continue;
+					}
+					if (e["type"] == "button")
+					{
+						std::cout << "Adding a button" << std::endl;
+						igd::Button* b = new igd::Button();
+						ImGuiElement* f = (ImGuiElement*)b;
+						f->v_parent = parent;
+						b->FromJSON(e);
+						parent->children.push_back((ImGuiElement*)b);
+					}
+					i++;
+				}
+				}
+				catch (nlohmann::json::parse_error& ex)
+				{
+					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+				}
+			}
+		}
+	}
+
+
 	if (ImGui::IsAnyItemHovered())
 	{
 		g.MouseCursor = ImGuiMouseCursor_Hand;
 	}
+	
 	ImGui::End();
 }

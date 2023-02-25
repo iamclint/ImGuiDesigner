@@ -5,8 +5,55 @@
 #include <Windows.h>
 #include "Workspace.h"
 #include "ImGuiDesigner.h"
+#include <fstream>
+#include <filesystem>
 #define IMGUI_DEFINE_MATH_OPERATORS
 //get mouse location delta of item
+
+void GetAllChildren(ImGuiElement* parent, std::ofstream& file)
+{
+	ImGuiContext& g = *GImGui;
+	for (auto& e : parent->children)
+	{
+		if (e->delete_me)
+			continue;
+
+		file << e->GetJson().dump();
+		if (&e != &parent->children.back())
+			file << ", " << std::endl;
+		if (e->v_can_have_children)
+			GetAllChildren(e, file);
+	}
+}
+
+
+void ImGuiElement::SaveAsWidget(std::string name)
+{
+	if (children.size() == 0)
+		return;
+	//check if folder exists
+	if (!std::filesystem::exists("widgets"))
+		std::filesystem::create_directory("widgets");
+	//write to file
+	std::ofstream file;
+	file.open("widgets/" + name + ".igd");
+	file << "{\"elements\":[" << this->GetJson().dump() << ", " << std::endl;
+	for (auto& e : children)
+	{
+		if (e->delete_me)
+			continue;
+		file << e->GetJson().dump();
+		if (&e != &children.back())
+			file << ", " << std::endl;
+			
+		if (e->v_can_have_children)
+			GetAllChildren(e, file);
+	}
+	
+	file << "]}";
+	file.close();
+	std::cout << "Saved to widgets/widget.igd" << std::endl;
+}
 
 void ImGuiElement::Undo()
 {
@@ -264,7 +311,7 @@ void ImGuiElement::Select()
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
-	if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && resize == resize_direction::none)
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && resize == resize_direction::none)
 	{
 		igd::properties->active_element = this;
 	}

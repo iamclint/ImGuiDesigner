@@ -177,6 +177,15 @@ void Properties::OnUIRender() {
 				active_element->PushUndo();
 			}
 		}
+		if (active_element->v_property_flags & property_flags::disabled)
+		{
+			PropertyLabel("Disabled:");
+			if (ImGui::Checkbox("##property_disabled", &active_element->v_disabled))
+			{
+				active_element->PushUndo();
+			}
+		}
+
 		PropertyLabel("Parent:");
 		ImGui::PushItemWidth(260);
 		if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
@@ -199,6 +208,18 @@ void Properties::OnUIRender() {
 				}
 			}
 			ImGui::EndCombo();
+		}
+		if (active_element->v_can_have_children && active_element->children.size()>0)
+		{
+			PropertyLabel("Widget:");
+			if (ImGui::Button("Save##Json_Save"))
+				active_element->SaveAsWidget(active_element->v_id);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("A widget will be saved comprised of all the children of this element.\nThe name will be the id of this element.");
+			ImGui::EndTooltip();
 		}
 		
 		active_element->RenderPropertiesInternal();

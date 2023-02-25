@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "../json/single_include/nlohmann/json.hpp"
 
 enum class property_flags : int
 {
@@ -14,6 +15,7 @@ enum class property_flags : int
 	color_background_hovered = 1 << 5,   // Disable user collapsing window by double-clicking on it. Also referred to as Window Menu Button (e.g. within a docking node).
 	color_background_active = 1 << 6,   // Resize every window to its content every frame
 	border = 1 << 7,   // Disable drawing background color (WindowBg, etc.) and outside border. Similar as using SetNextWindowBgAlpha(0.0f).
+	disabled = 1 << 8
 };
 
 inline property_flags operator|(property_flags a, property_flags b)
@@ -51,15 +53,17 @@ public:
 	ImColor v_background_hovered;
 	bool v_border;
 	bool v_can_have_children;
+	bool v_disabled;
 	ImGuiElement* v_parent;
+
 	std::vector<ImGuiElement*> children;
 	property_flags v_property_flags;
 
 	bool did_move;
 	bool did_resize;
 	
-	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0), v_pos(ImVec2(0,0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0,0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false) {}
-	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), v_parent(parent), v_border(0), v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false){}
+	ImGuiElement() : v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"), v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0), v_pos(ImVec2(0,0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0,0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false), v_disabled(false), v_property_flags(property_flags::None) {}
+	ImGuiElement(const char* id, const char* label, ImVec2 size, int flags, ImColor foreground, ImColor background, ImGuiElement* parent, int border) : v_flags(flags), v_size(size), v_id(id), v_label(label), v_foreground(foreground), v_background(background), v_parent(parent), v_border(0), v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0), delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false), v_disabled(false), v_property_flags(property_flags::None){}
 	void Render();
 	void Delete();
 	//overrideable functions
@@ -71,14 +75,22 @@ public:
 	virtual void UndoLocal() = 0;
 	virtual void RedoLocal() = 0;
 	virtual void PushUndoLocal() = 0;
+	virtual nlohmann::json GetJson() = 0;
+	virtual void FromJSON(nlohmann::json data) = 0;
+
+	//helper functions
 	void Redo();
 	void Undo();
 	void PushUndo();
+	void SaveAsWidget(std::string name);
 	virtual ~ImGuiElement() {};
 	//helper functions
 	static std::string RandomID(size_t length);
 	bool delete_me;
 	ImGuiElement* change_parent;
+
+
+	
 private:
 	bool Drag();
 	bool Resize();
@@ -94,5 +106,7 @@ private:
 	ImVec2 last_position;
 	ImVec2 last_known_cursor;
 	ImVec2 mouse_drag_delta;
+
+	
 };
 
