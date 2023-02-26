@@ -9,6 +9,7 @@ public:
 	ImGuiElement* copied_element;
 	Properties() : active_element(nullptr), copied_element(nullptr), modified(false) {}
 	virtual void OnUIRender() override;
+	void PropertyLabel(const char* lbl);
 private:
 	void getChildParents(ImGuiElement* parent);
 	void getAllChildren(ImGuiElement* parent);

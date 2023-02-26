@@ -648,9 +648,9 @@ namespace Walnut {
 						// split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
 						//   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
 						//                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
-						auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.15f, nullptr, &dockspace_id);
+						auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.12f, nullptr, &dockspace_id);
 						auto dock_id_down = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_id);
-						auto dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.25f, nullptr, &dockspace_id);
+						auto dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.27f, nullptr, &dockspace_id);
 						auto dock_id_left_fill= ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 1.0f, nullptr, &dockspace_id);
 
 						// we now dock our windows into the docking node we made above

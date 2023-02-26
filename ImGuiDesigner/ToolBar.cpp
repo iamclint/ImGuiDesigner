@@ -25,6 +25,52 @@ void AddNewElement(ImGuiElement* ele)
 
 }
 
+ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
+{
+	if (obj["type"] == "child window")
+	{
+		ImGuiElement* new_parent = nullptr;
+		std::cout << "Child Window found" << std::endl;
+		igd::ChildWindow* b = new igd::ChildWindow();
+		b->FromJSON(obj);
+		new_parent = (ImGuiElement*)b;
+		if (parent)
+			parent->children.push_back((ImGuiElement*)b);
+		else
+			AddNewElement((ImGuiElement*)b);
+		new_parent->v_parent = parent;
+		return new_parent;
+	}
+	else if (obj["type"] == "button")
+	{
+		std::cout << "Adding a button" << std::endl;
+		igd::Button* b = new igd::Button();
+		ImGuiElement* f = (ImGuiElement*)b;
+		f->v_parent = parent;
+		b->FromJSON(obj);
+		parent->children.push_back((ImGuiElement*)b);
+		return f;
+	}
+}
+
+
+void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
+{
+	ImGuiContext& g = *GImGui;
+	std::cout << "j: " << j.dump() << std::endl;
+	for (int i = 0; auto & e : j["children"])
+	{
+		std::cout << "e: " << e.dump() << std::endl;
+		CreateElementFromJson(e, parent);
+		if (e["children"].size() > 0)
+		{
+			GetAllChildren(e, parent->children[i]);
+		}
+		i++;
+	}
+}
+
+
 void ToolBar::OnUIRender() {
 	static char* buf =new char[25];
 	memset(buf, 0, 25);
@@ -60,7 +106,7 @@ void ToolBar::OnUIRender() {
 	//iterate all files in widgets folder
 	for (auto& p : std::filesystem::directory_iterator("widgets"))
 	{
-		if (p.path().extension() == ".igd")
+		if (p.path().extension() == ".wgd")
 		{
 			if (ImGui::Button(p.path().filename().stem().string().c_str()))
 			{
@@ -70,40 +116,8 @@ void ToolBar::OnUIRender() {
 				try
 				{
 					j = nlohmann::json::parse(i);
-
-				ImGuiElement* parent = nullptr;
-				//check if first element is a child 
-				if (j["elements"].at(0)["type"] == "child window")
-				{
-					std::cout << "Child Window found" << std::endl;
-					igd::ChildWindow* b = new igd::ChildWindow();
-					b->FromJSON(j["elements"].at(0));
-					parent = (ImGuiElement*)b;
-					AddNewElement((ImGuiElement*)b);
-				}
-				else
-				{
-					return;
-				}
-				for (int i = 0; auto& e : j["elements"])
-				{	
-					//skip the first element since it is already added
-					if (i == 0)
-					{
-						i++;
-						continue;
-					}
-					if (e["type"] == "button")
-					{
-						std::cout << "Adding a button" << std::endl;
-						igd::Button* b = new igd::Button();
-						ImGuiElement* f = (ImGuiElement*)b;
-						f->v_parent = parent;
-						b->FromJSON(e);
-						parent->children.push_back((ImGuiElement*)b);
-					}
-					i++;
-				}
+					ImGuiElement* parent = CreateElementFromJson(j["child_window"], nullptr);
+					GetAllChildren(j["child_window"], parent);
 				}
 				catch (nlohmann::json::parse_error& ex)
 				{

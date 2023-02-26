@@ -5,7 +5,7 @@
 #include "ImGuiElement.h"
 #include "ImGuiDesigner.h"
 #include <iostream>
-void PropertyLabel(const char* lbl)
+void Properties::PropertyLabel(const char* lbl)
 {
 	ImGui::TableNextColumn();
 	ImGui::Text(lbl);
@@ -98,18 +98,18 @@ void Properties::OnUIRender() {
 		ImGui::TreePop();
 	}
 
-
+	int item_width = 200;
 	if (active_element)
 	{
 		ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
 		PropertyLabel("ID:");
-		ImGui::PushItemWidth(260);
+		ImGui::PushItemWidth(item_width);
 		ImGui::InputText("##property_id", &active_element->v_id);
 		
 		if (active_element->v_property_flags & property_flags::label)
 		{
 			PropertyLabel("Label:");
-			ImGui::PushItemWidth(260);
+			ImGui::PushItemWidth(item_width);
 			if (ImGui::InputText("##property_label", &active_element->v_label))
 			{
 				active_element->PushUndo();
@@ -117,14 +117,14 @@ void Properties::OnUIRender() {
 		}
 		
 		PropertyLabel("Size:");
-		ImGui::PushItemWidth(260);
+		ImGui::PushItemWidth(item_width);
 		if (ImGui::InputFloat2("##property_size", (float*)&active_element->v_size))
 		{
 			active_element->PushUndo();
 		}
 
 		PropertyLabel("Position:");
-		ImGui::PushItemWidth(260);
+		ImGui::PushItemWidth(item_width);
 		if  (ImGui::InputFloat2("##property_pos", (float*)&active_element->v_pos))
 		{
 			active_element->PushUndo();
@@ -187,7 +187,7 @@ void Properties::OnUIRender() {
 		}
 
 		PropertyLabel("Parent:");
-		ImGui::PushItemWidth(260);
+		ImGui::PushItemWidth(item_width);
 		if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
 		{
 			if (ImGui::Selectable("None"))
@@ -197,7 +197,7 @@ void Properties::OnUIRender() {
 			}
 			for (auto& element : igd::active_workspace->elements)
 			{
-				if (element == active_element || !element->v_can_have_children)
+				if (element == active_element || !element->v_can_have_children || element->delete_me)
 					continue;
 				if (element->children.size()>0)
 					getChildParents(element);
@@ -209,7 +209,11 @@ void Properties::OnUIRender() {
 			}
 			ImGui::EndCombo();
 		}
-		if (active_element->v_can_have_children && active_element->children.size()>0)
+
+		
+		active_element->RenderPropertiesInternal();
+		
+		if (active_element->v_can_have_children && active_element->children.size() > 0)
 		{
 			PropertyLabel("Widget:");
 			if (ImGui::Button("Save##Json_Save"))
@@ -221,8 +225,6 @@ void Properties::OnUIRender() {
 			ImGui::Text("A widget will be saved comprised of all the children of this element.\nThe name will be the id of this element.");
 			ImGui::EndTooltip();
 		}
-		
-		active_element->RenderPropertiesInternal();
 		
 		ImGui::EndTable();
 		if (ImGui::Button("Delete##property_delete"))

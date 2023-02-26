@@ -5,12 +5,14 @@
 #include "..\Properties.h"
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
+
 #include <iostream>
 namespace igd
 { 
 	WorkSpace* active_workspace;
 	std::vector<WorkSpace*> workspaces;
 	Properties* properties;
+	Notifications* notifications;
 	Walnut::Application* app;
 	bool add_workspace = false;
 	std::vector<WorkSpace*> delete_workspace;
@@ -71,12 +73,15 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	igd::app = new Walnut::Application(spec);
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
+	std::shared_ptr<Notifications> notifications = std::make_shared<Notifications>();
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();
+	igd::notifications = notifications.get();
 	igd::app->PushLayer<ToolBar>();
 	igd::app->PushLayer(work);
 	igd::app->PushLayer(properties);
+	igd::app->PushLayer(notifications);
 	igd::app->SetUpdateLayerStackCallback(update_layer_stack);
 	igd::app->SetMenubarCallback([]()
 	{			

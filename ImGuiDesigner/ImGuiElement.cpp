@@ -7,25 +7,52 @@
 #include "ImGuiDesigner.h"
 #include <fstream>
 #include <filesystem>
+#include <random>
+#include "Notifications.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 //get mouse location delta of item
 
-void GetAllChildren(ImGuiElement* parent, std::ofstream& file)
+void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 {
 	ImGuiContext& g = *GImGui;
-	for (auto& e : parent->children)
+	for (int i =0;auto& e : parent->children)
 	{
 		if (e->delete_me)
 			continue;
-
-		file << e->GetJson().dump();
-		if (&e != &parent->children.back())
-			file << ", " << std::endl;
+		try
+		{
+			pjson["children"].push_back(e->GetJson());
+		}
+		catch (nlohmann::json::exception& e)
+		{
+			std::cout << "exception: " << e.what() << std::endl;
+		}
 		if (e->v_can_have_children)
-			GetAllChildren(e, file);
+		{
+			GetAllChildren(e, pjson["children"].back());
+		}
+		i++;
 	}
 }
 
+void ImGuiElement::PushStyleColor(ImGuiCol idx, const ImVec4& col)
+{
+	igd::active_workspace->code << "ImGui::PushStyleColor(" << idx << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
+	ImGui::PushStyleColor(idx, col);
+	color_pops++;
+}
+void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, float val)
+{
+	igd::active_workspace->code << "ImGui::PushStyleVar(" << idx << ", " << val << ");" << std::endl;
+	ImGui::PushStyleVar(idx, val);
+	style_pops++;
+}
+void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
+{
+	igd::active_workspace->code << "ImGui::PushStyleVar(" << idx << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
+	ImGui::PushStyleVar(idx, val);
+	style_pops++;
+}
 
 void ImGuiElement::SaveAsWidget(std::string name)
 {
@@ -34,23 +61,32 @@ void ImGuiElement::SaveAsWidget(std::string name)
 	//check if folder exists
 	if (!std::filesystem::exists("widgets"))
 		std::filesystem::create_directory("widgets");
-	//write to file
+	
+	int find_pound = name.find("#");
+	if (find_pound != std::string::npos)
+		name = name.substr(0, find_pound);
+	//check if file exists
+	if (std::filesystem::exists("widgets/" + name + ".wgd"))
+	{
+		//if it does, do something
+		igd::notifications->GenericNotification("File already exists", "Please choose a new id for this widget", "", "Ok", []() { std::cout << "Yay" << std::endl; });
+		return;
+	}
+
 	std::ofstream file;
-	file.open("widgets/" + name + ".igd");
-	file << "{\"elements\":[" << this->GetJson().dump() << ", " << std::endl;
+	file.open("widgets/" + name + ".wgd");
+	nlohmann::json main_obj;
+	main_obj["child_window"] = this->GetJson();
 	for (auto& e : children)
 	{
 		if (e->delete_me)
 			continue;
-		file << e->GetJson().dump();
-		if (&e != &children.back())
-			file << ", " << std::endl;
-			
+		main_obj["child_window"]["children"].push_back(e->GetJson());
 		if (e->v_can_have_children)
-			GetAllChildren(e, file);
+			GetAllChildren(e, main_obj["child_window"]["children"].back());
 	}
-	
-	file << "]}";
+	std::cout << main_obj.dump() << std::endl;
+	file << main_obj.dump() << std::endl;
 	file.close();
 	std::cout << "Saved to widgets/widget.igd" << std::endl;
 }
@@ -334,6 +370,14 @@ void ImGuiElement::Render()
 	if (v_pos.x != 0 || v_pos.y != 0)
 		ImGui::SetCursorPos(v_pos);
 	
+	color_pops = 0;
+	style_pops = 0;
+	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+	{
+		igd::active_workspace->code << "ImGui::BeginDisabled();" << std::endl;
+		ImGui::BeginDisabled();
+	}
+	
 	this->RenderHead();
 	if (this->children.size() > 0)
 	{
@@ -343,7 +387,7 @@ void ImGuiElement::Render()
 				continue;
 			child->Render();
 		}
-		//delete from elements if delete_me is true
+
 		for (auto it = this->children.begin(); it != this->children.end();)
 		{
 			if (!(*it)->v_parent)
@@ -351,26 +395,37 @@ void ImGuiElement::Render()
 				igd::active_workspace->elements.push_back(*it);
 				it = this->children.erase(it);
 			}
-			if ((*it)->v_parent!=this)
+			else if ((*it)->v_parent!=this)
 			{
 				(*it)->v_parent->children.push_back(*it);
 				it = this->children.erase(it);
 			}
-			//else if ((*it)->delete_me)
-			//{
-			//	delete (*it);
-			//	it = children.erase(it);
-			//}
 			else
 			{
 				++it;
 			}
 		}
 	}
+	
 	this->RenderInternal();
 	this->RenderFoot();
 	
-	
+	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0)
+	{
+		ImGui::EndDisabled();
+		igd::active_workspace->code << "ImGui::EndDisabled();" << std::endl;
+	}
+
+	if (style_pops > 0)
+	{
+		ImGui::PopStyleVar(style_pops);
+		igd::active_workspace->code << "ImGui::PopStyleVar(" << style_pops << ");" << std::endl;
+	}
+	if (color_pops > 0)
+	{
+		ImGui::PopStyleColor(color_pops);
+		igd::active_workspace->code << "ImGui::PopStyleColor(" << color_pops << ");" << std::endl;
+	}
 	//reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
 	if (v_pos.x != 0 || v_pos.y != 0)
 		ImGui::SetCursorPos(last_known_cursor);
@@ -405,18 +460,27 @@ void ImGuiElement::Render()
 	}
 }
 
+//random number generator
+int GetRandomInt(int min, int max)
+{
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_real_distribution<double> dist(min, max);
+	return dist(mt);
+}
+
 std::string ImGuiElement::RandomID(size_t length)
 {
-		auto randchar = []() -> char
-		{
-			const char charset[] =
-				"0123456789"
-				"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-				"abcdefghijklmnopqrstuvwxyz";
-			const size_t max_index = (sizeof(charset) - 1);
-			return charset[rand() % max_index];
-		};
-		std::string str(length, 0);
-		std::generate_n(str.begin(), length, randchar);
-		return str;
+	auto randchar = []() -> char
+	{
+		const char charset[] =
+			"0123456789"
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			"abcdefghijklmnopqrstuvwxyz";
+		const size_t max_index = (sizeof(charset) - 1);
+		return charset[GetRandomInt(0,max_index)];
+	};
+	std::string str(length, 0);
+	std::generate_n(str.begin(), length, randchar);
+	return str;
 }
