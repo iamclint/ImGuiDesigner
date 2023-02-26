@@ -55,8 +55,9 @@ void Notifications::confirm()
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No"))
+		if (ImGui::Button("No") || ImGui::GetIO().KeysDown[ImGuiKey_Escape])
 		{
+			ImGui::GetIO().KeysDown[ImGuiKey_Escape] = false;
 			this->callback_confirmation(false);
 			ImGui::CloseCurrentPopup();
 		}

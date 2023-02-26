@@ -18,7 +18,7 @@ namespace igd
 
 		Button() {
 			v_flags = ImGuiButtonFlags_None;
-			v_property_flags = property_flags::label | property_flags::color_background | property_flags::color_background_active | property_flags::color_background_hovered | property_flags::disabled;
+			v_property_flags = property_flags::label | property_flags::color_foreground | property_flags::color_background | property_flags::color_background_active | property_flags::color_background_hovered | property_flags::disabled;
 			v_size = ImVec2(0, 0);
 			v_id = ("new button##" + RandomID(10)).c_str();
 			v_label = "new button";
@@ -132,7 +132,11 @@ namespace igd
 		{
 			nlohmann::json j;
 			j["type"] = "button";
-			j["id"] = v_id;
+			int pound_pos = v_id.find("#");
+			if (pound_pos != std::string::npos)
+				j["id"] = v_id.substr(0, pound_pos);
+			else
+				j["id"] = v_id;
 			j["label"] = v_label;
 			j["size"] = { v_size.x, v_size.y };
 			j["pos"] = { v_pos.x, v_pos.y };

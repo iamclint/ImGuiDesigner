@@ -148,7 +148,11 @@ namespace igd
 		{
 			nlohmann::json j;
 			j["type"] = "child window";
-			j["id"] = v_id;
+			int pound_pos = v_id.find("#");
+			if (pound_pos != std::string::npos)
+				j["id"] = v_id.substr(0, pound_pos);
+			else
+				j["id"] = v_id;
 			j["pos"] = { this->v_pos.x,this->v_pos.y };
 			j["flags"] = v_flags;
 			j["label"] = v_label;

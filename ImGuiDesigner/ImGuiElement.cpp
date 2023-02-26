@@ -184,7 +184,7 @@ void ImGuiElement::KeyBinds()
 			igd::properties->copied_element->Clone();
 		
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive())
 	{
 		igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + this->v_id, "", [this](bool conf) {
 			if (!conf)
@@ -199,6 +199,7 @@ void ImGuiElement::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
 	{
+		ImGui::GetIO().KeysDown[ImGuiKey_Escape] = false;
 		igd::properties->active_element = nullptr;
 	}
 }
