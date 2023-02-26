@@ -46,18 +46,18 @@ class ImGuiElement
 {
 //virtual functions
 public:
-	virtual void RenderPropertiesInternal() = 0;
-	virtual void RenderHead() = 0;
-	virtual void RenderInternal() = 0;
-	virtual void RenderFoot() = 0;
-	virtual void Clone() = 0;
-	virtual void UndoLocal() = 0;
-	virtual void RedoLocal() = 0;
-	virtual void PushUndoLocal() = 0;
-	virtual nlohmann::json GetJson() = 0;
-	virtual void FromJSON(nlohmann::json data) = 0;
+	virtual void RenderPropertiesInternal();
+	virtual void RenderHead() {};
+	virtual void RenderInternal() {};
+	virtual void RenderFoot() {};
+	virtual void Clone() {};
+	virtual void UndoLocal();
+	virtual void RedoLocal();
+	virtual void PushUndoLocal();
+	virtual nlohmann::json GetJson();
+	virtual void FromJSON(nlohmann::json data);
 	virtual ~ImGuiElement() {};
-	
+
 //methods
 public:
 	void Render();
@@ -69,7 +69,7 @@ public:
 	void PushStyleColor(ImGuiCol idx, const ImVec4& col);
 	void PushStyleVar(ImGuiStyleVar idx, float val);
 	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
-	
+	void PopColorAndStyles();
 	static std::string RandomID(size_t length);
 
 //properties	
@@ -129,22 +129,7 @@ public:
 	
 //constructors
 public:
-	ImGuiElement()
-		: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"),
-		v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0),
-		v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
-		delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
-		v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0),v_ImGuiStyleVar_Alpha(0),
-		v_ImGuiStyleVar_DisabledAlpha(0), v_ImGuiStyleVar_WindowPadding(0, 0), v_ImGuiStyleVar_WindowRounding(0),
-		v_ImGuiStyleVar_WindowBorderSize(0), v_ImGuiStyleVar_WindowMinSize(0, 0), v_ImGuiStyleVar_WindowTitleAlign(0, 0),
-		v_ImGuiStyleVar_ChildRounding(0), v_ImGuiStyleVar_ChildBorderSize(0), v_ImGuiStyleVar_PopupRounding(0),
-		v_ImGuiStyleVar_PopupBorderSize(0), v_ImGuiStyleVar_FramePadding(0, 0), v_ImGuiStyleVar_FrameRounding(0),
-		v_ImGuiStyleVar_FrameBorderSize(0), v_ImGuiStyleVar_ItemSpacing(0, 0), v_ImGuiStyleVar_ItemInnerSpacing(0, 0),
-		v_ImGuiStyleVar_IndentSpacing(0), v_ImGuiStyleVar_CellPadding(0, 0), v_ImGuiStyleVar_ScrollbarSize(0),
-		v_ImGuiStyleVar_ScrollbarRounding(0), v_ImGuiStyleVar_GrabMinSize(0), v_ImGuiStyleVar_GrabRounding(0),
-		v_ImGuiStyleVar_TabRounding(0), v_ImGuiStyleVar_ButtonTextAlign(0, 0), v_ImGuiStyleVar_SelectableTextAlign(0, 0),
-		v_ImGuiStyleVar_LayoutAlign(0)
-		{}
+	ImGuiElement();
 	
 	ImGuiElement(const ImGuiElement& other)
 	{

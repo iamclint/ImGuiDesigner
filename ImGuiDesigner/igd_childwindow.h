@@ -63,6 +63,9 @@ namespace igd
 		{
 			igd::properties->PropertyLabel("Rounding");
 			ImGui::SliderFloat("##property_rounding", &this->v_ImGuiStyleVar_ChildRounding, 0, 36);
+			igd::properties->PropertyLabel("Frame Rounding");
+			ImGui::SliderFloat("##property_frame_rounding", &this->v_ImGuiStyleVar_FrameRounding, 0, 36);
+			
 			igd::properties->PropertyLabel("Border Size");
 			ImGui::SliderFloat("##property_border_size", &this->v_ImGuiStyleVar_ChildBorderSize, 0, 36);
 			igd::properties->PropertyLabel("Indent Spacing");
@@ -88,6 +91,7 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 			this->PushStyleColor(ImGuiCol_Text, v_foreground.Value);
 			this->PushStyleColor(ImGuiCol_ChildBg, v_background.Value);
+			
 			if (v_ImGuiStyleVar_ChildRounding!=0)
 				this->PushStyleVar(ImGuiStyleVar_ChildRounding, v_ImGuiStyleVar_ChildRounding);
 			if (v_ImGuiStyleVar_ChildBorderSize != 0)

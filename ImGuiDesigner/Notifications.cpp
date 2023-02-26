@@ -49,20 +49,24 @@ void Notifications::confirm()
 	{
 		ImGui::Text(this->message.c_str());
 
-		if (ImGui::Button("Yes"))
+		if (ImGui::Button("Yes") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
 		{
 			this->callback_confirmation(true);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No") || ImGui::GetIO().KeysDown[ImGuiKey_Escape])
+		if (ImGui::Button("No") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
 		{
-			ImGui::GetIO().KeysDown[ImGuiKey_Escape] = false;
 			this->callback_confirmation(false);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	}
+}
+
+bool Notifications::IsShowing()
+{
+	return this->show_generic || this->show_confirm;
 }
 void Notifications::OnUIRender()
 {

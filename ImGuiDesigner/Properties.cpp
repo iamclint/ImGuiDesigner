@@ -99,14 +99,24 @@ void Properties::OnUIRender() {
 	}
 
 	int item_width = 200;
+	if (!active_element)
+		active_element = igd::active_workspace->basic_workspace_element;
+	bool is_workspace = active_element == igd::active_workspace->basic_workspace_element;
 	if (active_element)
 	{
+		if (is_workspace)
+		{
+			ImGui::Text("Workspace properties");
+			ImGui::Separator();
+		}
 		ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
-		PropertyLabel("ID:");
-		ImGui::PushItemWidth(item_width);
-		ImGui::InputText("##property_id", &active_element->v_id);
-		
-		if (active_element->v_property_flags & property_flags::label)
+		if (!is_workspace)
+		{
+			PropertyLabel("ID:");
+			ImGui::PushItemWidth(item_width);
+			ImGui::InputText("##property_id", &active_element->v_id);
+		}
+		if (active_element->v_property_flags & property_flags::label && !is_workspace)
 		{
 			PropertyLabel("Label:");
 			ImGui::PushItemWidth(item_width);
@@ -116,18 +126,24 @@ void Properties::OnUIRender() {
 			}
 		}
 		
-		PropertyLabel("Size:");
-		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputFloat2("##property_size", (float*)&active_element->v_size))
+		if (!is_workspace)
 		{
-			active_element->PushUndo();
+			PropertyLabel("Size:");
+			ImGui::PushItemWidth(item_width);
+			if (ImGui::InputFloat2("##property_size", (float*)&active_element->v_size))
+			{
+				active_element->PushUndo();
+			}
 		}
 
-		PropertyLabel("Position:");
-		ImGui::PushItemWidth(item_width);
-		if  (ImGui::InputFloat2("##property_pos", (float*)&active_element->v_pos))
+		if (!is_workspace)
 		{
-			active_element->PushUndo();
+			PropertyLabel("Position:");
+			ImGui::PushItemWidth(item_width);
+			if (ImGui::InputFloat2("##property_pos", (float*)&active_element->v_pos))
+			{
+				active_element->PushUndo();
+			}
 		}
 
 		if (active_element->v_property_flags & property_flags::color_foreground)
@@ -177,7 +193,7 @@ void Properties::OnUIRender() {
 				active_element->PushUndo();
 			}
 		}
-		if (active_element->v_property_flags & property_flags::disabled)
+		if (active_element->v_property_flags & property_flags::disabled && !is_workspace)
 		{
 			PropertyLabel("Disabled:");
 			if (ImGui::Checkbox("##property_disabled", &active_element->v_disabled))
@@ -186,31 +202,34 @@ void Properties::OnUIRender() {
 			}
 		}
 
-		PropertyLabel("Parent:");
-		ImGui::PushItemWidth(item_width);
-		if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
+		if (!is_workspace)
 		{
-			if (ImGui::Selectable("None"))
+			PropertyLabel("Parent:");
+			ImGui::PushItemWidth(item_width);
+			if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
 			{
-				active_element->v_parent = nullptr;
-				active_element->PushUndo();
-			}
-			for (auto& element : igd::active_workspace->elements)
-			{
-				if (element == active_element || !element->v_can_have_children || element->delete_me)
-					continue;
-				if (element->children.size()>0)
-					getChildParents(element);
-				if (ImGui::Selectable(element->v_id.c_str()))
+				if (ImGui::Selectable("None"))
 				{
-					active_element->v_parent = element;
+					active_element->v_parent = nullptr;
 					active_element->PushUndo();
 				}
+				for (auto& element : igd::active_workspace->elements)
+				{
+					if (element == active_element || !element->v_can_have_children || element->delete_me)
+						continue;
+					if (element->children.size()>0)
+						getChildParents(element);
+					if (ImGui::Selectable(element->v_id.c_str()))
+					{
+						active_element->v_parent = element;
+						active_element->PushUndo();
+					}
+				}
+				ImGui::EndCombo();
 			}
-			ImGui::EndCombo();
 		}
 
-		
+		ImGui::PushItemWidth(item_width);
 		active_element->RenderPropertiesInternal();
 		
 		if (active_element->v_can_have_children && active_element->children.size() > 0)

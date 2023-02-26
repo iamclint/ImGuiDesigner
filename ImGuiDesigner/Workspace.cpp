@@ -17,6 +17,16 @@ WorkSpace::~WorkSpace()
 WorkSpace::WorkSpace() 
 	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}
 {
+	basic_workspace_element = new ImGuiElement();
+	this->basic_workspace_element->v_background = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+	this->basic_workspace_element->v_foreground = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+	this->basic_workspace_element->v_ImGuiStyleVar_ChildRounding = ImGui::GetStyle().ChildRounding;
+	this->basic_workspace_element->v_ImGuiStyleVar_FrameRounding = ImGui::GetStyle().FrameRounding;
+	this->basic_workspace_element->v_ImGuiStyleVar_GrabRounding = ImGui::GetStyle().GrabRounding;
+	this->basic_workspace_element->v_ImGuiStyleVar_PopupRounding = ImGui::GetStyle().PopupRounding;
+	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarRounding = ImGui::GetStyle().ScrollbarRounding;
+	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize = ImGui::GetStyle().ScrollbarSize;
+	
 	if (igd::workspaces.size() == 0)
 		id = "Workspace";
 	else
@@ -62,34 +72,17 @@ void WorkSpace::PushUndo(ImGuiElement* ele)
 
 void WorkSpace::Colors()
 {
+	this->basic_workspace_element->PushStyleColor(ImGuiCol_WindowBg, this->basic_workspace_element->v_background);
+	this->basic_workspace_element->PushStyleColor(ImGuiCol_Text, this->basic_workspace_element->v_foreground);
 }
 void WorkSpace::Styles()
 {
-	//j["v_ImGuiStyleVar_DisabledAlpha"] = v_ImGuiStyleVar_DisabledAlpha;
-	//j["v_ImGuiStyleVar_WindowPadding"] = { v_ImGuiStyleVar_WindowPadding.x,v_ImGuiStyleVar_WindowPadding.y };
-	//j["v_ImGuiStyleVar_WindowRounding"] = v_ImGuiStyleVar_WindowRounding;
-	//j["v_ImGuiStyleVar_WindowBorderSize"] = v_ImGuiStyleVar_WindowBorderSize;
-	//j["v_ImGuiStyleVar_WindowMinSize"] = { v_ImGuiStyleVar_WindowMinSize.x,v_ImGuiStyleVar_WindowMinSize.y };
-	//j["v_ImGuiStyleVar_WindowTitleAlign"] = { v_ImGuiStyleVar_WindowTitleAlign.x,v_ImGuiStyleVar_WindowTitleAlign.y };
-	//j["v_ImGuiStyleVar_ChildRounding"] = v_ImGuiStyleVar_ChildRounding;
-	//j["v_ImGuiStyleVar_ChildBorderSize"] = v_ImGuiStyleVar_ChildBorderSize;
-	//j["v_ImGuiStyleVar_PopupRounding"] = v_ImGuiStyleVar_PopupRounding;
-	//j["v_ImGuiStyleVar_PopupBorderSize"] = v_ImGuiStyleVar_PopupBorderSize;
-	//j["v_ImGuiStyleVar_FramePadding"] = { v_ImGuiStyleVar_FramePadding.x,v_ImGuiStyleVar_FramePadding.y };
-	//j["v_ImGuiStyleVar_FrameRounding"] = v_ImGuiStyleVar_FrameRounding;
-	//j["v_ImGuiStyleVar_FrameBorderSize"] = v_ImGuiStyleVar_FrameBorderSize;
-	//j["v_ImGuiStyleVar_ItemSpacing"] = { v_ImGuiStyleVar_ItemSpacing.x,v_ImGuiStyleVar_ItemSpacing.y };
-	//j["v_ImGuiStyleVar_ItemInnerSpacing"] = { v_ImGuiStyleVar_ItemInnerSpacing.x, v_ImGuiStyleVar_ItemInnerSpacing.y };
-	//j["v_ImGuiStyleVar_IndentSpacing"] = v_ImGuiStyleVar_IndentSpacing;
-	//j["v_ImGuiStyleVar_CellPadding"] = { v_ImGuiStyleVar_CellPadding.x,v_ImGuiStyleVar_CellPadding.y };
-	//j["v_ImGuiStyleVar_ScrollbarSize"] = v_ImGuiStyleVar_ScrollbarSize;
-	//j["v_ImGuiStyleVar_ScrollbarRounding"] = v_ImGuiStyleVar_ScrollbarRounding;
-	//j["v_ImGuiStyleVar_GrabMinSize"] = v_ImGuiStyleVar_GrabMinSize;
-	//j["v_ImGuiStyleVar_GrabRounding"] = v_ImGuiStyleVar_GrabRounding;
-	//j["v_ImGuiStyleVar_TabRounding"] = v_ImGuiStyleVar_TabRounding;
-	//j["v_ImGuiStyleVar_ButtonTextAlign"] = { v_ImGuiStyleVar_ButtonTextAlign.x,v_ImGuiStyleVar_ButtonTextAlign.y };
-	//j["v_ImGuiStyleVar_SelectableTextAlign"] = { v_ImGuiStyleVar_SelectableTextAlign.x,v_ImGuiStyleVar_SelectableTextAlign.y };
-	//j["v_ImGuiStyleVar_LayoutAlign"] = v_ImGuiStyleVar_LayoutAlign;
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ChildRounding, this->basic_workspace_element->v_ImGuiStyleVar_ChildRounding);
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_FrameRounding, this->basic_workspace_element->v_ImGuiStyleVar_FrameRounding);
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_GrabRounding, this->basic_workspace_element->v_ImGuiStyleVar_GrabRounding);
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_PopupRounding, this->basic_workspace_element->v_ImGuiStyleVar_PopupRounding);
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ScrollbarRounding, this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarRounding);
+	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ScrollbarSize, this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize);
 }
 
 void WorkSpace::OnUIRender() {
@@ -108,6 +101,10 @@ void WorkSpace::OnUIRender() {
 	this->code.str("");
 	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
+
+	Colors();
+	Styles();
+	
 	ImGui::Begin(id.c_str(), &is_open, ImGuiWindowFlags_NoSavedSettings);
 	if (this==igd::active_workspace)
 		KeyBinds();
@@ -145,6 +142,6 @@ void WorkSpace::OnUIRender() {
 			++it;
 		}
 	}
-	
 	ImGui::End();
+	this->basic_workspace_element->PopColorAndStyles();
 }
