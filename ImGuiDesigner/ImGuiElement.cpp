@@ -186,12 +186,16 @@ void ImGuiElement::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 	{
-		if (this->children.size() > 0)
-		{
-			for (auto& child : this->children)
-				child->Delete();
-		}
-		this->Delete();
+		igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + this->v_id, "", [this](bool conf) {
+			if (!conf)
+				return;
+			if (this->children.size() > 0)
+			{
+				for (auto& child : this->children)
+					child->Delete();
+			}
+			this->Delete();
+		});
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
 	{
