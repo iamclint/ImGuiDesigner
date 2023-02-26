@@ -70,6 +70,8 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
 	spec.Name = "ImGui Designer";
+	spec.Width = 1600;
+	spec.Height = 800;
 	igd::app = new Walnut::Application(spec);
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();

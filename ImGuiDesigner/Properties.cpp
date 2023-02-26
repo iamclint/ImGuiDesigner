@@ -146,37 +146,54 @@ void Properties::OnUIRender() {
 			}
 		}
 
-		if (active_element->v_property_flags & property_flags::color_foreground)
+		if (active_element->v_colors.size() > 0)
 		{
-			PropertyLabel("Foreground:");
-			if (ImGui::ColorEdit4("##property_foreground", (float*)&active_element->v_foreground, ImGuiColorEditFlags_NoInputs))
-			{
+			PropertyLabel("");
+			PropertyLabel("Colors");
+			PropertyLabel("Inherit All Colors");
+			if (ImGui::Checkbox("##inherit_colors", &active_element->v_inherit_all_colors))
 				modified = true;
-			}
 		}
-		if (active_element->v_property_flags & property_flags::color_background)
+		for (auto& c : active_element->v_colors)
 		{
-			PropertyLabel("Background:");
-			if (ImGui::ColorEdit4("##property_background", (float*)&active_element->v_background, ImGuiColorEditFlags_NoInputs))
+			PropertyLabel(ImGui::GetStyleColorName(c.first));
+			ImGui::PushItemWidth(item_width);
+			if (ImGui::ColorEdit4(("##property_color_" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), (float*)&c.second, ImGuiColorEditFlags_NoInputs))
 			{
 				modified = true;
 			}
+			ImGui::SameLine();
+			if (ImGui::Checkbox(("Inherit##" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), &c.second.inherit))
+				modified = true;
 		}
-		if (active_element->v_property_flags & property_flags::color_background_hovered)
+		
+		if (active_element->v_styles.size() > 0)
 		{
-			PropertyLabel("Hovered:");
-			if (ImGui::ColorEdit4("##property_background_hovered", (float*)&active_element->v_background_hovered, ImGuiColorEditFlags_NoInputs))
-			{
+			PropertyLabel(""); 
+			PropertyLabel("Styles");
+			PropertyLabel("Inherit All Styles");
+			if (ImGui::Checkbox("##inherit_styles", &active_element->v_inherit_all_styles))
 				modified = true;
-			}
 		}
-		if (active_element->v_property_flags & property_flags::color_background_active)
+		
+		for (auto& c : active_element->v_styles)
 		{
-			PropertyLabel("Active:");
-			if (ImGui::ColorEdit4("##property_background_active", (float*)&active_element->v_background_active, ImGuiColorEditFlags_NoInputs)) 
+			PropertyLabel(ImGuiStyleVar_Strings[c.first]);
+			ImGui::PushItemWidth(item_width);
+			if (c.second.type == StyleVarType::Float)
 			{
-				modified = true;
+				if (ImGui::InputFloat(("##property_style_" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), (float*)&c.second.value.Float))
+					modified = true;
+				
 			}
+			else if (c.second.type == StyleVarType::Vec2)
+			{
+				if (ImGui::InputFloat2(("##property_style_" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), (float*)&c.second.value.Vec2))
+					modified = true;
+			}
+			ImGui::SameLine();
+			if (ImGui::Checkbox(("Inherit##" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
+				modified = true;
 		}
 
 		if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
@@ -185,14 +202,6 @@ void Properties::OnUIRender() {
 			active_element->PushUndo();
 		}
 
-		if (active_element->v_property_flags & property_flags::border)
-		{
-			PropertyLabel("Border:");
-			if (ImGui::Checkbox("##property_border", &active_element->v_border))
-			{
-				active_element->PushUndo();
-			}
-		}
 		if (active_element->v_property_flags & property_flags::disabled && !is_workspace)
 		{
 			PropertyLabel("Disabled:");

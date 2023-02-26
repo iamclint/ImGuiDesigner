@@ -19,7 +19,91 @@ enum class property_flags : int
 	disabled = 1 << 8,
 
 };
-
+static inline const char* ImGuiStyleVar_Strings[] = {
+	"Alpha",
+	"DisabledAlpha",
+	"WindowPadding",
+	"WindowRounding",
+	"WindowBorderSize",
+	"WindowMinSize",
+	"WindowTitleAlign",
+	"ChildRounding",
+	"ChildBorderSize",
+	"PopupRounding",
+	"PopupBorderSize",
+	"FramePadding",
+	"FrameRounding",
+	"FrameBorderSize",
+	"ItemSpacing",
+	"ItemInnerSpacing",
+	"IndentSpacing",
+	"CellPadding",
+	"ScrollbarSize",
+	"ScrollbarRounding",
+	"GrabMinSize",
+	"GrabRounding",
+	"TabRounding",
+	"ButtonTextAlign",
+	"SelectableTextAlign",
+	"LayoutAlign"
+};
+static inline const char* ImGuiColor_Strings[] = {
+	"Text",
+	"TextDisabled",
+	"WindowBg",              // Background of normal windows
+	"ChildBg",               // Background of child windows
+	"PopupBg",               // Background of popups", menus", tooltips windows
+	"Border",
+	"BorderShadow",
+	"FrameBg",               // Background of checkbox", radio button", plot", slider", text input
+	"FrameBgHovered",
+	"FrameBgActive",
+	"TitleBg",
+	"TitleBgActive",
+	"TitleBgCollapsed",
+	"MenuBarBg",
+	"ScrollbarBg",
+	"ScrollbarGrab",
+	"ScrollbarGrabHovered",
+	"ScrollbarGrabActive",
+	"CheckMark",
+	"SliderGrab",
+	"SliderGrabActive",
+	"Button",
+	"ButtonHovered",
+	"ButtonActive",
+	"Header",                // Header* colors are used for CollapsingHeader", TreeNode", Selectable", MenuItem
+	"HeaderHovered",
+	"HeaderActive",
+	"Separator",
+	"SeparatorHovered",
+	"SeparatorActive",
+	"ResizeGrip",
+	"ResizeGripHovered",
+	"ResizeGripActive",
+	"Tab",
+	"TabHovered",
+	"TabActive",
+	"TabUnfocused",
+	"TabUnfocusedActive",
+	"DockingPreview",        // Preview overlay color when about to docking something
+	"DockingEmptyBg",        // Background color for empty node (e.g. CentralNode with no window docked into it)
+	"PlotLines",
+	"PlotLinesHovered",
+	"PlotHistogram",
+	"PlotHistogramHovered",
+	"TableHeaderBg",         // Table header background
+	"TableBorderStrong",     // Table outer and header borders (prefer using Alpha=1.0 here)
+	"TableBorderLight",      // Table inner borders (prefer using Alpha=1.0 here)
+	"TableRowBg",            // Table row background (even rows)
+	"TableRowBgAlt",         // Table row background (odd rows)
+	"TextSelectedBg",
+	"DragDropTarget",
+	"NavHighlight",          // Gamepad/keyboard: current highlighted item
+	"NavWindowingHighlight", // Highlight window when using CTRL+TAB
+	"NavWindowingDimBg",     // Darken/colorize entire screen behind the CTRL+TAB window list", when active
+	"ModalWindowDimBg"     // Darken/colorize entire screen behind a modal window", when one is active
+};
 
 inline property_flags operator|(property_flags a, property_flags b)
 {
@@ -41,6 +125,34 @@ enum class resize_direction : int
 	bottom_left,
 	bottom_right
 };
+enum class StyleVarType : int
+{
+	Float,
+	Vec2,
+	Vec4
+};
+union StyleVarValueU
+{
+	float Float;
+	ImVec2 Vec2;
+};
+struct StyleVarValue
+{
+	StyleVarType type;
+	StyleVarValueU value;
+	bool inherit;
+	StyleVarValue() : type(StyleVarType::Float), value{}  {}
+	StyleVarValue(float f, bool inherit=false) : type(StyleVarType::Float), value{}, inherit(inherit) { value.Float = f; }
+	StyleVarValue(ImVec2 v, bool inherit=false) : type(StyleVarType::Vec2), value{}, inherit(inherit) { value.Vec2 = v; }
+};
+struct ColorValue
+{
+	ImVec4 value;
+	bool inherit;
+	ColorValue() : value{}, inherit(false) {}
+	ColorValue(ImVec4 v, bool inherit = false) : value(v), inherit(inherit) {}
+};
+
 
 class ImGuiElement
 {
@@ -70,6 +182,8 @@ public:
 	void PushStyleVar(ImGuiStyleVar idx, float val);
 	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
 	void PopColorAndStyles();
+	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
+	void StylesColorsFromJson(nlohmann::json& j);
 	static std::string RandomID(size_t length);
 
 //properties	
@@ -79,44 +193,14 @@ public:
 	ImVec2 v_pos;
 	std::string v_id;
 	std::string v_label;
-	ImColor v_foreground;
-	ImColor v_background;
-	ImColor v_background_active;
-	ImColor v_background_hovered;
+	std::unordered_map<ImGuiCol_, ColorValue> v_colors;
+	std::unordered_map<ImGuiStyleVar_, StyleVarValue> v_styles;
 	bool v_border;
 	bool v_can_have_children;
 	bool v_disabled;
+	bool v_inherit_all_colors;
+	bool v_inherit_all_styles;
 	
-
-	//styles
-	float v_ImGuiStyleVar_Alpha;                // float     Alpha
-	float v_ImGuiStyleVar_DisabledAlpha;       // float     DisabledAlpha
-	ImVec2 v_ImGuiStyleVar_WindowPadding;       // ImVec2    WindowPadding
-	float v_ImGuiStyleVar_WindowRounding;      // float     WindowRounding
-	float v_ImGuiStyleVar_WindowBorderSize;    // float     WindowBorderSize
-	ImVec2 v_ImGuiStyleVar_WindowMinSize;       // ImVec2    WindowMinSize
-	ImVec2 v_ImGuiStyleVar_WindowTitleAlign;    // ImVec2    WindowTitleAlign
-	float v_ImGuiStyleVar_ChildRounding;       // float     ChildRounding
-	float v_ImGuiStyleVar_ChildBorderSize;     // float     ChildBorderSize
-	float v_ImGuiStyleVar_PopupRounding;       // float     PopupRounding
-	float v_ImGuiStyleVar_PopupBorderSize;     // float     PopupBorderSize
-	ImVec2 v_ImGuiStyleVar_FramePadding;        // ImVec2    FramePadding
-	float v_ImGuiStyleVar_FrameRounding;       // float     FrameRounding
-	float v_ImGuiStyleVar_FrameBorderSize;     // float     FrameBorderSize
-	ImVec2 v_ImGuiStyleVar_ItemSpacing;         // ImVec2    ItemSpacing
-	ImVec2 v_ImGuiStyleVar_ItemInnerSpacing;    // ImVec2    ItemInnerSpacing
-	float v_ImGuiStyleVar_IndentSpacing;       // float     IndentSpacing
-	ImVec2 v_ImGuiStyleVar_CellPadding;         // ImVec2    CellPadding
-	float v_ImGuiStyleVar_ScrollbarSize;       // float     ScrollbarSize
-	float v_ImGuiStyleVar_ScrollbarRounding;   // float     ScrollbarRounding
-	float v_ImGuiStyleVar_GrabMinSize;         // float     GrabMinSize
-	float v_ImGuiStyleVar_GrabRounding;        // float     GrabRounding
-	float v_ImGuiStyleVar_TabRounding;         // float     TabRounding
-	ImVec2 v_ImGuiStyleVar_ButtonTextAlign;     // ImVec2    ButtonTextAlign
-	ImVec2 v_ImGuiStyleVar_SelectableTextAlign; // ImVec2    SelectableTextAlign
-	float v_ImGuiStyleVar_LayoutAlign;         // float     LayoutAlign
-
-
 	ImGuiElement* v_parent;
 	std::vector<ImGuiElement*> children;
 	property_flags v_property_flags;
@@ -138,10 +222,8 @@ public:
 		v_pos = other.v_pos;
 		v_id = other.v_id;
 		v_label = other.v_label;
-		v_foreground = other.v_foreground;
-		v_background = other.v_background;
-		v_background_active = other.v_background_active;
-		v_background_hovered = other.v_background_hovered;
+		v_styles = other.v_styles;
+		v_colors = other.v_colors;
 		v_border = other.v_border;
 		v_can_have_children = other.v_can_have_children;
 		v_disabled = other.v_disabled;
@@ -157,6 +239,8 @@ public:
 		did_move = other.did_move;
 		color_pops = other.color_pops;
 		style_pops = other.style_pops;
+		v_inherit_all_colors = other.v_inherit_all_colors;
+		v_inherit_all_styles = other.v_inherit_all_styles;
 	}
 		
 private:

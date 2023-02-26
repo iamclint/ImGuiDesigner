@@ -18,14 +18,14 @@ WorkSpace::WorkSpace()
 	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}
 {
 	basic_workspace_element = new ImGuiElement();
-	this->basic_workspace_element->v_background = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+	/*this->basic_workspace_element->v_background = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 	this->basic_workspace_element->v_foreground = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 	this->basic_workspace_element->v_ImGuiStyleVar_ChildRounding = ImGui::GetStyle().ChildRounding;
 	this->basic_workspace_element->v_ImGuiStyleVar_FrameRounding = ImGui::GetStyle().FrameRounding;
 	this->basic_workspace_element->v_ImGuiStyleVar_GrabRounding = ImGui::GetStyle().GrabRounding;
 	this->basic_workspace_element->v_ImGuiStyleVar_PopupRounding = ImGui::GetStyle().PopupRounding;
 	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarRounding = ImGui::GetStyle().ScrollbarRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize = ImGui::GetStyle().ScrollbarSize;
+	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize = ImGui::GetStyle().ScrollbarSize;*/
 	
 	if (igd::workspaces.size() == 0)
 		id = "Workspace";
@@ -68,21 +68,24 @@ void WorkSpace::PushUndo(ImGuiElement* ele)
 	undo_stack.push_back(ele);
 }
 
-
-
 void WorkSpace::Colors()
 {
-	this->basic_workspace_element->PushStyleColor(ImGuiCol_WindowBg, this->basic_workspace_element->v_background);
-	this->basic_workspace_element->PushStyleColor(ImGuiCol_Text, this->basic_workspace_element->v_foreground);
+	for (auto& c : this->basic_workspace_element->v_colors)
+	{
+		if (!c.second.inherit)
+			this->basic_workspace_element->PushStyleColor(c.first, c.second.value);
+	}
 }
 void WorkSpace::Styles()
 {
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ChildRounding, this->basic_workspace_element->v_ImGuiStyleVar_ChildRounding);
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_FrameRounding, this->basic_workspace_element->v_ImGuiStyleVar_FrameRounding);
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_GrabRounding, this->basic_workspace_element->v_ImGuiStyleVar_GrabRounding);
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_PopupRounding, this->basic_workspace_element->v_ImGuiStyleVar_PopupRounding);
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ScrollbarRounding, this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarRounding);
-	this->basic_workspace_element->PushStyleVar(ImGuiStyleVar_ScrollbarSize, this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize);
+
+	for (auto& c : this->basic_workspace_element->v_styles)
+	{
+		if (c.second.type == StyleVarType::Float)
+			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Float);
+		else if (c.second.type == StyleVarType::Vec2)
+			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Vec2);
+	}
 }
 
 void WorkSpace::OnUIRender() {

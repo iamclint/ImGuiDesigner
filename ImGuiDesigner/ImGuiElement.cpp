@@ -40,46 +40,46 @@ void ImGuiElement::PushUndoLocal()
 }
 ImGuiElement::ImGuiElement()
 	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"),
-	v_foreground(ImColor(0, 0, 0, 0)), v_background(ImColor(0, 0, 0, 0)), v_parent(nullptr), v_border(0),
+	v_parent(nullptr), v_border(0),
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
-	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_ImGuiStyleVar_Alpha(0),
-	v_ImGuiStyleVar_DisabledAlpha(0), v_ImGuiStyleVar_WindowPadding(0, 0), v_ImGuiStyleVar_WindowRounding(0),
-	v_ImGuiStyleVar_WindowBorderSize(0), v_ImGuiStyleVar_WindowMinSize(0, 0), v_ImGuiStyleVar_WindowTitleAlign(0, 0),
-	v_ImGuiStyleVar_ChildRounding(0), v_ImGuiStyleVar_ChildBorderSize(0), v_ImGuiStyleVar_PopupRounding(0),
-	v_ImGuiStyleVar_PopupBorderSize(0), v_ImGuiStyleVar_FramePadding(0, 0), v_ImGuiStyleVar_FrameRounding(0),
-	v_ImGuiStyleVar_FrameBorderSize(0), v_ImGuiStyleVar_ItemSpacing(0, 0), v_ImGuiStyleVar_ItemInnerSpacing(0, 0),
-	v_ImGuiStyleVar_IndentSpacing(0), v_ImGuiStyleVar_CellPadding(0, 0), v_ImGuiStyleVar_ScrollbarSize(0),
-	v_ImGuiStyleVar_ScrollbarRounding(0), v_ImGuiStyleVar_GrabMinSize(0), v_ImGuiStyleVar_GrabRounding(0),
-	v_ImGuiStyleVar_TabRounding(0), v_ImGuiStyleVar_ButtonTextAlign(0, 0), v_ImGuiStyleVar_SelectableTextAlign(0, 0),
-	v_ImGuiStyleVar_LayoutAlign(0)
+	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false)//, v_ImGuiStyleVar_Alpha(0),
+	//v_ImGuiStyleVar_DisabledAlpha(0), v_ImGuiStyleVar_WindowPadding(0, 0), v_ImGuiStyleVar_WindowRounding(0),
+	//v_ImGuiStyleVar_WindowBorderSize(0), v_ImGuiStyleVar_WindowMinSize(0, 0), v_ImGuiStyleVar_WindowTitleAlign(0, 0),
+	//v_ImGuiStyleVar_ChildRounding(0), v_ImGuiStyleVar_ChildBorderSize(0), v_ImGuiStyleVar_PopupRounding(0),
+	//v_ImGuiStyleVar_PopupBorderSize(0), v_ImGuiStyleVar_FramePadding(0, 0), v_ImGuiStyleVar_FrameRounding(0),
+	//v_ImGuiStyleVar_FrameBorderSize(0), v_ImGuiStyleVar_ItemSpacing(0, 0), v_ImGuiStyleVar_ItemInnerSpacing(0, 0),
+	//v_ImGuiStyleVar_IndentSpacing(0), v_ImGuiStyleVar_CellPadding(0, 0), v_ImGuiStyleVar_ScrollbarSize(0),
+	//v_ImGuiStyleVar_ScrollbarRounding(0), v_ImGuiStyleVar_GrabMinSize(0), v_ImGuiStyleVar_GrabRounding(0),
+	//v_ImGuiStyleVar_TabRounding(0), v_ImGuiStyleVar_ButtonTextAlign(0, 0), v_ImGuiStyleVar_SelectableTextAlign(0, 0),
+	//v_ImGuiStyleVar_LayoutAlign(0)
 {
 	v_property_flags = property_flags::color_foreground | property_flags::color_background | property_flags::disabled;
 }
 void ImGuiElement::RenderPropertiesInternal()
 {
-	igd::properties->PropertyLabel("Child Rounding");
-	ImGui::SliderFloat("##property_rounding", &this->v_ImGuiStyleVar_ChildRounding, 0, 36);
-	igd::properties->PropertyLabel("Frame Rounding");
-	ImGui::SliderFloat("##property_frame_rounding", &this->v_ImGuiStyleVar_FrameRounding, 0, 36);
-	igd::properties->PropertyLabel("Border Size");
-	ImGui::SliderFloat("##property_border_size", &this->v_ImGuiStyleVar_ChildBorderSize, 0, 36);
-	igd::properties->PropertyLabel("Indent Spacing");
-	ImGui::SliderFloat("##property_indent_spacing", &this->v_ImGuiStyleVar_IndentSpacing, 0, 36);
-	igd::properties->PropertyLabel("Scrollbar Size");
-	ImGui::SliderFloat("##property_scrollbar_size", &this->v_ImGuiStyleVar_ScrollbarSize, 0, 36);
-	igd::properties->PropertyLabel("Grabber Min");
-	ImGui::SliderFloat("##property_Grabber_Min", &this->v_ImGuiStyleVar_GrabMinSize, 0, 36);
-	igd::properties->PropertyLabel("Grabber Rounding");
-	ImGui::SliderFloat("##property_Grabber_Rounding", &this->v_ImGuiStyleVar_GrabRounding, 0, 36);
-	igd::properties->PropertyLabel("Layout Align");
-	ImGui::InputFloat2("##property_Layout_Align", (float*)&this->v_ImGuiStyleVar_LayoutAlign);
-	igd::properties->PropertyLabel("Frame Padding");
-	ImGui::InputFloat2("##property_frame_padding", (float*)&this->v_ImGuiStyleVar_FramePadding);
-	igd::properties->PropertyLabel("Item Spacing");
-	ImGui::InputFloat2("##property_item_spacing", (float*)&this->v_ImGuiStyleVar_ItemSpacing);
-	igd::properties->PropertyLabel("Item Inner Spacing");
-	ImGui::InputFloat2("##property_item_inner_spacing", (float*)&this->v_ImGuiStyleVar_ItemInnerSpacing);
+	//igd::properties->PropertyLabel("Child Rounding");
+	//ImGui::SliderFloat("##property_rounding", &this->v_ImGuiStyleVar_ChildRounding, 0, 36);
+	//igd::properties->PropertyLabel("Frame Rounding");
+	//ImGui::SliderFloat("##property_frame_rounding", &this->v_ImGuiStyleVar_FrameRounding, 0, 36);
+	//igd::properties->PropertyLabel("Border Size");
+	//ImGui::SliderFloat("##property_border_size", &this->v_ImGuiStyleVar_ChildBorderSize, 0, 36);
+	//igd::properties->PropertyLabel("Indent Spacing");
+	//ImGui::SliderFloat("##property_indent_spacing", &this->v_ImGuiStyleVar_IndentSpacing, 0, 36);
+	//igd::properties->PropertyLabel("Scrollbar Size");
+	//ImGui::SliderFloat("##property_scrollbar_size", &this->v_ImGuiStyleVar_ScrollbarSize, 0, 36);
+	//igd::properties->PropertyLabel("Grabber Min");
+	//ImGui::SliderFloat("##property_Grabber_Min", &this->v_ImGuiStyleVar_GrabMinSize, 0, 36);
+	//igd::properties->PropertyLabel("Grabber Rounding");
+	//ImGui::SliderFloat("##property_Grabber_Rounding", &this->v_ImGuiStyleVar_GrabRounding, 0, 36);
+	//igd::properties->PropertyLabel("Layout Align");
+	//ImGui::InputFloat2("##property_Layout_Align", (float*)&this->v_ImGuiStyleVar_LayoutAlign);
+	//igd::properties->PropertyLabel("Frame Padding");
+	//ImGui::InputFloat2("##property_frame_padding", (float*)&this->v_ImGuiStyleVar_FramePadding);
+	//igd::properties->PropertyLabel("Item Spacing");
+	//ImGui::InputFloat2("##property_item_spacing", (float*)&this->v_ImGuiStyleVar_ItemSpacing);
+	//igd::properties->PropertyLabel("Item Inner Spacing");
+	//ImGui::InputFloat2("##property_item_inner_spacing", (float*)&this->v_ImGuiStyleVar_ItemInnerSpacing);
 }
 void ImGuiElement::FromJSON(nlohmann::json data)
 {
@@ -89,22 +89,9 @@ void ImGuiElement::FromJSON(nlohmann::json data)
 	v_flags = data["flags"];
 	v_size = ImVec2(data["size"][0], data["size"][1]);
 	v_label = data["label"].get<std::string>().c_str();
-	v_foreground = ImVec4(data["foreground"][0], data["foreground"][1], data["foreground"][2], data["foreground"][3]);
-	v_background = ImVec4(data["background"][0], data["background"][1], data["background"][2], data["background"][3]);
 	v_border = data["border"];
 	v_property_flags = data["property_flags"];
 	v_disabled = data["disabled"];
-	v_ImGuiStyleVar_ChildRounding = data["v_ImGuiStyleVar_ChildRounding"];
-	v_ImGuiStyleVar_FrameRounding = data["v_ImGuiStyleVar_FrameRounding"];
-	v_ImGuiStyleVar_ChildBorderSize = data["v_ImGuiStyleVar_ChildBorderSize"];
-	v_ImGuiStyleVar_FramePadding = ImVec2(data["v_ImGuiStyleVar_FramePadding"][0], data["v_ImGuiStyleVar_FramePadding"][1]);
-	v_ImGuiStyleVar_ItemSpacing = ImVec2(data["v_ImGuiStyleVar_ItemSpacing"][0], data["v_ImGuiStyleVar_ItemSpacing"][1]);
-	v_ImGuiStyleVar_ItemInnerSpacing = ImVec2(data["v_ImGuiStyleVar_ItemInnerSpacing"][0], data["v_ImGuiStyleVar_ItemInnerSpacing"][1]);
-	v_ImGuiStyleVar_IndentSpacing = data["v_ImGuiStyleVar_IndentSpacing"];
-	v_ImGuiStyleVar_ScrollbarSize = data["v_ImGuiStyleVar_ScrollbarSize"];
-	v_ImGuiStyleVar_GrabMinSize = data["v_ImGuiStyleVar_GrabMinSize"];
-	v_ImGuiStyleVar_GrabRounding = data["v_ImGuiStyleVar_GrabRounding"];
-	v_ImGuiStyleVar_LayoutAlign = data["v_ImGuiStyleVar_LayoutAlign"];
 }
 nlohmann::json ImGuiElement::GetJson()
 {
@@ -120,24 +107,9 @@ nlohmann::json ImGuiElement::GetJson()
 	j["label"] = v_label;
 	j["size"] = { v_size.x, v_size.y };
 	j["flags"] = v_flags;
-	j["foreground"] = { v_foreground.Value.x, v_foreground.Value.y, v_foreground.Value.z, v_foreground.Value.w };
-	j["background"] = { v_background.Value.x, v_background.Value.y, v_background.Value.z, v_background.Value.w };
 	j["border"] = v_border;
 	j["disabled"] = v_disabled;
 	j["property_flags"] = v_property_flags;
-	j["v_ImGuiStyleVar_ChildRounding"] = v_ImGuiStyleVar_ChildRounding;
-	j["v_ImGuiStyleVar_ChildBorderSize"] = v_ImGuiStyleVar_ChildBorderSize;
-	j["v_ImGuiStyleVar_FramePadding"] = { v_ImGuiStyleVar_FramePadding.x,v_ImGuiStyleVar_FramePadding.y };
-	j["v_ImGuiStyleVar_FrameRounding"] = v_ImGuiStyleVar_FrameRounding;
-	j["v_ImGuiStyleVar_FrameBorderSize"] = v_ImGuiStyleVar_FrameBorderSize;
-	j["v_ImGuiStyleVar_ItemSpacing"] = { v_ImGuiStyleVar_ItemSpacing.x,v_ImGuiStyleVar_ItemSpacing.y };
-	j["v_ImGuiStyleVar_ItemInnerSpacing"] = { v_ImGuiStyleVar_ItemInnerSpacing.x, v_ImGuiStyleVar_ItemInnerSpacing.y };
-	j["v_ImGuiStyleVar_IndentSpacing"] = v_ImGuiStyleVar_IndentSpacing;
-	j["v_ImGuiStyleVar_ScrollbarSize"] = v_ImGuiStyleVar_ScrollbarSize;
-	j["v_ImGuiStyleVar_ScrollbarRounding"] = v_ImGuiStyleVar_ScrollbarRounding;
-	j["v_ImGuiStyleVar_GrabMinSize"] = v_ImGuiStyleVar_GrabMinSize;
-	j["v_ImGuiStyleVar_GrabRounding"] = v_ImGuiStyleVar_GrabRounding;
-	j["v_ImGuiStyleVar_LayoutAlign"] = v_ImGuiStyleVar_LayoutAlign;
 }
 void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 {
@@ -181,6 +153,84 @@ void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 	style_pops++;
 }
 
+void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
+{
+
+	try
+	{
+		if (this->v_parent)
+			v_pos = ImVec2(j["pos"][0], j["pos"][1]);
+
+		v_id = j["id"].get<std::string>() + "##" + RandomID(10);
+		v_label = j["label"];
+		v_size = ImVec2(j["size"][0], j["size"][1]);
+		v_disabled = j["disabled"];
+		v_flags = j["flags"];
+		v_border = j["border"];
+		v_inherit_all_colors = j["inherit_all_colors"];
+		v_inherit_all_styles = j["inherit_all_styles"];
+		for (auto& c : j["colors"])
+		{
+			v_colors[c["id"]] = ColorValue(ImVec4(c["value"][0], c["value"][1], c["value"][2], c["value"][3]), c["inherit"]);
+
+		}
+		for (auto& c : j["styles"])
+		{
+			if (c["type"] == StyleVarType::Float)
+				v_styles[c["id"]] = StyleVarValue(c["value"], c["inherit"]);
+			else if (c["type"] == StyleVarType::Vec2)
+				v_styles[c["id"]] = StyleVarValue(ImVec2(c["value"][0], c["value"][1]), c["inherit"]);
+		}
+	}
+	catch (nlohmann::json::exception& e)
+	{
+		igd::notifications->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
+	}
+}
+
+void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_name)
+{
+	j["type"] = type_name;
+	int pound_pos = v_id.find("#");
+	if (pound_pos != std::string::npos)
+		j["id"] = v_id.substr(0, pound_pos);
+	else
+		j["id"] = v_id;
+	j["label"] = v_label;
+	j["size"] = { v_size.x, v_size.y };
+	j["pos"] = { v_pos.x, v_pos.y };
+	j["disabled"] = v_disabled;
+	j["flags"] = v_flags;
+	j["border"] = v_border;
+	j["inherit_all_colors"] = v_inherit_all_colors;
+	j["inherit_all_styles"] = v_inherit_all_styles;
+	j["colors"] = nlohmann::json::array();
+	for (auto& c : v_colors)
+		j["colors"].push_back({
+			{"id", c.first},
+			{"value",{ c.second.value.x, c.second.value.y, c.second.value.z, c.second.value.w}},
+			{"inherit", c.second.inherit}
+			});
+
+	j["styles"] = nlohmann::json::array();
+	for (auto& c : v_styles)
+	{
+		if (c.second.type == StyleVarType::Float)
+			j["styles"].push_back({
+				{"type", c.second.type},
+				{"id", c.first},
+				{"value", c.second.value.Float},
+				{"inherit", c.second.inherit}
+				});
+		else if (c.second.type == StyleVarType::Vec2)
+			j["styles"].push_back({
+				{"type", c.second.type},
+				{"id", c.first},
+				{"value", {c.second.value.Vec2.x, c.second.value.Vec2.y}},
+				{"inherit", c.second.inherit}
+				});
+	}
+}
 void ImGuiElement::SaveAsWidget(std::string name)
 {
 	if (children.size() == 0)
@@ -521,6 +571,28 @@ void ImGuiElement::Render()
 	{
 		igd::active_workspace->code << "ImGui::BeginDisabled();" << std::endl;
 		ImGui::BeginDisabled();
+	}
+	
+	if (!this->v_inherit_all_colors)
+	{
+		for (auto& c : this->v_colors)
+		{
+			if (c.second.inherit)
+				continue;
+			this->PushStyleColor(c.first, c.second.value);
+		}
+	}
+	if (!this->v_inherit_all_styles)
+	{
+		for (auto& c : this->v_styles)
+		{
+			if (c.second.inherit)
+				continue;
+			if (c.second.type == StyleVarType::Float)
+				this->PushStyleVar(c.first, c.second.value.Float);
+			else if (c.second.type == StyleVarType::Vec2)
+				this->PushStyleVar(c.first, c.second.value.Vec2);
+		}
 	}
 	
 	this->RenderHead();

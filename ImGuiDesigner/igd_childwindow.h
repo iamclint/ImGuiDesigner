@@ -12,15 +12,77 @@ namespace igd
 		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> undo_stack;
 		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> redo_stack;
 		ChildWindow() {
+			ImGuiContext& g = *GImGui;
 			v_flags = 0;
 			v_property_flags =  property_flags::color_background | property_flags::disabled | property_flags::border;
 			v_size = ImVec2(0, 0);
 			v_id = ("child window##" + RandomID(10)).c_str();
 			v_label = "";
-			v_foreground = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-			v_background = ImGui::GetStyleColorVec4(ImGuiCol_ChildBg);
 			v_border = true;
 			v_can_have_children = true;
+			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+			v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+			v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+			v_colors[ImGuiCol_Border] = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+			v_colors[ImGuiCol_BorderShadow] = ImGui::GetStyleColorVec4(ImGuiCol_BorderShadow);
+			v_colors[ImGuiCol_ChildBg] = ImGui::GetStyleColorVec4(ImGuiCol_ChildBg);
+			v_colors[ImGuiCol_CheckMark] = ImGui::GetStyleColorVec4(ImGuiCol_CheckMark);
+			v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+			v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
+			v_colors[ImGuiCol_FrameBgHovered] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
+			v_colors[ImGuiCol_Header] = ImGui::GetStyleColorVec4(ImGuiCol_Header);
+			v_colors[ImGuiCol_HeaderActive] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
+			v_colors[ImGuiCol_HeaderHovered] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
+			v_colors[ImGuiCol_NavHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavHighlight);
+			v_colors[ImGuiCol_PlotHistogram] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogram);
+			v_colors[ImGuiCol_PlotHistogramHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered);
+			v_colors[ImGuiCol_PlotLines] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLines);
+			v_colors[ImGuiCol_PlotLinesHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLinesHovered);
+			v_colors[ImGuiCol_ScrollbarBg] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarBg);
+			v_colors[ImGuiCol_ScrollbarGrab] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrab);
+			v_colors[ImGuiCol_ScrollbarGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
+			v_colors[ImGuiCol_ScrollbarGrabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabHovered);
+			v_colors[ImGuiCol_SliderGrab] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrab);
+			v_colors[ImGuiCol_SliderGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrabActive);
+			v_colors[ImGuiCol_Tab] = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
+			v_colors[ImGuiCol_TabActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabActive);
+			v_colors[ImGuiCol_TabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
+			v_colors[ImGuiCol_TabUnfocused] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocused);
+			v_colors[ImGuiCol_TabUnfocusedActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocusedActive);
+			v_colors[ImGuiCol_ResizeGrip] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGrip);
+			v_colors[ImGuiCol_ResizeGripActive] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripActive);
+			v_colors[ImGuiCol_ResizeGripHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripHovered);
+			v_colors[ImGuiCol_Separator] = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
+			v_colors[ImGuiCol_SeparatorActive] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive);
+			v_colors[ImGuiCol_SeparatorHovered] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorHovered);
+			v_colors[ImGuiCol_TextSelectedBg] = ImGui::GetStyleColorVec4(ImGuiCol_TextSelectedBg);
+			v_colors[ImGuiCol_TextDisabled] = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+			v_colors[ImGuiCol_TableBorderLight] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderLight);
+			v_colors[ImGuiCol_TableBorderStrong] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderStrong);
+			v_colors[ImGuiCol_TableHeaderBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableHeaderBg);
+			v_colors[ImGuiCol_TableRowBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBg);
+			v_colors[ImGuiCol_TableRowBgAlt] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBgAlt);
+			v_colors[ImGuiCol_DragDropTarget] = ImGui::GetStyleColorVec4(ImGuiCol_DragDropTarget);
+			v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
+			v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
+			
+			
+			v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
+			v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
+			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
+			v_styles[ImGuiStyleVar_DisabledAlpha] = g.Style.DisabledAlpha;
+			v_styles[ImGuiStyleVar_FrameBorderSize] = g.Style.FrameBorderSize;
+			v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
+			v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
+			v_styles[ImGuiStyleVar_GrabMinSize] = g.Style.GrabMinSize;
+			v_styles[ImGuiStyleVar_GrabRounding] = g.Style.GrabRounding;
+			v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
+			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
+			v_styles[ImGuiStyleVar_ScrollbarRounding] = g.Style.ScrollbarRounding;
+			v_styles[ImGuiStyleVar_ScrollbarSize] = g.Style.ScrollbarSize;
+			v_styles[ImGuiStyleVar_SelectableTextAlign] = g.Style.SelectableTextAlign;
+			v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
 		}
 
 
@@ -61,58 +123,12 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-			igd::properties->PropertyLabel("Rounding");
-			ImGui::SliderFloat("##property_rounding", &this->v_ImGuiStyleVar_ChildRounding, 0, 36);
-			igd::properties->PropertyLabel("Frame Rounding");
-			ImGui::SliderFloat("##property_frame_rounding", &this->v_ImGuiStyleVar_FrameRounding, 0, 36);
-			
-			igd::properties->PropertyLabel("Border Size");
-			ImGui::SliderFloat("##property_border_size", &this->v_ImGuiStyleVar_ChildBorderSize, 0, 36);
-			igd::properties->PropertyLabel("Indent Spacing");
-			ImGui::SliderFloat("##property_indent_spacing", &this->v_ImGuiStyleVar_IndentSpacing, 0, 36);
-			igd::properties->PropertyLabel("Scrollbar Size");
-			ImGui::SliderFloat("##property_scrollbar_size", &this->v_ImGuiStyleVar_ScrollbarSize, 0, 36);
-			//igd::properties->PropertyLabel("Grabber Min");
-			//ImGui::SliderFloat("##property_Grabber_Min", &this->v_ImGuiStyleVar_GrabMinSize, 0, 36);
-			//igd::properties->PropertyLabel("Grabber Rounding");
-			//ImGui::SliderFloat("##property_Grabber_Rounding", &this->v_ImGuiStyleVar_GrabRounding, 0, 36);
-			//igd::properties->PropertyLabel("Layout Align");
-			//ImGui::InputFloat2("##property_Layout_Align", (float*)&this->v_ImGuiStyleVar_LayoutAlign);
-			igd::properties->PropertyLabel("Frame Padding");
-			ImGui::InputFloat2("##property_frame_padding", (float*)&this->v_ImGuiStyleVar_FramePadding);
-			igd::properties->PropertyLabel("Item Spacing");
-			ImGui::InputFloat2("##property_item_spacing", (float*)&this->v_ImGuiStyleVar_ItemSpacing);
-			igd::properties->PropertyLabel("Item Inner Spacing");
-			ImGui::InputFloat2("##property_item_inner_spacing", (float*)&this->v_ImGuiStyleVar_ItemInnerSpacing);
+		
 		}
 	
 		virtual void RenderHead() override
 		{
 			ImGuiContext& g = *GImGui;
-			this->PushStyleColor(ImGuiCol_Text, v_foreground.Value);
-			this->PushStyleColor(ImGuiCol_ChildBg, v_background.Value);
-			
-			if (v_ImGuiStyleVar_ChildRounding!=0)
-				this->PushStyleVar(ImGuiStyleVar_ChildRounding, v_ImGuiStyleVar_ChildRounding);
-			if (v_ImGuiStyleVar_ChildBorderSize != 0)
-				this->PushStyleVar(ImGuiStyleVar_ChildBorderSize, v_ImGuiStyleVar_ChildBorderSize);
-			if (v_ImGuiStyleVar_IndentSpacing != 0)
-				this->PushStyleVar(ImGuiStyleVar_IndentSpacing, v_ImGuiStyleVar_IndentSpacing);
-			if (v_ImGuiStyleVar_ScrollbarSize != 0)
-				this->PushStyleVar(ImGuiStyleVar_ScrollbarSize, v_ImGuiStyleVar_ScrollbarSize);
-			if (v_ImGuiStyleVar_GrabMinSize != 0)
-				this->PushStyleVar(ImGuiStyleVar_GrabMinSize, v_ImGuiStyleVar_GrabMinSize);
-			if (v_ImGuiStyleVar_GrabRounding != 0)
-				this->PushStyleVar(ImGuiStyleVar_GrabRounding, v_ImGuiStyleVar_GrabRounding);
-			//if (v_ImGuiStyleVar_LayoutAlign != 0)
-			//	this->PushStyleVar(ImGuiStyleVar_LayoutAlign, v_ImGuiStyleVar_LayoutAlign);
-			if (v_ImGuiStyleVar_FramePadding.x != 0 || v_ImGuiStyleVar_FramePadding.y != 0)
-				this->PushStyleVar(ImGuiStyleVar_FramePadding, v_ImGuiStyleVar_FramePadding);
-			if (v_ImGuiStyleVar_ItemSpacing.x != 0 || v_ImGuiStyleVar_ItemSpacing.y != 0)
-				this->PushStyleVar(ImGuiStyleVar_ItemSpacing, v_ImGuiStyleVar_ItemSpacing);
-			if (v_ImGuiStyleVar_ItemInnerSpacing.x != 0 || v_ImGuiStyleVar_ItemInnerSpacing.y != 0)
-				this->PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, v_ImGuiStyleVar_ItemInnerSpacing);
-						
 			ImGui::BeginChild(v_id.c_str(), v_size, v_border, v_flags);
 		}
 		virtual void RenderInternal() override
@@ -126,61 +142,12 @@ namespace igd
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{
-			if (this->v_parent)
-				v_pos = ImVec2(data["pos"][0], data["pos"][1]);
-			v_id = data["id"].get<std::string>() + "##" + RandomID(10);
-			v_flags = data["flags"];
-			v_size = ImVec2(data["size"][0], data["size"][1]);
-			v_label = data["label"].get<std::string>().c_str();
-			v_foreground = ImVec4(data["foreground"][0], data["foreground"][1], data["foreground"][2], data["foreground"][3]);
-			v_background = ImVec4(data["background"][0], data["background"][1], data["background"][2], data["background"][3]);
-			v_border = data["border"];
-			v_property_flags = data["property_flags"];
-			v_disabled = data["disabled"];
-			v_ImGuiStyleVar_ChildRounding = data["v_ImGuiStyleVar_ChildRounding"];
-			v_ImGuiStyleVar_ChildBorderSize = data["v_ImGuiStyleVar_ChildBorderSize"];
-			v_ImGuiStyleVar_FramePadding = ImVec2(data["v_ImGuiStyleVar_FramePadding"][0], data["v_ImGuiStyleVar_FramePadding"][1]);
-			v_ImGuiStyleVar_ItemSpacing = ImVec2(data["v_ImGuiStyleVar_ItemSpacing"][0], data["v_ImGuiStyleVar_ItemSpacing"][1]);
-			v_ImGuiStyleVar_ItemInnerSpacing = ImVec2(data["v_ImGuiStyleVar_ItemInnerSpacing"][0], data["v_ImGuiStyleVar_ItemInnerSpacing"][1]);
-			v_ImGuiStyleVar_IndentSpacing = data["v_ImGuiStyleVar_IndentSpacing"];
-			v_ImGuiStyleVar_ScrollbarSize = data["v_ImGuiStyleVar_ScrollbarSize"];
-			//v_ImGuiStyleVar_GrabMinSize = data["v_ImGuiStyleVar_GrabMinSize"];
-			//v_ImGuiStyleVar_GrabRounding = data["v_ImGuiStyleVar_GrabRounding"];
-			//v_ImGuiStyleVar_LayoutAlign = data["v_ImGuiStyleVar_LayoutAlign"];
+			StylesColorsFromJson(data);
 		}
 		virtual nlohmann::json GetJson() override
 		{
 			nlohmann::json j;
-			j["type"] = "child window";
-			int pound_pos = v_id.find("#");
-			if (pound_pos != std::string::npos)
-				j["id"] = v_id.substr(0, pound_pos);
-			else
-				j["id"] = v_id;
-			j["pos"] = { this->v_pos.x,this->v_pos.y };
-			j["flags"] = v_flags;
-			j["label"] = v_label;
-			j["size"] = { v_size.x, v_size.y };
-			j["flags"] = v_flags;
-			j["foreground"] = { v_foreground.Value.x, v_foreground.Value.y, v_foreground.Value.z, v_foreground.Value.w };
-			j["background"] = { v_background.Value.x, v_background.Value.y, v_background.Value.z, v_background.Value.w };
-			j["border"] = v_border;
-			j["disabled"] = v_disabled;
-			j["property_flags"] = v_property_flags;
-			j["v_ImGuiStyleVar_ChildRounding"] = v_ImGuiStyleVar_ChildRounding;
-			j["v_ImGuiStyleVar_ChildBorderSize"] = v_ImGuiStyleVar_ChildBorderSize;
-			j["v_ImGuiStyleVar_FramePadding"] = { v_ImGuiStyleVar_FramePadding.x,v_ImGuiStyleVar_FramePadding.y };
-			j["v_ImGuiStyleVar_FrameRounding"] = v_ImGuiStyleVar_FrameRounding;
-			j["v_ImGuiStyleVar_FrameBorderSize"] = v_ImGuiStyleVar_FrameBorderSize;
-			j["v_ImGuiStyleVar_ItemSpacing"] = { v_ImGuiStyleVar_ItemSpacing.x,v_ImGuiStyleVar_ItemSpacing.y };
-			j["v_ImGuiStyleVar_ItemInnerSpacing"] = { v_ImGuiStyleVar_ItemInnerSpacing.x, v_ImGuiStyleVar_ItemInnerSpacing.y };
-			j["v_ImGuiStyleVar_IndentSpacing"] = v_ImGuiStyleVar_IndentSpacing;
-			j["v_ImGuiStyleVar_ScrollbarSize"] = v_ImGuiStyleVar_ScrollbarSize;
-			j["v_ImGuiStyleVar_ScrollbarRounding"] = v_ImGuiStyleVar_ScrollbarRounding;
-
-		//	j["v_ImGuiStyleVar_GrabMinSize"] = v_ImGuiStyleVar_GrabMinSize;
-			//j["v_ImGuiStyleVar_GrabRounding"] = v_ImGuiStyleVar_GrabRounding;
-			//j["v_ImGuiStyleVar_LayoutAlign"] = v_ImGuiStyleVar_LayoutAlign;
+			GenerateStylesColorsJson(j, "child window");
 			return j;
 		}
 		
