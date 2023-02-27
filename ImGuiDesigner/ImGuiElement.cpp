@@ -43,7 +43,7 @@ ImGuiElement::ImGuiElement()
 	v_parent(nullptr), v_border(0),
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
-	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false)//, v_ImGuiStyleVar_Alpha(0),
+	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false), v_font("")//, v_ImGuiStyleVar_Alpha(0),
 	//v_ImGuiStyleVar_DisabledAlpha(0), v_ImGuiStyleVar_WindowPadding(0, 0), v_ImGuiStyleVar_WindowRounding(0),
 	//v_ImGuiStyleVar_WindowBorderSize(0), v_ImGuiStyleVar_WindowMinSize(0, 0), v_ImGuiStyleVar_WindowTitleAlign(0, 0),
 	//v_ImGuiStyleVar_ChildRounding(0), v_ImGuiStyleVar_ChildBorderSize(0), v_ImGuiStyleVar_PopupRounding(0),
@@ -54,7 +54,7 @@ ImGuiElement::ImGuiElement()
 	//v_ImGuiStyleVar_TabRounding(0), v_ImGuiStyleVar_ButtonTextAlign(0, 0), v_ImGuiStyleVar_SelectableTextAlign(0, 0),
 	//v_ImGuiStyleVar_LayoutAlign(0)
 {
-	v_property_flags = property_flags::color_foreground | property_flags::color_background | property_flags::disabled;
+	v_property_flags = property_flags::disabled;
 }
 void ImGuiElement::RenderPropertiesInternal()
 {
@@ -125,6 +125,7 @@ void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 		catch (nlohmann::json::exception& e)
 		{
 			std::cout << "exception: " << e.what() << std::endl;
+			igd::notifications->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
 		}
 		if (e->v_can_have_children)
 		{
@@ -169,6 +170,8 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 		v_border = j["border"];
 		v_inherit_all_colors = j["inherit_all_colors"];
 		v_inherit_all_styles = j["inherit_all_styles"];
+		v_font = j["font"];
+		v_font_size = j["font_size"];
 		for (auto& c : j["colors"])
 		{
 			v_colors[c["id"]] = ColorValue(ImVec4(c["value"][0], c["value"][1], c["value"][2], c["value"][3]), c["inherit"]);
@@ -204,6 +207,8 @@ void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_
 	j["border"] = v_border;
 	j["inherit_all_colors"] = v_inherit_all_colors;
 	j["inherit_all_styles"] = v_inherit_all_styles;
+	j["font"] = v_font;
+	j["font_size"] = v_font_size;
 	j["colors"] = nlohmann::json::array();
 	for (auto& c : v_colors)
 		j["colors"].push_back({
@@ -383,14 +388,11 @@ void ImGuiElement::KeyBinds()
 
 void ImGuiElement::Delete()
 {
-	if (igd::properties->active_element)
-	{
-		igd::active_workspace->undo_stack.push_back(this);
-		igd::properties->active_element->delete_me = true;
-		if (igd::properties->copied_element == igd::properties->active_element)
-			igd::properties->copied_element = nullptr;
-		igd::properties->active_element = nullptr;
-	}
+	igd::active_workspace->undo_stack.push_back(this);
+	this->delete_me = true;
+	if (igd::properties->copied_element == this)
+		igd::properties->copied_element = nullptr;
+	igd::properties->active_element = nullptr;
 }
 
 
@@ -540,7 +542,7 @@ void ImGuiElement::DrawSelection()
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 	ImRect item_location = ImRect({ g.LastItemData.Rect.Min.x - 4,g.LastItemData.Rect.Min.y - 4 }, { g.LastItemData.Rect.Max.x + 4,g.LastItemData.Rect.Max.y + 4 });
-	ImGui::GetForegroundDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
+	ImGui::GetWindowDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
 }
 
 void ImGuiElement::PopColorAndStyles()

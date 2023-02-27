@@ -8,7 +8,6 @@
 #include "../json/single_include/nlohmann/json.hpp"
 #include <fstream>
 
-
 void AddNewElement(ImGuiElement* ele)
 {
 	if (igd::properties->active_element && igd::properties->active_element->v_can_have_children)
@@ -177,6 +176,7 @@ void ToolBar::OnUIRender() {
 				}
 				catch (nlohmann::json::parse_error& ex)
 				{
+					igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 				}
 			}

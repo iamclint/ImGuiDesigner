@@ -17,8 +17,9 @@ namespace igd
 		static inline std::unordered_map<Button*, std::vector<Button>> redo_stack;
 
 		Button() {
+			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;
-			v_property_flags = property_flags::label | property_flags::color_foreground | property_flags::color_background | property_flags::color_background_active | property_flags::color_background_hovered | property_flags::disabled;
+			v_property_flags = property_flags::label | property_flags::disabled | property_flags::pos;
 			v_size = ImVec2(0, 0);
 			v_id = ("new button##" + RandomID(10)).c_str();
 			v_label = "new button";
@@ -26,6 +27,11 @@ namespace igd
 			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
 			v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
 			v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+			v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
+			v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
+			v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
+			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
+			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
 			v_can_have_children = false;
 			PushUndo();
 		}

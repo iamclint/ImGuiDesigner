@@ -14,7 +14,7 @@ namespace igd
 		ChildWindow() {
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags =  property_flags::color_background | property_flags::disabled | property_flags::border;
+			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border;
 			v_size = ImVec2(0, 0);
 			v_id = ("child window##" + RandomID(10)).c_str();
 			v_label = "";

@@ -11,12 +11,9 @@ enum class property_flags : int
 {
 	None = 0,
 	label = 1 << 0,
-	color_foreground = 1 << 3,   // Disable scrollbars (window can still scroll with mouse or programmatically)
-	color_background = 1 << 4,   // Disable user vertically scrolling with mouse wheel. On child window, mouse wheel will be forwarded to the parent unless NoScrollbar is also set.
-	color_background_hovered = 1 << 5,   // Disable user collapsing window by double-clicking on it. Also referred to as Window Menu Button (e.g. within a docking node).
-	color_background_active = 1 << 6,   // Resize every window to its content every frame
-	border = 1 << 7,   // Disable drawing background color (WindowBg, etc.) and outside border. Similar as using SetNextWindowBgAlpha(0.0f).
-	disabled = 1 << 8,
+	pos = 1 << 1,   // Disable scrollbars (window can still scroll with mouse or programmatically)
+	border = 1 << 2,   // Disable drawing background color (WindowBg, etc.) and outside border. Similar as using SetNextWindowBgAlpha(0.0f).
+	disabled = 1 << 3,
 
 };
 static inline const char* ImGuiStyleVar_Strings[] = {
@@ -193,8 +190,11 @@ public:
 	ImVec2 v_pos;
 	std::string v_id;
 	std::string v_label;
-	std::unordered_map<ImGuiCol_, ColorValue> v_colors;
-	std::unordered_map<ImGuiStyleVar_, StyleVarValue> v_styles;
+	std::map<ImGuiCol_, ColorValue> v_colors;
+	std::map<ImGuiStyleVar_, StyleVarValue> v_styles;
+	std::string v_font;
+	ImFont* v_font_ptr;
+	float v_font_size;
 	bool v_border;
 	bool v_can_have_children;
 	bool v_disabled;
@@ -241,6 +241,8 @@ public:
 		style_pops = other.style_pops;
 		v_inherit_all_colors = other.v_inherit_all_colors;
 		v_inherit_all_styles = other.v_inherit_all_styles;
+		v_font = other.v_font;
+		v_font_size = other.v_font_size;
 	}
 		
 private:

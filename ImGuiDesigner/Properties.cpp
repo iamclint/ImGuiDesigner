@@ -5,13 +5,20 @@
 #include "ImGuiElement.h"
 #include "ImGuiDesigner.h"
 #include <iostream>
+#include <Windows.h>
 void Properties::PropertyLabel(const char* lbl)
 {
 	ImGui::TableNextColumn();
 	ImGui::Text(lbl);
 	ImGui::TableNextColumn();
 }
-
+void Properties::PropertySeparator()
+{
+	ImGui::TableNextColumn();
+	ImGui::Separator();
+	ImGui::TableNextColumn();
+	ImGui::Separator();
+}
 
 void Properties::getChildParents(ImGuiElement* parent)
 {
@@ -63,6 +70,30 @@ void Properties::buildTree(ImGuiElement* parent)
 				ImGui::TreePop();
 			}
 		}
+	}
+}
+
+std::filesystem::path getWindowsFontsDirectory()
+{
+	//get windows font directory
+	char windir[MAX_PATH];
+	GetWindowsDirectoryA(windir, MAX_PATH);
+	std::string fontdir = windir;
+	fontdir += "\\Fonts\\";
+	return fontdir;
+}
+void Properties::OnUpdate(float f)
+{
+	if (load_font)
+	{
+		if (!LoadedFonts[this->font.string()])
+			LoadedFonts[this->font.string()] = ImGui::GetIO().Fonts->AddFontFromFileTTF(font.string().c_str(), 20.0f);
+		active_element->v_font = font.string();
+		active_element->PushUndo();
+		active_element->v_font_ptr = LoadedFonts[this->font.string()];
+		load_font = false;
+		igd::notifications->GenericNotification("Loaded", "Loaded font", "", "Ok", []() {});
+		ImGui::GetIO().Fonts->Build();
 	}
 }
 
@@ -126,6 +157,39 @@ void Properties::OnUIRender() {
 			}
 		}
 		
+		PropertyLabel("Font:");
+		ImGui::PushItemWidth(item_width);
+		std::filesystem::path font_path = active_element->v_font;
+		if (ImGui::BeginCombo("##Font", font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
+		{
+			//create directory if doesn't exist
+			std::filesystem::path fonts_dir = "fonts";
+			if (!std::filesystem::exists(fonts_dir))
+				std::filesystem::create_directory(fonts_dir);
+			if (ImGui::Selectable("Inherit"))
+			{
+				active_element->v_font = "";
+				active_element->PushUndo();
+			}
+			for (auto& p : std::filesystem::directory_iterator(getWindowsFontsDirectory()))
+			{
+				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
+				{
+					load_font = true;
+					font = p.path();
+				}
+			}
+			for (auto& p : std::filesystem::directory_iterator(fonts_dir))
+			{
+				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
+				{
+					load_font = true;
+					font = p.path();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		
 		if (!is_workspace)
 		{
 			PropertyLabel("Size:");
@@ -136,7 +200,7 @@ void Properties::OnUIRender() {
 			}
 		}
 
-		if (!is_workspace)
+		if (active_element->v_property_flags & property_flags::pos && !is_workspace)
 		{
 			PropertyLabel("Position:");
 			ImGui::PushItemWidth(item_width);
@@ -148,11 +212,13 @@ void Properties::OnUIRender() {
 
 		if (active_element->v_colors.size() > 0)
 		{
-			PropertyLabel("");
-			PropertyLabel("Colors");
-			PropertyLabel("Inherit All Colors");
-			if (ImGui::Checkbox("##inherit_colors", &active_element->v_inherit_all_colors))
+			PropertySeparator();
+			//PropertyLabel("");
+			//ImGui::Dummy({26, 0}); ImGui::SameLine();
+			ImGui::TableNextColumn();
+			if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &active_element->v_inherit_all_colors))
 				modified = true;
+			ImGui::TableNextColumn();
 		}
 		for (auto& c : active_element->v_colors)
 		{
@@ -169,11 +235,14 @@ void Properties::OnUIRender() {
 		
 		if (active_element->v_styles.size() > 0)
 		{
-			PropertyLabel(""); 
-			PropertyLabel("Styles");
-			PropertyLabel("Inherit All Styles");
-			if (ImGui::Checkbox("##inherit_styles", &active_element->v_inherit_all_styles))
+			PropertySeparator();
+			//PropertyLabel("");
+
+			//ImGui::Dummy({ 26, 0 }); ImGui::SameLine();
+			ImGui::TableNextColumn();
+			if (ImGui::Checkbox("Inherit all styles##inherit_styles", &active_element->v_inherit_all_styles))
 				modified = true;
+			ImGui::TableNextColumn();
 		}
 		
 		for (auto& c : active_element->v_styles)
@@ -195,13 +264,12 @@ void Properties::OnUIRender() {
 			if (ImGui::Checkbox(("Inherit##" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
 				modified = true;
 		}
-
 		if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
 		{
 			modified = false;
 			active_element->PushUndo();
 		}
-
+		PropertySeparator();
 		if (active_element->v_property_flags & property_flags::disabled && !is_workspace)
 		{
 			PropertyLabel("Disabled:");
