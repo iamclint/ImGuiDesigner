@@ -6,7 +6,8 @@
 #include <vector>
 #include <sstream>
 #include "../json/single_include/nlohmann/json.hpp"
-
+#include "FontManager.h"
+struct ElementFont;
 enum class property_flags : int
 {
 	None = 0,
@@ -192,9 +193,7 @@ public:
 	std::string v_label;
 	std::map<ImGuiCol_, ColorValue> v_colors;
 	std::map<ImGuiStyleVar_, StyleVarValue> v_styles;
-	std::string v_font;
-	ImFont* v_font_ptr;
-	float v_font_size;
+	ElementFont v_font;
 	bool v_border;
 	bool v_can_have_children;
 	bool v_disabled;
@@ -242,7 +241,6 @@ public:
 		v_inherit_all_colors = other.v_inherit_all_colors;
 		v_inherit_all_styles = other.v_inherit_all_styles;
 		v_font = other.v_font;
-		v_font_size = other.v_font_size;
 	}
 		
 private:
@@ -263,4 +261,3 @@ private:
 	ImVec2 last_known_cursor;
 	ImVec2 mouse_drag_delta;
 };
-

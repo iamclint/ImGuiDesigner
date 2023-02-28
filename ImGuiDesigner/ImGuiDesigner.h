@@ -3,6 +3,7 @@
 #include "Properties.h"
 #include "ToolBar.h"
 #include "Notifications.h"
+#include "FontManager.h"
 namespace igd
 {
 	extern Notifications* notifications;
@@ -12,5 +13,5 @@ namespace igd
 	extern Walnut::Application* app;
 	extern bool add_workspace;
 	extern std::vector<WorkSpace*> delete_workspace;
-
+	extern FontManager* font_manager;
 }

@@ -41,7 +41,7 @@ namespace Walnut {
 			static_assert(std::is_base_of<Layer, T>::value, "Pushed type is not subclass of Layer!");
 			m_LayerStack.emplace_back(std::make_shared<T>())->OnAttach();
 		}
-
+		void UpdateFonts();
 		void PushLayer(const std::shared_ptr<Layer>& layer) { m_LayerStack.emplace_back(layer); layer->OnAttach(); }
 		void PopLayer(const std::shared_ptr<Layer>& layer) { m_LayerStack.erase(std::remove(m_LayerStack.begin(), m_LayerStack.end(), layer), m_LayerStack.end()); layer->OnDetach(); }
 		std::shared_ptr<Layer> GetLayerByPtr(Layer* layer) { for (auto& l : m_LayerStack) if (l.get() == layer) return l; return nullptr; }

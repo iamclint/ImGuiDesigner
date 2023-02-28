@@ -17,6 +17,7 @@ namespace igd
 	bool add_workspace = false;
 	std::vector<WorkSpace*> delete_workspace;
 	std::vector<ImGuiElement> undo_vector;
+	FontManager* font_manager;
 }
 
 class ExampleLayer : public Walnut::Layer
@@ -76,14 +77,17 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Notifications> notifications = std::make_shared<Notifications>();
+	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();
 	igd::notifications = notifications.get();
+	igd::font_manager = font_manager.get();
 	igd::app->PushLayer<ToolBar>();
 	igd::app->PushLayer(work);
 	igd::app->PushLayer(properties);
 	igd::app->PushLayer(notifications);
+	igd::app->PushLayer(font_manager);
 	igd::app->SetUpdateLayerStackCallback(update_layer_stack);
 	igd::app->SetMenubarCallback([]()
 	{			

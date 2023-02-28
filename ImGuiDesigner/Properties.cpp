@@ -6,6 +6,9 @@
 #include "ImGuiDesigner.h"
 #include <iostream>
 #include <Windows.h>
+#include "vulkan/vulkan.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 void Properties::PropertyLabel(const char* lbl)
 {
 	ImGui::TableNextColumn();
@@ -73,28 +76,10 @@ void Properties::buildTree(ImGuiElement* parent)
 	}
 }
 
-std::filesystem::path getWindowsFontsDirectory()
-{
-	//get windows font directory
-	char windir[MAX_PATH];
-	GetWindowsDirectoryA(windir, MAX_PATH);
-	std::string fontdir = windir;
-	fontdir += "\\Fonts\\";
-	return fontdir;
-}
+
 void Properties::OnUpdate(float f)
 {
-	if (load_font)
-	{
-		if (!LoadedFonts[this->font.string()])
-			LoadedFonts[this->font.string()] = ImGui::GetIO().Fonts->AddFontFromFileTTF(font.string().c_str(), 20.0f);
-		active_element->v_font = font.string();
-		active_element->PushUndo();
-		active_element->v_font_ptr = LoadedFonts[this->font.string()];
-		load_font = false;
-		igd::notifications->GenericNotification("Loaded", "Loaded font", "", "Ok", []() {});
-		ImGui::GetIO().Fonts->Build();
-	}
+
 }
 
 void Properties::OnUIRender() {
@@ -159,7 +144,7 @@ void Properties::OnUIRender() {
 		
 		PropertyLabel("Font:");
 		ImGui::PushItemWidth(item_width);
-		std::filesystem::path font_path = active_element->v_font;
+		std::filesystem::path font_path = active_element->v_font.path;
 		if (ImGui::BeginCombo("##Font", font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 		{
 			//create directory if doesn't exist
@@ -168,27 +153,27 @@ void Properties::OnUIRender() {
 				std::filesystem::create_directory(fonts_dir);
 			if (ImGui::Selectable("Inherit"))
 			{
-				active_element->v_font = "";
+				active_element->v_font.name = "";
+				active_element->v_font.font = nullptr;
 				active_element->PushUndo();
 			}
-			for (auto& p : std::filesystem::directory_iterator(getWindowsFontsDirectory()))
+			for (auto& p : std::filesystem::directory_iterator(igd::font_manager->GetWindowsFontsDirectory()))
 			{
 				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-				{
-					load_font = true;
-					font = p.path();
-				}
+					igd::font_manager->LoadFont(p.path(), active_element->v_font.size, active_element);
 			}
 			for (auto& p : std::filesystem::directory_iterator(fonts_dir))
 			{
 				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-				{
-					load_font = true;
-					font = p.path();
-				}
+					igd::font_manager->LoadFont(p.path(), active_element->v_font.size, active_element);
 			}
 			ImGui::EndCombo();
 		}
+
+		PropertyLabel("Font Size:");
+		ImGui::PushItemWidth(item_width);
+		if (ImGui::InputInt("##property_font_size", &active_element->v_font.size) && active_element->v_font.size > 0 && active_element->v_font.font)
+			igd::font_manager->LoadFont(active_element->v_font.path, active_element->v_font.size, active_element);
 		
 		if (!is_workspace)
 		{
