@@ -67,8 +67,31 @@ void update_layer_stack()
 }
 
 
+void create_directories()
+{
+	std::filesystem::path path = std::filesystem::current_path();
+	path.append("textures");
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directory(path);
+	}
+	path = std::filesystem::current_path();
+	path.append("fonts");
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directory(path);
+	}
+	path = std::filesystem::current_path();
+	path.append("widgets");
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directory(path);
+	}
+}
+
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
+	create_directories();
 	Walnut::ApplicationSpecification spec;
 	spec.Name = "ImGui Designer";
 	spec.Width = 1600;
