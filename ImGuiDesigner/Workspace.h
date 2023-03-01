@@ -10,6 +10,10 @@ public:
 	std::vector<ImGuiElement*> elements_buffer;
 	std::vector<ImGuiElement*> undo_stack;
 	std::vector<ImGuiElement*> redo_stack;
+	ImGuiElement* copied_element;
+	ImGuiElement* active_element;
+	void AddNewElement(ImGuiElement* ele);
+	ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent);
 	std::stringstream code;
 	void KeyBinds();
 	virtual void OnUIRender() override;

@@ -10,47 +10,19 @@
 
 void AddNewElement(ImGuiElement* ele)
 {
-	if (igd::properties->active_element && igd::properties->active_element->v_can_have_children)
+	if (igd::active_workspace->active_element && igd::active_workspace->active_element->v_can_have_children)
 	{
-		igd::properties->active_element->children.push_back(ele);
-		igd::properties->active_element->children.back()->v_parent = igd::properties->active_element;
+		igd::active_workspace->active_element->children.push_back(ele);
+		igd::active_workspace->active_element->children.back()->v_parent = igd::active_workspace->active_element;
 	}
 	else
 	{
-		igd::properties->active_element = nullptr;
+		igd::active_workspace->active_element = nullptr;
 		igd::active_workspace->elements.push_back(ele);
-		igd::properties->active_element = igd::active_workspace->elements.back();
-	}
-
-}
-
-ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
-{
-	if (obj["type"] == "child window")
-	{
-		ImGuiElement* new_parent = nullptr;
-		std::cout << "Child Window found" << std::endl;
-		igd::ChildWindow* b = new igd::ChildWindow();
-		b->FromJSON(obj);
-		new_parent = (ImGuiElement*)b;
-		if (parent)
-			parent->children.push_back((ImGuiElement*)b);
-		else
-			AddNewElement((ImGuiElement*)b);
-		new_parent->v_parent = parent;
-		return new_parent;
-	}
-	else if (obj["type"] == "button")
-	{
-		std::cout << "Adding a button" << std::endl;
-		igd::Button* b = new igd::Button();
-		ImGuiElement* f = (ImGuiElement*)b;
-		f->v_parent = parent;
-		b->FromJSON(obj);
-		parent->children.push_back((ImGuiElement*)b);
-		return f;
+		igd::active_workspace->active_element = igd::active_workspace->elements.back();
 	}
 }
+
 
 
 void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
@@ -60,7 +32,7 @@ void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
 	for (int i = 0; auto & e : j["children"])
 	{
 		std::cout << "e: " << e.dump() << std::endl;
-		CreateElementFromJson(e, parent);
+		igd::active_workspace->CreateElementFromJson(e, parent);
 		if (e["children"].size() > 0)
 		{
 			GetAllChildren(e, parent->children[i]);
@@ -80,7 +52,7 @@ void ToolBar::OnUIRender() {
 	ImGui::PushItemWidth(140);
 	if (ImGui::Button("New Workspace##toolbar_new_workspace"))
 	{
-		igd::properties->active_element = nullptr;
+		igd::active_workspace->active_element = nullptr;
 		igd::add_workspace = true;
 	}
 	ImGui::Text("Elements");
@@ -171,7 +143,7 @@ void ToolBar::OnUIRender() {
 				try
 				{
 					j = nlohmann::json::parse(i);
-					ImGuiElement* parent = CreateElementFromJson(j["child_window"], nullptr);
+					ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(j["child_window"], nullptr);
 					GetAllChildren(j["child_window"], parent);
 				}
 				catch (nlohmann::json::parse_error& ex)

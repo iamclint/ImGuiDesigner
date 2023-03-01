@@ -6,9 +6,7 @@
 class Properties : public Walnut::Layer
 {
 public:
-	ImGuiElement* active_element;
-	ImGuiElement* copied_element;
-	Properties() : active_element(nullptr), copied_element(nullptr), modified(false) {}
+	Properties() : modified(false) {}
 	virtual void OnUIRender() override;
 	virtual void OnUpdate(float f) override;
 	void PropertyLabel(const char* lbl);

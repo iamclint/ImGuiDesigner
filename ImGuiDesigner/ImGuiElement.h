@@ -7,6 +7,7 @@
 #include <sstream>
 #include "../json/single_include/nlohmann/json.hpp"
 #include "FontManager.h"
+#include "imgui_internal.h"
 struct ElementFont;
 enum class property_flags : int
 {

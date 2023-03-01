@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "igd_elements.h"
 WorkSpace::~WorkSpace()
 {
 	for (auto& ele : elements)
@@ -15,23 +16,50 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace() 
-	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}
+	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr)
 {
 	basic_workspace_element = new ImGuiElement();
-	/*this->basic_workspace_element->v_background = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-	this->basic_workspace_element->v_foreground = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-	this->basic_workspace_element->v_ImGuiStyleVar_ChildRounding = ImGui::GetStyle().ChildRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_FrameRounding = ImGui::GetStyle().FrameRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_GrabRounding = ImGui::GetStyle().GrabRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_PopupRounding = ImGui::GetStyle().PopupRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarRounding = ImGui::GetStyle().ScrollbarRounding;
-	this->basic_workspace_element->v_ImGuiStyleVar_ScrollbarSize = ImGui::GetStyle().ScrollbarSize;*/
-	
+	basic_workspace_element->v_inherit_all_colors = false;
+	basic_workspace_element->v_inherit_all_styles = false;
 	if (igd::workspaces.size() == 0)
 		id = "Workspace";
 	else
 		id = "Workspace " + std::to_string(igd::workspaces.size()) + "##" + ImGuiElement::RandomID(10);
 	is_open = true;
+}
+
+ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
+{
+	if (obj["type"] == "main window")
+	{
+		std::cout << "Main Window found" << std::endl;
+		igd::active_workspace->basic_workspace_element->FromJSON(obj);
+		return igd::active_workspace->basic_workspace_element;
+	}
+	if (obj["type"] == "child window")
+	{
+		ImGuiElement* new_parent = nullptr;
+		std::cout << "Child Window found" << std::endl;
+		igd::ChildWindow* b = new igd::ChildWindow();
+		b->FromJSON(obj);
+		new_parent = (ImGuiElement*)b;
+		if (parent)
+			parent->children.push_back((ImGuiElement*)b);
+		else
+			AddNewElement((ImGuiElement*)b);
+		new_parent->v_parent = parent;
+		return new_parent;
+	}
+	else if (obj["type"] == "button")
+	{
+		std::cout << "Adding a button" << std::endl;
+		igd::Button* b = new igd::Button();
+		ImGuiElement* f = (ImGuiElement*)b;
+		f->v_parent = parent;
+		b->FromJSON(obj);
+		parent->children.push_back((ImGuiElement*)b);
+		return f;
+	}
 }
 
 void WorkSpace::KeyBinds()
@@ -113,7 +141,7 @@ void WorkSpace::OnUIRender() {
 		KeyBinds();
 	if (ImGui::IsWindowAppearing())
 	{
-		igd::properties->active_element = nullptr;
+		this->active_element = nullptr;
 		igd::active_workspace = this;
 	}
 	if (elements_buffer.size() > 0)
@@ -147,4 +175,20 @@ void WorkSpace::OnUIRender() {
 	}
 	ImGui::End();
 	this->basic_workspace_element->PopColorAndStyles();
+}
+
+void WorkSpace::AddNewElement(ImGuiElement* ele)
+{
+
+	if (this->active_element && this->active_element->v_can_have_children)
+	{
+		this->active_element->children.push_back(ele);
+		this->active_element->children.back()->v_parent = this->active_element;
+	}
+	else
+	{
+		this->active_element = nullptr;
+		this->elements.push_back(ele);
+		this->active_element = this->elements.back();
+	}
 }

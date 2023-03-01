@@ -27,14 +27,14 @@ void Properties::getChildParents(ImGuiElement* parent)
 {
 	for (auto& element : parent->children)
 	{
-		if (element == active_element || !element->v_can_have_children || element->delete_me)
+		if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
 			continue;
 		if (element->children.size() > 0)
 			getChildParents(element);
 		if (ImGui::Selectable(element->v_id.c_str()))
 		{
-			active_element->PushUndo();
-			active_element->v_parent = element;
+			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->active_element->v_parent = element;
 		}
 	}
 }
@@ -44,12 +44,12 @@ void Properties::getAllChildren(ImGuiElement* parent)
 {
 	for (auto& element : parent->children)
 	{
-		if (element == active_element || element->delete_me)
+		if (element == igd::active_workspace->active_element || element->delete_me)
 			continue;
 		if (element->children.size() > 0)
 			getAllChildren(element);
 		if (ImGui::Selectable(element->v_id.c_str()))
-			active_element = element;
+			igd::active_workspace->active_element = element;
 	}
 }
 
@@ -61,14 +61,14 @@ void Properties::buildTree(ImGuiElement* parent)
 		if (element->delete_me)
 			continue;
 		if (!element->v_can_have_children && ImGui::Selectable(element->v_id.c_str()))
-			active_element = element;
+			igd::active_workspace->active_element = element;
 
 		if (element->v_can_have_children)
 		{
 			if (ImGui::TreeNode(element->v_id.c_str()))
 			{
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-					active_element = element;
+					igd::active_workspace->active_element = element;
 				buildTree(element);
 				ImGui::TreePop();
 			}
@@ -102,23 +102,23 @@ void Properties::OnUIRender() {
 				if (ImGui::TreeNode(e->v_id.c_str()))
 				{
 					if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-						active_element = e;
+						igd::active_workspace->active_element = e;
 					buildTree(e);
 					ImGui::TreePop();
 				}
 			}
 			else
 				if (ImGui::Selectable(e->v_id.c_str()))
-					active_element = e;
+					igd::active_workspace->active_element = e;
 		}
 		ImGui::TreePop();
 	}
 
 	int item_width = 200;
-	if (!active_element)
-		active_element = igd::active_workspace->basic_workspace_element;
-	bool is_workspace = active_element == igd::active_workspace->basic_workspace_element;
-	if (active_element)
+	if (!igd::active_workspace->active_element)
+		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
+	bool is_workspace = igd::active_workspace->active_element == igd::active_workspace->basic_workspace_element;
+	if (igd::active_workspace->active_element)
 	{
 		if (is_workspace)
 		{
@@ -130,21 +130,21 @@ void Properties::OnUIRender() {
 		{
 			PropertyLabel("ID:");
 			ImGui::PushItemWidth(item_width);
-			ImGui::InputText("##property_id", &active_element->v_id);
+			ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
 		}
-		if (active_element->v_property_flags & property_flags::label && !is_workspace)
+		if (igd::active_workspace->active_element->v_property_flags & property_flags::label && !is_workspace)
 		{
 			PropertyLabel("Label:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputText("##property_label", &active_element->v_label))
+			if (ImGui::InputText("##property_label", &igd::active_workspace->active_element->v_label))
 			{
-				active_element->PushUndo();
+				igd::active_workspace->active_element->PushUndo();
 			}
 		}
 		
 		PropertyLabel("Font:");
 		ImGui::PushItemWidth(item_width);
-		std::filesystem::path font_path = active_element->v_font.path;
+		std::filesystem::path font_path = igd::active_workspace->active_element->v_font.path;
 		if (ImGui::BeginCombo("##Font", font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 		{
 			//create directory if doesn't exist
@@ -153,59 +153,59 @@ void Properties::OnUIRender() {
 				std::filesystem::create_directory(fonts_dir);
 			if (ImGui::Selectable("Inherit"))
 			{
-				active_element->v_font.name = "";
-				active_element->v_font.font = nullptr;
-				active_element->PushUndo();
+				igd::active_workspace->active_element->v_font.name = "";
+				igd::active_workspace->active_element->v_font.font = nullptr;
+				igd::active_workspace->active_element->PushUndo();
 			}
 			for (auto& p : std::filesystem::directory_iterator(igd::font_manager->GetWindowsFontsDirectory()))
 			{
 				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-					igd::font_manager->LoadFont(p.path(), active_element->v_font.size, active_element);
+					igd::font_manager->LoadFont(p.path(), igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 			}
 			for (auto& p : std::filesystem::directory_iterator(fonts_dir))
 			{
 				if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-					igd::font_manager->LoadFont(p.path(), active_element->v_font.size, active_element);
+					igd::font_manager->LoadFont(p.path(), igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 			}
 			ImGui::EndCombo();
 		}
 
 		PropertyLabel("Font Size:");
 		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputInt("##property_font_size", &active_element->v_font.size) && active_element->v_font.size > 0 && active_element->v_font.font)
-			igd::font_manager->LoadFont(active_element->v_font.path, active_element->v_font.size, active_element);
+		if (ImGui::InputInt("##property_font_size", &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
+			igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 		
 		if (!is_workspace)
 		{
 			PropertyLabel("Size:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputFloat2("##property_size", (float*)&active_element->v_size))
+			if (ImGui::InputFloat2("##property_size", (float*)&igd::active_workspace->active_element->v_size))
 			{
-				active_element->PushUndo();
+				igd::active_workspace->active_element->PushUndo();
 			}
 		}
 
-		if (active_element->v_property_flags & property_flags::pos && !is_workspace)
+		if (igd::active_workspace->active_element->v_property_flags & property_flags::pos && !is_workspace)
 		{
 			PropertyLabel("Position:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputFloat2("##property_pos", (float*)&active_element->v_pos))
+			if (ImGui::InputFloat2("##property_pos", (float*)&igd::active_workspace->active_element->v_pos))
 			{
-				active_element->PushUndo();
+				igd::active_workspace->active_element->PushUndo();
 			}
 		}
 
-		if (active_element->v_colors.size() > 0)
+		if (igd::active_workspace->active_element->v_colors.size() > 0)
 		{
 			PropertySeparator();
 			//PropertyLabel("");
 			//ImGui::Dummy({26, 0}); ImGui::SameLine();
 			ImGui::TableNextColumn();
-			if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &active_element->v_inherit_all_colors))
+			if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &igd::active_workspace->active_element->v_inherit_all_colors))
 				modified = true;
 			ImGui::TableNextColumn();
 		}
-		for (auto& c : active_element->v_colors)
+		for (auto& c : igd::active_workspace->active_element->v_colors)
 		{
 			PropertyLabel(ImGui::GetStyleColorName(c.first));
 			ImGui::PushItemWidth(item_width);
@@ -218,19 +218,19 @@ void Properties::OnUIRender() {
 				modified = true;
 		}
 		
-		if (active_element->v_styles.size() > 0)
+		if (igd::active_workspace->active_element->v_styles.size() > 0)
 		{
 			PropertySeparator();
 			//PropertyLabel("");
 
 			//ImGui::Dummy({ 26, 0 }); ImGui::SameLine();
 			ImGui::TableNextColumn();
-			if (ImGui::Checkbox("Inherit all styles##inherit_styles", &active_element->v_inherit_all_styles))
+			if (ImGui::Checkbox("Inherit all styles##inherit_styles", &igd::active_workspace->active_element->v_inherit_all_styles))
 				modified = true;
 			ImGui::TableNextColumn();
 		}
 		
-		for (auto& c : active_element->v_styles)
+		for (auto& c : igd::active_workspace->active_element->v_styles)
 		{
 			PropertyLabel(ImGuiStyleVar_Strings[c.first]);
 			ImGui::PushItemWidth(item_width);
@@ -252,15 +252,15 @@ void Properties::OnUIRender() {
 		if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
 		{
 			modified = false;
-			active_element->PushUndo();
+			igd::active_workspace->active_element->PushUndo();
 		}
 		PropertySeparator();
-		if (active_element->v_property_flags & property_flags::disabled && !is_workspace)
+		if (igd::active_workspace->active_element->v_property_flags & property_flags::disabled && !is_workspace)
 		{
 			PropertyLabel("Disabled:");
-			if (ImGui::Checkbox("##property_disabled", &active_element->v_disabled))
+			if (ImGui::Checkbox("##property_disabled", &igd::active_workspace->active_element->v_disabled))
 			{
-				active_element->PushUndo();
+				igd::active_workspace->active_element->PushUndo();
 			}
 		}
 
@@ -268,23 +268,23 @@ void Properties::OnUIRender() {
 		{
 			PropertyLabel("Parent:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::BeginCombo("##property_parent", active_element->v_parent ? active_element->v_parent->v_id.c_str() : "None"))
+			if (ImGui::BeginCombo("##property_parent", igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
 			{
 				if (ImGui::Selectable("None"))
 				{
-					active_element->v_parent = nullptr;
-					active_element->PushUndo();
+					igd::active_workspace->active_element->v_parent = nullptr;
+					igd::active_workspace->active_element->PushUndo();
 				}
 				for (auto& element : igd::active_workspace->elements)
 				{
-					if (element == active_element || !element->v_can_have_children || element->delete_me)
+					if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
 						continue;
 					if (element->children.size()>0)
 						getChildParents(element);
 					if (ImGui::Selectable(element->v_id.c_str()))
 					{
-						active_element->v_parent = element;
-						active_element->PushUndo();
+						igd::active_workspace->active_element->v_parent = element;
+						igd::active_workspace->active_element->PushUndo();
 					}
 				}
 				ImGui::EndCombo();
@@ -292,13 +292,13 @@ void Properties::OnUIRender() {
 		}
 
 		ImGui::PushItemWidth(item_width);
-		active_element->RenderPropertiesInternal();
+		igd::active_workspace->active_element->RenderPropertiesInternal();
 		
-		if (active_element->v_can_have_children && active_element->children.size() > 0)
+		if (igd::active_workspace->active_element->v_can_have_children && igd::active_workspace->active_element->children.size() > 0)
 		{
 			PropertyLabel("Widget:");
 			if (ImGui::Button("Save##Json_Save"))
-				active_element->SaveAsWidget(active_element->v_id);
+				igd::active_workspace->active_element->SaveAsWidget(igd::active_workspace->active_element->v_id);
 		}
 		if (ImGui::IsItemHovered())
 		{
@@ -309,7 +309,7 @@ void Properties::OnUIRender() {
 		
 		ImGui::EndTable();
 		if (ImGui::Button("Delete##property_delete"))
-			active_element->Delete();
+			igd::active_workspace->active_element->Delete();
 	}
 
 	

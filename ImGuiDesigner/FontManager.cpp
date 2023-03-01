@@ -21,6 +21,12 @@ std::filesystem::path FontManager::FindFont(std::string name)
 		if (p.path().filename().string() == name)
 			return p.path();
 	}
+	fontdir = "fonts";
+	for (auto& p : std::filesystem::directory_iterator(fontdir))
+	{
+		if (p.path().filename().string() == name)
+			return p.path();
+	}
 	return "";
 }
 
@@ -40,17 +46,16 @@ void FontManager::OnUpdate(float ssa)
 	{
 		for (auto& f : this->FontsToLoad)
 		{
-
 			std::cout << "Loading font: " << f.name << " " << f.path << std::endl;
-			if (!this->LoadedFonts[f.name].font)
-				LoadedFonts[f.name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), f.size);
+			if (!this->LoadedFonts[f.map_name].font)
+				LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), f.size);
 
 			if (f.element)
 			{
 				f.element->v_font.name = f.name;
 				f.element->v_font.path = f.path;
 				f.element->v_font.size = f.size;
-				f.element->v_font.font = LoadedFonts[f.name].font;
+				f.element->v_font.font = LoadedFonts[f.map_name].font;
 				f.element->PushUndo();
 			}
 			this->fonts_need_loaded = false;

@@ -43,74 +43,93 @@ ImGuiElement::ImGuiElement()
 	v_parent(nullptr), v_border(0),
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
-	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false), 
+	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
 	v_font()
-	//v_ImGuiStyleVar_DisabledAlpha(0), v_ImGuiStyleVar_WindowPadding(0, 0), v_ImGuiStyleVar_WindowRounding(0),
-	//v_ImGuiStyleVar_WindowBorderSize(0), v_ImGuiStyleVar_WindowMinSize(0, 0), v_ImGuiStyleVar_WindowTitleAlign(0, 0),
-	//v_ImGuiStyleVar_ChildRounding(0), v_ImGuiStyleVar_ChildBorderSize(0), v_ImGuiStyleVar_PopupRounding(0),
-	//v_ImGuiStyleVar_PopupBorderSize(0), v_ImGuiStyleVar_FramePadding(0, 0), v_ImGuiStyleVar_FrameRounding(0),
-	//v_ImGuiStyleVar_FrameBorderSize(0), v_ImGuiStyleVar_ItemSpacing(0, 0), v_ImGuiStyleVar_ItemInnerSpacing(0, 0),
-	//v_ImGuiStyleVar_IndentSpacing(0), v_ImGuiStyleVar_CellPadding(0, 0), v_ImGuiStyleVar_ScrollbarSize(0),
-	//v_ImGuiStyleVar_ScrollbarRounding(0), v_ImGuiStyleVar_GrabMinSize(0), v_ImGuiStyleVar_GrabRounding(0),
-	//v_ImGuiStyleVar_TabRounding(0), v_ImGuiStyleVar_ButtonTextAlign(0, 0), v_ImGuiStyleVar_SelectableTextAlign(0, 0),
-	//v_ImGuiStyleVar_LayoutAlign(0)
 {
+	ImGuiContext& g = *GImGui;
 	v_property_flags = property_flags::disabled;
+	v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+	v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+	v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+	v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+	v_colors[ImGuiCol_Border] = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+	v_colors[ImGuiCol_BorderShadow] = ImGui::GetStyleColorVec4(ImGuiCol_BorderShadow);
+	v_colors[ImGuiCol_ChildBg] = ImGui::GetStyleColorVec4(ImGuiCol_ChildBg);
+	v_colors[ImGuiCol_CheckMark] = ImGui::GetStyleColorVec4(ImGuiCol_CheckMark);
+	v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+	v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
+	v_colors[ImGuiCol_FrameBgHovered] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
+	v_colors[ImGuiCol_Header] = ImGui::GetStyleColorVec4(ImGuiCol_Header);
+	v_colors[ImGuiCol_HeaderActive] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
+	v_colors[ImGuiCol_HeaderHovered] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
+	v_colors[ImGuiCol_NavHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavHighlight);
+	v_colors[ImGuiCol_PlotHistogram] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogram);
+	v_colors[ImGuiCol_PlotHistogramHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered);
+	v_colors[ImGuiCol_PlotLines] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLines);
+	v_colors[ImGuiCol_PlotLinesHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLinesHovered);
+	v_colors[ImGuiCol_ScrollbarBg] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarBg);
+	v_colors[ImGuiCol_ScrollbarGrab] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrab);
+	v_colors[ImGuiCol_ScrollbarGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
+	v_colors[ImGuiCol_ScrollbarGrabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabHovered);
+	v_colors[ImGuiCol_SliderGrab] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrab);
+	v_colors[ImGuiCol_SliderGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrabActive);
+	v_colors[ImGuiCol_Tab] = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
+	v_colors[ImGuiCol_TabActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabActive);
+	v_colors[ImGuiCol_TabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
+	v_colors[ImGuiCol_TabUnfocused] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocused);
+	v_colors[ImGuiCol_TabUnfocusedActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocusedActive);
+	v_colors[ImGuiCol_ResizeGrip] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGrip);
+	v_colors[ImGuiCol_ResizeGripActive] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripActive);
+	v_colors[ImGuiCol_ResizeGripHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripHovered);
+	v_colors[ImGuiCol_Separator] = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
+	v_colors[ImGuiCol_SeparatorActive] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive);
+	v_colors[ImGuiCol_SeparatorHovered] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorHovered);
+	v_colors[ImGuiCol_TextSelectedBg] = ImGui::GetStyleColorVec4(ImGuiCol_TextSelectedBg);
+	v_colors[ImGuiCol_TextDisabled] = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+	v_colors[ImGuiCol_TableBorderLight] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderLight);
+	v_colors[ImGuiCol_TableBorderStrong] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderStrong);
+	v_colors[ImGuiCol_TableHeaderBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableHeaderBg);
+	v_colors[ImGuiCol_TableRowBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBg);
+	v_colors[ImGuiCol_TableRowBgAlt] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBgAlt);
+	v_colors[ImGuiCol_DragDropTarget] = ImGui::GetStyleColorVec4(ImGuiCol_DragDropTarget);
+	v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
+	v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
+	v_colors[ImGuiCol_WindowBg] = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+	v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
+	v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
+	v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
+	v_styles[ImGuiStyleVar_DisabledAlpha] = g.Style.DisabledAlpha;
+	v_styles[ImGuiStyleVar_FrameBorderSize] = g.Style.FrameBorderSize;
+	v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
+	v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
+	v_styles[ImGuiStyleVar_GrabMinSize] = g.Style.GrabMinSize;
+	v_styles[ImGuiStyleVar_GrabRounding] = g.Style.GrabRounding;
+	v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
+	v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
+	v_styles[ImGuiStyleVar_ScrollbarRounding] = g.Style.ScrollbarRounding;
+	v_styles[ImGuiStyleVar_ScrollbarSize] = g.Style.ScrollbarSize;
+	v_styles[ImGuiStyleVar_SelectableTextAlign] = g.Style.SelectableTextAlign;
+	v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
+	v_styles[ImGuiStyleVar_WindowBorderSize] = g.Style.WindowBorderSize;
+	v_styles[ImGuiStyleVar_WindowPadding] = g.Style.WindowPadding;
+	v_styles[ImGuiStyleVar_WindowRounding] = g.Style.WindowRounding;
+	v_styles[ImGuiStyleVar_WindowTitleAlign] = g.Style.WindowTitleAlign;
+	v_styles[ImGuiStyleVar_Alpha] = g.Style.Alpha;
+	v_styles[ImGuiStyleVar_WindowMinSize] = g.Style.WindowMinSize;
 }
 void ImGuiElement::RenderPropertiesInternal()
 {
-	//igd::properties->PropertyLabel("Child Rounding");
-	//ImGui::SliderFloat("##property_rounding", &this->v_ImGuiStyleVar_ChildRounding, 0, 36);
-	//igd::properties->PropertyLabel("Frame Rounding");
-	//ImGui::SliderFloat("##property_frame_rounding", &this->v_ImGuiStyleVar_FrameRounding, 0, 36);
-	//igd::properties->PropertyLabel("Border Size");
-	//ImGui::SliderFloat("##property_border_size", &this->v_ImGuiStyleVar_ChildBorderSize, 0, 36);
-	//igd::properties->PropertyLabel("Indent Spacing");
-	//ImGui::SliderFloat("##property_indent_spacing", &this->v_ImGuiStyleVar_IndentSpacing, 0, 36);
-	//igd::properties->PropertyLabel("Scrollbar Size");
-	//ImGui::SliderFloat("##property_scrollbar_size", &this->v_ImGuiStyleVar_ScrollbarSize, 0, 36);
-	//igd::properties->PropertyLabel("Grabber Min");
-	//ImGui::SliderFloat("##property_Grabber_Min", &this->v_ImGuiStyleVar_GrabMinSize, 0, 36);
-	//igd::properties->PropertyLabel("Grabber Rounding");
-	//ImGui::SliderFloat("##property_Grabber_Rounding", &this->v_ImGuiStyleVar_GrabRounding, 0, 36);
-	//igd::properties->PropertyLabel("Layout Align");
-	//ImGui::InputFloat2("##property_Layout_Align", (float*)&this->v_ImGuiStyleVar_LayoutAlign);
-	//igd::properties->PropertyLabel("Frame Padding");
-	//ImGui::InputFloat2("##property_frame_padding", (float*)&this->v_ImGuiStyleVar_FramePadding);
-	//igd::properties->PropertyLabel("Item Spacing");
-	//ImGui::InputFloat2("##property_item_spacing", (float*)&this->v_ImGuiStyleVar_ItemSpacing);
-	//igd::properties->PropertyLabel("Item Inner Spacing");
-	//ImGui::InputFloat2("##property_item_inner_spacing", (float*)&this->v_ImGuiStyleVar_ItemInnerSpacing);
+	
 }
 void ImGuiElement::FromJSON(nlohmann::json data)
 {
-	if (this->v_parent)
-		v_pos = ImVec2(data["pos"][0], data["pos"][1]);
-	v_id = data["id"].get<std::string>() + "##" + RandomID(10);
-	v_flags = data["flags"];
-	v_size = ImVec2(data["size"][0], data["size"][1]);
-	v_label = data["label"].get<std::string>().c_str();
-	v_border = data["border"];
-	v_property_flags = data["property_flags"];
-	v_disabled = data["disabled"];
+	StylesColorsFromJson(data);
 }
 nlohmann::json ImGuiElement::GetJson()
 {
 	nlohmann::json j;
-	j["type"] = "basic";
-	int pound_pos = v_id.find("#");
-	if (pound_pos != std::string::npos)
-		j["id"] = v_id.substr(0, pound_pos);
-	else
-		j["id"] = v_id;
-	j["pos"] = { this->v_pos.x,this->v_pos.y };
-	j["flags"] = v_flags;
-	j["label"] = v_label;
-	j["size"] = { v_size.x, v_size.y };
-	j["flags"] = v_flags;
-	j["border"] = v_border;
-	j["disabled"] = v_disabled;
-	j["property_flags"] = v_property_flags;
+	GenerateStylesColorsJson(j, "main window");
+	return j;
 }
 void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 {
@@ -184,6 +203,27 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 				v_styles[c["id"]] = StyleVarValue(c["value"], c["inherit"]);
 			else if (c["type"] == StyleVarType::Vec2)
 				v_styles[c["id"]] = StyleVarValue(ImVec2(c["value"][0], c["value"][1]), c["inherit"]);
+		}
+		
+		if (v_font.name != "")
+		{
+			ElementFont* f = igd::font_manager->GetFont(v_font.name, v_font.size);
+			if (f && f->name != "") //font is already loaded just use it
+			{
+				std::cout << "Font already loaded!" << std::endl;
+				v_font = *f;
+			}
+			else
+			{
+				std::filesystem::path font_path = igd::font_manager->FindFont(v_font.name);
+				if (font_path.string() == "") //unable to locate font in filesystem
+					igd::notifications->GenericNotification("Error", "Unable to locate font [" + v_font.name + "] in filesystem. Please check your font manager.");
+				else
+				{
+					igd::font_manager->LoadFont(font_path, v_font.size, this);
+					std::cout << "Loading font! " << font_path << std::endl;
+				}
+			}
 		}
 	}
 	catch (nlohmann::json::exception& e)
@@ -358,13 +398,13 @@ void ImGuiElement::KeyBinds()
 {
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)) && ImGui::GetIO().KeyCtrl)
 	{
-		igd::properties->copied_element = this;
+		igd::active_workspace->copied_element = this;
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)) && ImGui::GetIO().KeyCtrl)
 	{
 		
-		if (igd::properties->copied_element)
-			igd::properties->copied_element->Clone();
+		if (igd::active_workspace->copied_element)
+			igd::active_workspace->copied_element->Clone();
 		
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive() && !igd::notifications->IsShowing())
@@ -382,7 +422,7 @@ void ImGuiElement::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::notifications->IsShowing())
 		{
-		igd::properties->active_element = nullptr;
+		igd::active_workspace->active_element = nullptr;
 	}
 }
 
@@ -391,9 +431,9 @@ void ImGuiElement::Delete()
 {
 	igd::active_workspace->undo_stack.push_back(this);
 	this->delete_me = true;
-	if (igd::properties->copied_element == this)
-		igd::properties->copied_element = nullptr;
-	igd::properties->active_element = nullptr;
+	if (igd::active_workspace->copied_element == this)
+		igd::active_workspace->copied_element = nullptr;
+	igd::active_workspace->active_element = nullptr;
 }
 
 
@@ -533,7 +573,7 @@ void ImGuiElement::Select()
 	ImGuiIO& io = g.IO;
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && resize == resize_direction::none)
 	{
-		igd::properties->active_element = this;
+		igd::active_workspace->active_element = this;
 	}
 
 }
@@ -648,7 +688,7 @@ void ImGuiElement::Render()
 	else
 		last_known_cursor = ImGui::GetCursorPos();
 	
-	if (igd::properties->active_element == this)
+	if (igd::active_workspace->active_element == this)
 	{
 		Resize();
 		Drag();

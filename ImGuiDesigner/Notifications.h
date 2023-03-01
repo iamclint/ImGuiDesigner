@@ -6,7 +6,7 @@ class Notifications : public Walnut::Layer
 {
 public:
 	Notifications() : show_generic(false), title(""), message(""), icon_path(""), button_text(""), show_confirm(false) {}
-	void GenericNotification(std::string title, std::string message, std::string icon_path, std::string button_text, std::function<void()> callback);
+	void GenericNotification(std::string title, std::string message, std::string icon_path="", std::string button_text="Ok", std::function<void()> callback=[](){});
 	void Confirmation(std::string title, std::string message, std::string icon_path, std::function<void(bool)> callback);
 	bool IsShowing();
 	virtual void OnUIRender() override;
