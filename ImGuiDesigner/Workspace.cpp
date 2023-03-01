@@ -15,8 +15,8 @@ WorkSpace::~WorkSpace()
 	}
 }
 
-WorkSpace::WorkSpace() 
-	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr)
+WorkSpace::WorkSpace()
+	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false)
 {
 	basic_workspace_element = new ImGuiElement();
 	basic_workspace_element->v_inherit_all_colors = false;
@@ -30,36 +30,68 @@ WorkSpace::WorkSpace()
 
 ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
 {
-	if (obj["type"] == "main window")
+	try
 	{
-		std::cout << "Main Window found" << std::endl;
-		igd::active_workspace->basic_workspace_element->FromJSON(obj);
-		return igd::active_workspace->basic_workspace_element;
+		if (obj["type"] == "main window")
+		{
+			std::cout << "Main Window found" << std::endl;
+			igd::active_workspace->basic_workspace_element->FromJSON(obj);
+			return igd::active_workspace->basic_workspace_element;
+		}
+		if (obj["type"] == "child window")
+		{
+			ImGuiElement* new_parent = nullptr;
+			std::cout << "Child Window found" << std::endl;
+			igd::ChildWindow* b = new igd::ChildWindow();
+			b->FromJSON(obj);
+			new_parent = (ImGuiElement*)b;
+			if (parent)
+				parent->children.push_back((ImGuiElement*)b);
+			else
+				AddNewElement((ImGuiElement*)b, true);
+			new_parent->v_parent = parent;
+			return new_parent;
+		}
+		else if (obj["type"] == "button")
+		{
+			std::cout << "Adding a button" << std::endl;
+			igd::Button* b = new igd::Button();
+			ImGuiElement* f = (ImGuiElement*)b;
+			f->v_parent = parent;
+			b->FromJSON(obj);
+			if (!parent)
+				igd::active_workspace->AddNewElement((ImGuiElement*)b,true);
+			else
+				parent->children.push_back((ImGuiElement*)b);
+			
+			return f;
+		}
 	}
-	if (obj["type"] == "child window")
+	catch (nlohmann::json::exception ex)
 	{
-		ImGuiElement* new_parent = nullptr;
-		std::cout << "Child Window found" << std::endl;
-		igd::ChildWindow* b = new igd::ChildWindow();
-		b->FromJSON(obj);
-		new_parent = (ImGuiElement*)b;
-		if (parent)
-			parent->children.push_back((ImGuiElement*)b);
-		else
-			AddNewElement((ImGuiElement*)b);
-		new_parent->v_parent = parent;
-		return new_parent;
+		std::cout << "Error parsing json: " << ex.what() << std::endl;
+		igd::notifications->GenericNotification("Error parsing json", ex.what());
 	}
-	else if (obj["type"] == "button")
+}
+
+void WorkSpace::Open(std::string file_path)
+{
+	loading_workspace = true;
+	load(file_path);
+	loading_workspace = false;
+}
+void WorkSpace::Save(std::string file_path)
+{
+	std::ofstream file;
+	file.open(file_path);
+	nlohmann::json main_obj;
+	for (auto& e : elements)
 	{
-		std::cout << "Adding a button" << std::endl;
-		igd::Button* b = new igd::Button();
-		ImGuiElement* f = (ImGuiElement*)b;
-		f->v_parent = parent;
-		b->FromJSON(obj);
-		parent->children.push_back((ImGuiElement*)b);
-		return f;
+		main_obj.push_back(e->GetJsonWithChildren());
 	}
+	file << main_obj.dump() << std::endl;
+	file.close();
+	//SaveAsWidget(igd::active_workspace->active_element->v_id);
 }
 
 void WorkSpace::KeyBinds()
@@ -177,10 +209,10 @@ void WorkSpace::OnUIRender() {
 	this->basic_workspace_element->PopColorAndStyles();
 }
 
-void WorkSpace::AddNewElement(ImGuiElement* ele)
+void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 {
 
-	if (this->active_element && this->active_element->v_can_have_children)
+	if (this->active_element && this->active_element->v_can_have_children && !force_base)
 	{
 		this->active_element->children.push_back(ele);
 		this->active_element->children.back()->v_parent = this->active_element;
@@ -190,5 +222,69 @@ void WorkSpace::AddNewElement(ImGuiElement* ele)
 		this->active_element = nullptr;
 		this->elements.push_back(ele);
 		this->active_element = this->elements.back();
+	}
+}
+
+void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
+{
+	try
+	{
+		ImGuiContext& g = *GImGui;
+		for (int i = 0; auto & e : j["children"])
+		{
+			std::cout << "e: " << e.dump() << std::endl;
+			igd::active_workspace->CreateElementFromJson(e, parent);
+			if (e["children"].size() > 0)
+			{
+				GetAllChildren(e, parent->children[i]);
+			}
+			i++;
+		}
+	}
+	catch (nlohmann::json::exception& ex)
+	{
+		igd::notifications->GenericNotification("Error parsing json", ex.what());
+	}
+}
+
+void WorkSpace::load(std::filesystem::path path)
+{
+
+	if (!igd::active_workspace)
+	{
+		igd::notifications->GenericNotification("Load Error", "No active workspace");
+		return;
+	}
+	std::ifstream i(path.string());
+	try
+	{
+		nlohmann::json j;
+		j = nlohmann::json::parse(i);
+		int elements = 0;
+		for (auto& s : j)
+		{
+			if (s.contains("obj"))
+			{
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s["obj"], nullptr);
+				GetAllChildren(s["obj"], parent);
+			}
+			else
+			{
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s, nullptr);
+				GetAllChildren(s, parent);
+			}
+			elements++;
+		}
+		
+	}
+	catch (nlohmann::json::exception& ex)
+	{
+		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		std::cerr << "parse error at byte " << ex.what() << std::endl;
+	}
+	catch (nlohmann::json::parse_error& ex)
+	{
+		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 	}
 }

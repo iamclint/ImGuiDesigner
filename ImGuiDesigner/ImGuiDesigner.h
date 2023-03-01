@@ -4,6 +4,7 @@
 #include "ToolBar.h"
 #include "Notifications.h"
 #include "FontManager.h"
+#include <filesystem>
 namespace igd
 {
 	extern Notifications* notifications;
@@ -14,4 +15,5 @@ namespace igd
 	extern bool add_workspace;
 	extern std::vector<WorkSpace*> delete_workspace;
 	extern FontManager* font_manager;
+	extern std::filesystem::path startup_path;
 }

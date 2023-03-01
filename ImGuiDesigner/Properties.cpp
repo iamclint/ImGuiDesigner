@@ -148,7 +148,7 @@ void Properties::OnUIRender() {
 		if (ImGui::BeginCombo("##Font", font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 		{
 			//create directory if doesn't exist
-			std::filesystem::path fonts_dir = "fonts";
+			std::filesystem::path fonts_dir = igd::startup_path.string() + "/fonts";
 			if (!std::filesystem::exists(fonts_dir))
 				std::filesystem::create_directory(fonts_dir);
 			if (ImGui::Selectable("Inherit"))

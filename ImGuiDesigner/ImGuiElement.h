@@ -183,6 +183,7 @@ public:
 	void PopColorAndStyles();
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
+	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length);
 
 //properties	

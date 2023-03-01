@@ -1,4 +1,7 @@
 #include "Notifications.h"
+#include <Windows.h>
+#include "Walnut/Application.h"
+#include "ImGuiDesigner.h"
 void Notifications::GenericNotification(std::string title, std::string message, std::string icon_path, std::string button_text, std::function<void()> callback)
 {
 	this->show_generic = true;
@@ -16,7 +19,54 @@ void Notifications::Confirmation(std::string title, std::string message, std::st
 	this->icon_path = icon_path;
 	this->callback_confirmation = callback;
 }
+void Notifications::SaveFile(std::function<void(std::string)> callback)
+{
+	std::thread f = std::thread([callback]()
+	{
+		OPENFILENAMEA ofn;
+		char szFileName[MAX_PATH] = "";
 
+		ZeroMemory(&ofn, sizeof(ofn));
+
+		ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
+		ofn.hwndOwner = NULL;
+		ofn.lpstrFilter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0";
+		ofn.lpstrFile = szFileName;
+		ofn.nMaxFile = MAX_PATH;
+		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+		ofn.lpstrDefExt = "igd";
+
+		if (GetSaveFileNameA(&ofn))
+		{
+			callback(std::string(ofn.lpstrFile));
+		}
+	});
+	f.detach();
+}
+void Notifications::OpenFile(std::function<void(std::string)> callback)
+{
+	std::thread f = std::thread([callback]()
+		{
+			OPENFILENAMEA ofn;
+	char szFileName[MAX_PATH] = "";
+
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFilter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0";
+	ofn.lpstrFile = szFileName;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+	ofn.lpstrDefExt = "igd";
+
+	if (GetOpenFileNameA(&ofn))
+	{
+		callback(std::string(ofn.lpstrFile));
+	}
+		});
+	f.detach();
+}
 
 void Notifications::generic()
 {

@@ -18,6 +18,7 @@ namespace igd
 	std::vector<WorkSpace*> delete_workspace;
 	std::vector<ImGuiElement> undo_vector;
 	FontManager* font_manager;
+	std::filesystem::path startup_path;
 }
 
 class ExampleLayer : public Walnut::Layer
@@ -69,6 +70,9 @@ void update_layer_stack()
 
 void create_directories()
 {
+	//get startup path
+	igd::startup_path = std::filesystem::current_path();
+	
 	std::filesystem::path path = std::filesystem::current_path();
 	path.append("textures");
 	if (!std::filesystem::exists(path))
@@ -83,6 +87,12 @@ void create_directories()
 	}
 	path = std::filesystem::current_path();
 	path.append("widgets");
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directory(path);
+	}
+	path = std::filesystem::current_path();
+	path.append("projects");
 	if (!std::filesystem::exists(path))
 	{
 		std::filesystem::create_directory(path);
@@ -116,6 +126,18 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	{			
 		if (ImGui::BeginMenu("File"))
 		{
+			if (ImGui::MenuItem("Open"))
+			{
+				igd::notifications->OpenFile([](std::string file) {
+					igd::active_workspace->Open(file);
+					});
+			}
+			if (ImGui::MenuItem("Save"))
+			{
+				igd::notifications->SaveFile([](std::string file) {
+					igd::active_workspace->Save(file);
+				});
+			}
 			if (ImGui::MenuItem("Exit"))
 			{
 				igd::app->Close();

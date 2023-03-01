@@ -8,40 +8,6 @@
 #include "../json/single_include/nlohmann/json.hpp"
 #include <fstream>
 
-void AddNewElement(ImGuiElement* ele)
-{
-	if (igd::active_workspace->active_element && igd::active_workspace->active_element->v_can_have_children)
-	{
-		igd::active_workspace->active_element->children.push_back(ele);
-		igd::active_workspace->active_element->children.back()->v_parent = igd::active_workspace->active_element;
-	}
-	else
-	{
-		igd::active_workspace->active_element = nullptr;
-		igd::active_workspace->elements.push_back(ele);
-		igd::active_workspace->active_element = igd::active_workspace->elements.back();
-	}
-}
-
-
-
-void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
-{
-	ImGuiContext& g = *GImGui;
-	std::cout << "j: " << j.dump() << std::endl;
-	for (int i = 0; auto & e : j["children"])
-	{
-		std::cout << "e: " << e.dump() << std::endl;
-		igd::active_workspace->CreateElementFromJson(e, parent);
-		if (e["children"].size() > 0)
-		{
-			GetAllChildren(e, parent->children[i]);
-		}
-		i++;
-	}
-}
-
-
 void ToolBar::OnUIRender() {
 	static char* buf =new char[25];
 	memset(buf, 0, 25);
@@ -61,11 +27,11 @@ void ToolBar::OnUIRender() {
 	
 	if (ImGui::Button("Child Window##toolbar_input_child", {140, 0}))
 	{
-		AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
 	}
 	if (ImGui::Button("Button##toolbar_input_button", { 140, 0 }))
 	{
-		AddNewElement((ImGuiElement*)(new igd::Button()));
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Button()));
 	}
 	ImGui::PushItemWidth(140);
 	ImGui::InputText("##toolbar_input_text", buf, 25, ImGuiInputTextFlags_ReadOnly);
@@ -129,33 +95,39 @@ void ToolBar::OnUIRender() {
 	ImGui::Spacing();
 	ImGui::Text("Custom Widgets");
 	ImGui::Separator();
+
 	
 	//iterate all files in widgets folder
-	for (auto& p : std::filesystem::directory_iterator("widgets"))
+	for (auto& p : std::filesystem::directory_iterator(igd::startup_path.string() + "/widgets"))
 	{
 		if (p.path().extension() == ".wgd")
 		{
 			if (ImGui::Button(p.path().filename().stem().string().c_str(), {140, 0}))
 			{
 				//load the file
-				std::ifstream i(p.path().string());
-				nlohmann::json j;
-				try
+				igd::active_workspace->load(p.path());
+			}
+			if (ImGui::BeginPopupContextItem(p.path().filename().string().c_str()))
+			{
+				if (ImGui::MenuItem("Add"))
 				{
-					j = nlohmann::json::parse(i);
-					ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(j["child_window"], nullptr);
-					GetAllChildren(j["child_window"], parent);
+
 				}
-				catch (nlohmann::json::parse_error& ex)
+				if (ImGui::MenuItem("Delete"))
 				{
-					igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
-					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+					igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + p.path().filename().string(), "", [p](bool conf) {
+						if (conf)
+						{
+							std::filesystem::remove(p.path());
+						}
+						});
 				}
+				ImGui::EndPopup();
 			}
 		}
+
 	}
-
-
+	
 	if (ImGui::IsAnyItemHovered())
 	{
 		g.MouseCursor = ImGuiMouseCursor_Hand;

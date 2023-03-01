@@ -179,7 +179,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 
 	try
 	{
-		if (this->v_parent)
+		if (this->v_parent || igd::active_workspace->loading_workspace)
 			v_pos = ImVec2(j["pos"][0], j["pos"][1]);
 
 		v_id = j["id"].get<std::string>() + "##" + RandomID(10);
@@ -277,6 +277,27 @@ void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_
 				});
 	}
 }
+
+
+nlohmann::json ImGuiElement::GetJsonWithChildren()
+{
+	nlohmann::json main_obj;
+	main_obj["obj"] = this->GetJson();
+
+	if (children.size() == 0)
+		return main_obj;
+
+	for (auto& e : children)
+	{
+		if (e->delete_me)
+			continue;
+		main_obj["obj"]["children"].push_back(e->GetJson());
+		if (e->v_can_have_children)
+			GetAllChildren(e, main_obj["obj"]["children"].back());
+	}
+	return main_obj;
+}
+
 void ImGuiElement::SaveAsWidget(std::string name)
 {
 	if (children.size() == 0)
@@ -284,7 +305,7 @@ void ImGuiElement::SaveAsWidget(std::string name)
 	//check if folder exists
 	if (!std::filesystem::exists("widgets"))
 		std::filesystem::create_directory("widgets");
-	
+
 	int find_pound = name.find("#");
 	if (find_pound != std::string::npos)
 		name = name.substr(0, find_pound);
@@ -295,24 +316,14 @@ void ImGuiElement::SaveAsWidget(std::string name)
 		igd::notifications->GenericNotification("File already exists", "Please choose a new id for this widget", "", "Ok", []() { std::cout << "Yay" << std::endl; });
 		return;
 	}
-
 	std::ofstream file;
 	file.open("widgets/" + name + ".wgd");
-	nlohmann::json main_obj;
-	main_obj["child_window"] = this->GetJson();
-	for (auto& e : children)
-	{
-		if (e->delete_me)
-			continue;
-		main_obj["child_window"]["children"].push_back(e->GetJson());
-		if (e->v_can_have_children)
-			GetAllChildren(e, main_obj["child_window"]["children"].back());
-	}
-	std::cout << main_obj.dump() << std::endl;
+	nlohmann::json main_obj = GetJsonWithChildren();
 	file << main_obj.dump() << std::endl;
 	file.close();
-	std::cout << "Saved to widgets/widget.igd" << std::endl;
+	std::cout << "Saved to widgets/" + name +".igd" << std::endl;
 }
+
 
 void ImGuiElement::Undo()
 {
