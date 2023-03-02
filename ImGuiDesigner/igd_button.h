@@ -76,19 +76,22 @@ namespace igd
 
 		}
 
-		virtual void RenderHead() override
+		virtual void RenderHead(ImVec2 ContentRegionAvail) override
 		{
 			ImGuiContext& g = *GImGui;
 
 		}
 
-		virtual void RenderInternal() override
+		virtual void RenderInternal(ImVec2 ContentRegionAvail) override
 		{
-			igd::active_workspace->code << "ImGui::Button(\"" << v_label << "\", ImVec2(" << v_size.x << ", " << v_size.y << "));" << std::endl;
-			ImGui::Button((v_label + "##" + v_id).c_str(), v_size);
+			ImGuiContext& g = *GImGui;
+			if (v_size.type == Vec2Type::Absolute)
+				ImGui::Button((v_label + "##" + v_id).c_str(), v_size.value);
+			else if (v_size.type == Vec2Type::Relative)
+				ImGui::Button((v_label + "##" + v_id).c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
 		}
 
-		virtual void RenderFoot() override
+		virtual void RenderFoot(ImVec2 ContentRegionAvail) override
 		{
 
 		

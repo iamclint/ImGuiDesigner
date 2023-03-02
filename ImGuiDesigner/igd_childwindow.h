@@ -126,17 +126,20 @@ namespace igd
 		
 		}
 	
-		virtual void RenderHead() override
+		virtual void RenderHead(ImVec2 ContentRegionAvail) override
 		{
 			ImGuiContext& g = *GImGui;
-			ImGui::BeginChild(v_id.c_str(), v_size, v_border, v_flags);
+			if (v_size.type == Vec2Type::Absolute)
+				ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
+			else if (v_size.type == Vec2Type::Relative)
+				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x*(v_size.value.x/100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
 		}
-		virtual void RenderInternal() override
+		virtual void RenderInternal(ImVec2 ContentRegionAvail) override
 		{
 			//iterate all children handled by imguielement cpp
 
 		}
-		virtual void RenderFoot() override
+		virtual void RenderFoot(ImVec2 ContentRegionAvail) override
 		{
 			ImGui::EndChild();
 		}

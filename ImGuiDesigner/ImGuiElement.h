@@ -152,15 +152,29 @@ struct ColorValue
 	ColorValue(ImVec4 v, bool inherit = false) : value(v), inherit(inherit) {}
 };
 
+enum class Vec2Type : int
+{
+	Absolute,
+	Relative
+};
+
+struct ImGuiElementVec2
+{
+	ImVec2 value;
+	Vec2Type type;
+	ImGuiElementVec2(ImVec2 v, Vec2Type t) : value(v), type(t) {}
+	ImGuiElementVec2(ImVec2 v) : value(v), type(Vec2Type::Absolute) {}
+	ImGuiElementVec2() : value(), type(Vec2Type::Absolute) {}
+};
 
 class ImGuiElement
 {
 //virtual functions
 public:
 	virtual void RenderPropertiesInternal();
-	virtual void RenderHead() {};
-	virtual void RenderInternal() {};
-	virtual void RenderFoot() {};
+	virtual void RenderHead(ImVec2 ContentRegionAvail) {};
+	virtual void RenderInternal(ImVec2 ContentRegionAvail) {};
+	virtual void RenderFoot(ImVec2 ContentRegionAvail) {};
 	virtual void Clone() {};
 	virtual void UndoLocal();
 	virtual void RedoLocal();
@@ -171,7 +185,7 @@ public:
 
 //methods
 public:
-	void Render();
+	void Render(ImVec2 ContentRegionAvail);
 	void Delete();
 	void Redo();
 	void Undo();
@@ -183,14 +197,15 @@ public:
 	void PopColorAndStyles();
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
+	
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length);
 
 //properties	
 public:
 	int v_flags;
-	ImVec2 v_size;
-	ImVec2 v_pos;
+	ImGuiElementVec2 v_size;
+	ImGuiElementVec2 v_pos;
 	std::string v_id;
 	std::string v_label;
 	std::map<ImGuiCol_, ColorValue> v_colors;
@@ -201,6 +216,7 @@ public:
 	bool v_disabled;
 	bool v_inherit_all_colors;
 	bool v_inherit_all_styles;
+	bool v_sameline;
 	
 	ImGuiElement* v_parent;
 	std::vector<ImGuiElement*> children;
@@ -243,6 +259,7 @@ public:
 		v_inherit_all_colors = other.v_inherit_all_colors;
 		v_inherit_all_styles = other.v_inherit_all_styles;
 		v_font = other.v_font;
+		v_sameline = other.v_sameline;
 	}
 		
 private:
@@ -252,7 +269,9 @@ private:
 	void KeyMove();
 	void Select();
 	void KeyBinds();
-	
+	void ApplyResize(ImVec2 literal_size);
+	void ApplyPos(ImVec2 literal_pos);
+	ImVec2 current_region_avail; //updated on render from workspace
 	int color_pops;
 	int style_pops;
 	ImVec2 current_drag_delta;

@@ -44,7 +44,7 @@ ImGuiElement::ImGuiElement()
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
-	v_font()
+	v_font(), v_sameline(false)
 {
 	ImGuiContext& g = *GImGui;
 	v_property_flags = property_flags::disabled;
@@ -180,11 +180,13 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 	try
 	{
 		if (this->v_parent || igd::active_workspace->loading_workspace)
-			v_pos = ImVec2(j["pos"][0], j["pos"][1]);
+		{
+			v_pos = { ImVec2(j["pos"]["x"],j["pos"]["y"]), j["pos"]["type"] };
+		}
 
 		v_id = j["id"].get<std::string>() + "##" + RandomID(10);
 		v_label = j["label"];
-		v_size = ImVec2(j["size"][0], j["size"][1]);
+		v_size = { ImVec2(j["size"]["x"],j["size"]["y"]), j["size"]["type"] };
 		v_disabled = j["disabled"];
 		v_flags = j["flags"];
 		v_border = j["border"];
@@ -192,6 +194,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 		v_inherit_all_styles = j["inherit_all_styles"];
 		v_font.name = j["font"];
 		v_font.size = j["font_size"];
+		v_sameline = j["sameline"];
 		for (auto& c : j["colors"])
 		{
 			v_colors[c["id"]] = ColorValue(ImVec4(c["value"][0], c["value"][1], c["value"][2], c["value"][3]), c["inherit"]);
@@ -241,8 +244,8 @@ void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_
 	else
 		j["id"] = v_id;
 	j["label"] = v_label;
-	j["size"] = { v_size.x, v_size.y };
-	j["pos"] = { v_pos.x, v_pos.y };
+	j["size"] = { {"x", v_size.value.x}, {"y", v_size.value.y}, {"type", v_size.type} };
+	j["pos"] = { {"x", v_pos.value.x}, {"y", v_pos.value.y}, {"type", v_pos.type} };
 	j["disabled"] = v_disabled;
 	j["flags"] = v_flags;
 	j["border"] = v_border;
@@ -251,6 +254,7 @@ void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_
 	j["font"] = v_font.name;
 	j["font_size"] = v_font.size;
 	j["colors"] = nlohmann::json::array();
+	j["sameline"] = v_sameline;
 	for (auto& c : v_colors)
 		j["colors"].push_back({
 			{"id", c.first},
@@ -370,7 +374,8 @@ bool ImGuiElement::Drag()
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		ImVec2 mouse_location = get_mouse_location();
-		v_pos = { mouse_location.x - current_drag_delta.x,mouse_location.y - current_drag_delta.y };
+		ApplyPos({ mouse_location.x - current_drag_delta.x , mouse_location.y - current_drag_delta.y });
+		//v_pos = { mouse_location.x - current_drag_delta.x,mouse_location.y - current_drag_delta.y };
 	}
 	return is_dragging;
 }
@@ -384,23 +389,23 @@ void ImGuiElement::KeyMove()
 	float delta_dist = 1.f;
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
 	{
-		v_pos.y = item_location.y - delta_dist;
-		v_pos.x = item_location.x;
+		v_pos.value.y = item_location.y - delta_dist;
+		v_pos.value.x = item_location.x;
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
 	{
-		v_pos.y = item_location.y + delta_dist;
-		v_pos.x = item_location.x;
+		v_pos.value.y = item_location.y + delta_dist;
+		v_pos.value.x = item_location.x;
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
 	{
-		v_pos.x = item_location.x - delta_dist;
-		v_pos.y = item_location.y;
+		v_pos.value.x = item_location.x - delta_dist;
+		v_pos.value.y = item_location.y;
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
 	{
-		v_pos.x = item_location.x + delta_dist;
-		v_pos.y = item_location.y;
+		v_pos.value.x = item_location.x + delta_dist;
+		v_pos.value.y = item_location.y;
 	}
 }
 
@@ -447,7 +452,30 @@ void ImGuiElement::Delete()
 	igd::active_workspace->active_element = nullptr;
 }
 
-
+void ImGuiElement::ApplyResize(ImVec2 literal_size)
+{
+	if (v_size.type == Vec2Type::Absolute)
+	{
+		v_size.value = literal_size;
+	}
+	else if (v_size.type == Vec2Type::Relative)
+	{
+		v_size.value.x = (literal_size.x / current_region_avail.x)*100;
+		v_size.value.y = (literal_size.y / current_region_avail.y)*100;
+	}
+}
+void ImGuiElement::ApplyPos(ImVec2 literal_pos)
+{
+	if (v_pos.type == Vec2Type::Absolute)
+	{
+		v_pos.value = literal_pos;
+	}
+	else if (v_pos.type == Vec2Type::Relative)
+	{
+		v_pos.value.x = (literal_pos.x / current_region_avail.x)*100;
+		v_pos.value.y = (literal_pos.y / current_region_avail.y)*100;
+	}
+}
 
 bool ImGuiElement::Resize()
 {
@@ -521,56 +549,54 @@ bool ImGuiElement::Resize()
 			case resize_direction::top_right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-				v_size = { last_size.x + mouse_drag_delta.x,last_size.y - mouse_drag_delta.y };
-				v_pos.y = last_position.y + mouse_drag_delta.y;
+				ApplyResize({ last_size.x + mouse_drag_delta.x,last_size.y - mouse_drag_delta.y });
+				ApplyPos({ last_position.x, last_position.y + mouse_drag_delta.y });
 				break;
 			}
 			case resize_direction::top_left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-				v_size = { last_size.x - mouse_drag_delta.x,last_size.y - mouse_drag_delta.y };
-				v_pos.y = last_position.y + mouse_drag_delta.y;
-				v_pos.x = last_position.x + mouse_drag_delta.x;
+				ApplyResize({ last_size.x - mouse_drag_delta.x,last_size.y - mouse_drag_delta.y });
+				ApplyPos({ last_position.x + mouse_drag_delta.x, last_position.y + mouse_drag_delta.y });
 				break;
 			}
 			case resize_direction::bottom_left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-				v_size = { last_size.x - mouse_drag_delta.x,last_size.y + mouse_drag_delta.y };
-				//v_pos.y = last_position.y + mouse_drag_delta.y;
-				v_pos.x = last_position.x + mouse_drag_delta.x;
+				ApplyResize({ last_size.x - mouse_drag_delta.x,last_size.y + mouse_drag_delta.y });
+				ApplyPos({ last_position.x + mouse_drag_delta.x, last_position.y });
 				break;
 			}
 			case resize_direction::left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-				v_size = { last_size.x - mouse_drag_delta.x, last_size.y };
-				v_pos.x = last_position.x + mouse_drag_delta.x;
+				ApplyResize({ last_size.x - mouse_drag_delta.x, last_size.y });
+				ApplyPos({ last_position.x + mouse_drag_delta.x, last_position.y });
 				break;
 			}
 			case resize_direction::bottom_right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-				v_size = { last_size.x + mouse_drag_delta.x,last_size.y + mouse_drag_delta.y };
+				ApplyResize({ last_size.x + mouse_drag_delta.x,last_size.y + mouse_drag_delta.y });
 				break;
 			}
 			case resize_direction::right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-				v_size = { last_size.x + mouse_drag_delta.x,last_size.y };
+				ApplyResize({ last_size.x + mouse_drag_delta.x,last_size.y });
 				break;
 			}
 			case resize_direction::top:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNS;
-				v_size = { last_size.x ,last_size.y - mouse_drag_delta.y };
-				v_pos.y = last_position.y + mouse_drag_delta.y;
+				ApplyResize({ last_size.x ,last_size.y - mouse_drag_delta.y });
+				ApplyPos({ last_position.x, last_position.y + mouse_drag_delta.y });
 				break;
 			}
 			case resize_direction::bottom:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNS;
-				v_size = { last_size.x,last_size.y + mouse_drag_delta.y};
+				ApplyResize({ last_size.x,last_size.y + mouse_drag_delta.y });
 				break;
 			}
 		}
@@ -613,11 +639,19 @@ void ImGuiElement::PopColorAndStyles()
 	style_pops = 0;
 }
 
-void ImGuiElement::Render()
+void ImGuiElement::Render(ImVec2 ContentRegionAvail)
 {
+	current_region_avail = ContentRegionAvail;
 	ImGuiContext& g = *GImGui;
-	if (v_pos.x != 0 || v_pos.y != 0)
-		ImGui::SetCursorPos(v_pos);
+	if (v_pos.value.x != 0 || v_pos.value.y != 0)
+	{
+		
+		if (v_pos.type==Vec2Type::Absolute)
+			ImGui::SetCursorPos(v_pos.value);
+		else
+			ImGui::SetCursorPos({ ContentRegionAvail.x * (v_pos.value.x / 100), ContentRegionAvail.y * (v_pos.value.y / 100) });
+	}
+		
 	
 	color_pops = 0;
 	style_pops = 0;
@@ -650,16 +684,25 @@ void ImGuiElement::Render()
 	}
 	
 	if (this->v_font.font)
+	{
+		igd::active_workspace->code << "ImGui::PushFont(" << this->v_font.font << ");" << std::endl;
 		ImGui::PushFont(this->v_font.font);
+	}
 
-	this->RenderHead();
+	if (this->v_sameline)
+	{
+		igd::active_workspace->code << "ImGui::SameLine();" << std::endl;
+		ImGui::SameLine();
+	}
+	this->RenderHead(ContentRegionAvail);
 	if (this->children.size() > 0)
 	{
+		ImVec2 region_avail = ImGui::GetContentRegionAvail();
 		for (auto& child : this->children)
 		{
 			if (child->delete_me)
 				continue;
-			child->Render();
+			child->Render(region_avail);
 		}
 
 		for (auto it = this->children.begin(); it != this->children.end();)
@@ -681,8 +724,8 @@ void ImGuiElement::Render()
 		}
 	}
 	
-	this->RenderInternal();
-	this->RenderFoot();
+	this->RenderInternal(ContentRegionAvail);
+	this->RenderFoot(ContentRegionAvail);
 	
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0)
 	{
@@ -690,12 +733,18 @@ void ImGuiElement::Render()
 		igd::active_workspace->code << "ImGui::EndDisabled();" << std::endl;
 	}
 	if (this->v_font.font)
+	{
 		ImGui::PopFont();
+		igd::active_workspace->code << "ImGui::PopFont();" << std::endl;
+	}
 	PopColorAndStyles();
 
 	//reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
-	if (v_pos.x != 0 || v_pos.y != 0)
-		ImGui::SetCursorPos(last_known_cursor);
+	if (v_pos.value.x != 0 || v_pos.value.y != 0)
+	{
+		if (v_pos.type == Vec2Type::Absolute)
+			ImGui::SetCursorPos(last_known_cursor);
+	}
 	else
 		last_known_cursor = ImGui::GetCursorPos();
 	

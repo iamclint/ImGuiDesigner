@@ -82,6 +82,12 @@ void Properties::OnUpdate(float f)
 
 }
 
+
+const char* getPropertyId(std::string name)
+{
+	return ("##property_" + name + "_" + igd::active_workspace->active_element->v_id).c_str();
+}
+
 void Properties::OnUIRender() {
 	static char* buf = new char[25];
 	memset(buf, 0, 25);
@@ -136,7 +142,7 @@ void Properties::OnUIRender() {
 		{
 			PropertyLabel("Label:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputText("##property_label", &igd::active_workspace->active_element->v_label))
+			if (ImGui::InputText(getPropertyId("label"), &igd::active_workspace->active_element->v_label))
 			{
 				igd::active_workspace->active_element->PushUndo();
 			}
@@ -145,7 +151,7 @@ void Properties::OnUIRender() {
 		PropertyLabel("Font:");
 		ImGui::PushItemWidth(item_width);
 		std::filesystem::path font_path = igd::active_workspace->active_element->v_font.path;
-		if (ImGui::BeginCombo("##Font", font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
+		if (ImGui::BeginCombo(getPropertyId("font"), font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 		{
 			//create directory if doesn't exist
 			std::filesystem::path fonts_dir = igd::startup_path.string() + "/fonts";
@@ -172,27 +178,56 @@ void Properties::OnUIRender() {
 
 		PropertyLabel("Font Size:");
 		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputInt("##property_font_size", &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
+		if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
 			igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 		
 		if (!is_workspace)
 		{
 			PropertyLabel("Size:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputFloat2("##property_size", (float*)&igd::active_workspace->active_element->v_size))
+			if (ImGui::InputFloat2(getPropertyId("size"), (float*)&igd::active_workspace->active_element->v_size.value))
 			{
 				igd::active_workspace->active_element->PushUndo();
 			}
+			ImGui::SameLine();
+			if (ImGui::BeginCombo(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+			{
+				if (ImGui::Selectable("Absolute"))
+					igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
+				if (ImGui::Selectable("Relative (%)"))
+				{
+					igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
+					igd::active_workspace->active_element->v_size.value.y = std::clamp(igd::active_workspace->active_element->v_size.value.y, 1.f, 100.f);
+					igd::active_workspace->active_element->v_size.value.x = std::clamp(igd::active_workspace->active_element->v_size.value.x, 1.f, 100.f);
+				}
+				ImGui::EndCombo();
+			}
+
 		}
 
 		if (igd::active_workspace->active_element->v_property_flags & property_flags::pos && !is_workspace)
 		{
 			PropertyLabel("Position:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::InputFloat2("##property_pos", (float*)&igd::active_workspace->active_element->v_pos))
+			if (ImGui::InputFloat2(getPropertyId("pos"), (float*)&igd::active_workspace->active_element->v_pos.value))
 			{
 				igd::active_workspace->active_element->PushUndo();
 			}
+			ImGui::SameLine();
+			if (ImGui::BeginCombo(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+			{
+				if (ImGui::Selectable("Absolute"))
+					igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
+				if (ImGui::Selectable("Relative (%)"))
+					igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
+				ImGui::EndCombo();
+			}
+		}
+
+		if (!is_workspace)
+		{
+			PropertyLabel("Sameline:");
+			ImGui::Checkbox("##property_sameline", &igd::active_workspace->active_element->v_sameline);
 		}
 
 		if (igd::active_workspace->active_element->v_colors.size() > 0)
@@ -209,7 +244,7 @@ void Properties::OnUIRender() {
 		{
 			PropertyLabel(ImGui::GetStyleColorName(c.first));
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::ColorEdit4(("##property_color_" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), (float*)&c.second, ImGuiColorEditFlags_NoInputs))
+			if (ImGui::ColorEdit4(getPropertyId("color_" + std::string(ImGui::GetStyleColorName(c.first))), (float*)&c.second, ImGuiColorEditFlags_NoInputs))
 			{
 				modified = true;
 			}
@@ -236,13 +271,13 @@ void Properties::OnUIRender() {
 			ImGui::PushItemWidth(item_width);
 			if (c.second.type == StyleVarType::Float)
 			{
-				if (ImGui::InputFloat(("##property_style_" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), (float*)&c.second.value.Float))
+				if (ImGui::InputFloat(getPropertyId("style_" + std::string(ImGuiStyleVar_Strings[c.first])), (float*)&c.second.value.Float))
 					modified = true;
 				
 			}
 			else if (c.second.type == StyleVarType::Vec2)
 			{
-				if (ImGui::InputFloat2(("##property_style_" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), (float*)&c.second.value.Vec2))
+				if (ImGui::InputFloat2(getPropertyId("style_" + std::string(ImGuiStyleVar_Strings[c.first])), (float*)&c.second.value.Vec2))
 					modified = true;
 			}
 			ImGui::SameLine();
@@ -268,7 +303,7 @@ void Properties::OnUIRender() {
 		{
 			PropertyLabel("Parent:");
 			ImGui::PushItemWidth(item_width);
-			if (ImGui::BeginCombo("##property_parent", igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
+			if (ImGui::BeginCombo(getPropertyId("parent"), igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
 			{
 				if (ImGui::Selectable("None"))
 				{

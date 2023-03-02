@@ -176,6 +176,7 @@ void WorkSpace::OnUIRender() {
 		this->active_element = nullptr;
 		igd::active_workspace = this;
 	}
+	ImVec2 region_avail = ImGui::GetContentRegionAvail();
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)
@@ -189,7 +190,7 @@ void WorkSpace::OnUIRender() {
 	{
 		if (element->delete_me)
 			continue;
-		element->Render();
+		element->Render(region_avail);
 	}
 	
 	//delete from elements if delete_me is true
