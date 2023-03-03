@@ -19,7 +19,7 @@ namespace igd
 		Button() {
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;
-			v_property_flags = property_flags::label | property_flags::disabled | property_flags::pos;
+			v_property_flags = property_flags::disabled | property_flags::pos;
 			v_size = ImVec2(0, 0);
 			v_id = ("new button##" + RandomID(10)).c_str();
 			v_label = "new button";
@@ -76,24 +76,34 @@ namespace igd
 
 		}
 
-		virtual void RenderHead(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderHead() override
 		{
 			ImGuiContext& g = *GImGui;
-
+			return "";
 		}
 
-		virtual void RenderInternal(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderInternal() override
 		{
 			ImGuiContext& g = *GImGui;
+			std::stringstream code;
+			if (v_id == "")
+				return "";
 			if (v_size.type == Vec2Type::Absolute)
-				ImGui::Button((v_label + "##" + v_id).c_str(), v_size.value);
+			{
+				ImGui::Button(v_id.c_str(), v_size.value);
+				code << "ImGui::Button(\"" << v_id << "\",  {" << v_size.value.x <<"," << v_size.value.y << "});";
+			}
 			else if (v_size.type == Vec2Type::Relative)
-				ImGui::Button((v_label + "##" + v_id).c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
+			{
+				ImGui::Button(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
+				code << "ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<<v_size.value.x / 100<<", " << ContentRegionString << ".y * " << v_size.value.y / 100 << "}); ";
+			}
+			return code.str();
 		}
 
-		virtual void RenderFoot(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderFoot() override
 		{
-
+			return "";
 		
 		}
 		virtual void FromJSON(nlohmann::json data) override

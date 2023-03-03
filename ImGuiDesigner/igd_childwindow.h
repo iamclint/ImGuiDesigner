@@ -126,22 +126,36 @@ namespace igd
 		
 		}
 	
-		virtual void RenderHead(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderHead() override
 		{
+			if (v_id == "")
+				return "";
+			std::stringstream code_out;
 			ImGuiContext& g = *GImGui;
+
 			if (v_size.type == Vec2Type::Absolute)
+			{
 				ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
+				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << v_size.value.x << "," << v_size.value.y << "}, " << v_border << ", " << v_flags << ");";
+			}
 			else if (v_size.type == Vec2Type::Relative)
-				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x*(v_size.value.x/100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
+			{
+				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
+				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << v_size.value.x / 100 << ", " << ContentRegionString << ".y * " << v_size.value.y / 100 << " }, " << v_border << ", " << v_flags << "); ";
+			}
+			return code_out.str();
 		}
-		virtual void RenderInternal(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderInternal() override
 		{
 			//iterate all children handled by imguielement cpp
-
+			return "";
 		}
-		virtual void RenderFoot(ImVec2 ContentRegionAvail) override
+		virtual std::string RenderFoot() override
 		{
+			if (v_id == "")
+				return "";
 			ImGui::EndChild();
+			return "ImGui::EndChild();";
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{

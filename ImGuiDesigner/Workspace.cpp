@@ -16,11 +16,11 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false)
+	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false)
 {
 	basic_workspace_element = new ImGuiElement();
-	basic_workspace_element->v_inherit_all_colors = false;
-	basic_workspace_element->v_inherit_all_styles = false;
+	basic_workspace_element->v_inherit_all_colors = true;
+	basic_workspace_element->v_inherit_all_styles = true;
 	if (igd::workspaces.size() == 0)
 		id = "Workspace";
 	else
@@ -148,6 +148,11 @@ void WorkSpace::Styles()
 	}
 }
 
+void WorkSpace::GenerateStaticVars()
+{
+	igd::active_workspace->code << "static bool " << this->id << " = true;" << std::endl;
+}
+
 void WorkSpace::OnUIRender() {
 	if (!is_open)
 	{
@@ -162,13 +167,28 @@ void WorkSpace::OnUIRender() {
 		return;
 	}
 	this->code.str("");
+
 	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
 
-	Colors();
-	Styles();
+	this->GenerateStaticVars();
+
+	if (!this->basic_workspace_element->v_inherit_all_colors)
+		this->Colors();
+	if (!this->basic_workspace_element->v_inherit_all_styles)
+		this->Styles();
+
+	if (this->basic_workspace_element->v_font.font)
+	{
+		igd::active_workspace->code << "ImGui::PushFont(" << this->basic_workspace_element->v_font.name << ");" << std::endl;
+		ImGui::PushFont(this->basic_workspace_element->v_font.font);
+	}
+	igd::active_workspace->code << "ImGui::Begin(\"" << this->id << "\", &" << this->id << ", " << this->basic_workspace_element->v_flags << ");" << std::endl << "{" << std::endl;
+	int flags = ImGuiWindowFlags_NoSavedSettings;
+	if (igd::active_workspace->active_element && this->is_interacting)
+		flags |= ImGuiWindowFlags_NoMove;
 	
-	ImGui::Begin(id.c_str(), &is_open, ImGuiWindowFlags_NoSavedSettings);
+	ImGui::Begin(id.c_str(), &is_open, flags | this->basic_workspace_element->v_flags);
 	if (this==igd::active_workspace)
 		KeyBinds();
 	if (ImGui::IsWindowAppearing())
@@ -177,6 +197,8 @@ void WorkSpace::OnUIRender() {
 		igd::active_workspace = this;
 	}
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
+	igd::active_workspace->code << "\t\tImVec2 ContentRegionAvail = ImGui::GetContentRegionAvail();" << std::endl;
+
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)
@@ -190,7 +212,7 @@ void WorkSpace::OnUIRender() {
 	{
 		if (element->delete_me)
 			continue;
-		element->Render(region_avail);
+		element->Render(region_avail, 1);
 	}
 	
 	//delete from elements if delete_me is true
@@ -206,13 +228,25 @@ void WorkSpace::OnUIRender() {
 			++it;
 		}
 	}
-	ImGui::End();
+	std::string f = code.str();
+	code << "}" << std::endl << "ImGui::End();" << std::endl;
+	ImGui::End(); 
+	
+	if (this->basic_workspace_element->v_font.font)
+	{
+		igd::active_workspace->code << "ImGui::PopFont();" << std::endl;
+		ImGui::PopFont();
+	}
 	this->basic_workspace_element->PopColorAndStyles();
+	
+	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
+	ImGui::Begin("Code Generation", 0, ImGuiWindowFlags_NoSavedSettings  | ImGuiWindowFlags_NoMove);
+		ImGui::TextUnformatted(code.str().c_str());
+	ImGui::End();
 }
 
 void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 {
-
 	if (this->active_element && this->active_element->v_can_have_children && !force_base)
 	{
 		this->active_element->children.push_back(ele);

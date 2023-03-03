@@ -18,90 +18,92 @@ enum class property_flags : int
 	disabled = 1 << 3,
 
 };
+
 static inline const char* ImGuiStyleVar_Strings[] = {
-	"Alpha",
-	"DisabledAlpha",
-	"WindowPadding",
-	"WindowRounding",
-	"WindowBorderSize",
-	"WindowMinSize",
-	"WindowTitleAlign",
-	"ChildRounding",
-	"ChildBorderSize",
-	"PopupRounding",
-	"PopupBorderSize",
-	"FramePadding",
-	"FrameRounding",
-	"FrameBorderSize",
-	"ItemSpacing",
-	"ItemInnerSpacing",
-	"IndentSpacing",
-	"CellPadding",
-	"ScrollbarSize",
-	"ScrollbarRounding",
-	"GrabMinSize",
-	"GrabRounding",
-	"TabRounding",
-	"ButtonTextAlign",
-	"SelectableTextAlign",
-	"LayoutAlign"
+	"ImGuiStyleVar_Alpha",
+	"ImGuiStyleVar_DisabledAlpha",
+	"ImGuiStyleVar_WindowPadding",
+	"ImGuiStyleVar_WindowRounding",
+	"ImGuiStyleVar_WindowBorderSize",
+	"ImGuiStyleVar_WindowMinSize",
+	"ImGuiStyleVar_WindowTitleAlign",
+	"ImGuiStyleVar_ChildRounding",
+	"ImGuiStyleVar_ChildBorderSize",
+	"ImGuiStyleVar_PopupRounding",
+	"ImGuiStyleVar_PopupBorderSize",
+	"ImGuiStyleVar_FramePadding",
+	"ImGuiStyleVar_FrameRounding",
+	"ImGuiStyleVar_FrameBorderSize",
+	"ImGuiStyleVar_ItemSpacing",
+	"ImGuiStyleVar_ItemInnerSpacing",
+	"ImGuiStyleVar_IndentSpacing",
+	"ImGuiStyleVar_CellPadding",
+	"ImGuiStyleVar_ScrollbarSize",
+	"ImGuiStyleVar_ScrollbarRounding",
+	"ImGuiStyleVar_GrabMinSize",
+	"ImGuiStyleVar_GrabRounding",
+	"ImGuiStyleVar_TabRounding",
+	"ImGuiStyleVar_ButtonTextAlign",
+	"ImGuiStyleVar_SelectableTextAlign",
+	"ImGuiStyleVar_LayoutAlign"
 };
+
 static inline const char* ImGuiColor_Strings[] = {
-	"Text",
-	"TextDisabled",
-	"WindowBg",              // Background of normal windows
-	"ChildBg",               // Background of child windows
-	"PopupBg",               // Background of popups", menus", tooltips windows
-	"Border",
-	"BorderShadow",
-	"FrameBg",               // Background of checkbox", radio button", plot", slider", text input
-	"FrameBgHovered",
-	"FrameBgActive",
-	"TitleBg",
-	"TitleBgActive",
-	"TitleBgCollapsed",
-	"MenuBarBg",
-	"ScrollbarBg",
-	"ScrollbarGrab",
-	"ScrollbarGrabHovered",
-	"ScrollbarGrabActive",
-	"CheckMark",
-	"SliderGrab",
-	"SliderGrabActive",
-	"Button",
-	"ButtonHovered",
-	"ButtonActive",
-	"Header",                // Header* colors are used for CollapsingHeader", TreeNode", Selectable", MenuItem
-	"HeaderHovered",
-	"HeaderActive",
-	"Separator",
-	"SeparatorHovered",
-	"SeparatorActive",
-	"ResizeGrip",
-	"ResizeGripHovered",
-	"ResizeGripActive",
-	"Tab",
-	"TabHovered",
-	"TabActive",
-	"TabUnfocused",
-	"TabUnfocusedActive",
-	"DockingPreview",        // Preview overlay color when about to docking something
-	"DockingEmptyBg",        // Background color for empty node (e.g. CentralNode with no window docked into it)
-	"PlotLines",
-	"PlotLinesHovered",
-	"PlotHistogram",
-	"PlotHistogramHovered",
-	"TableHeaderBg",         // Table header background
-	"TableBorderStrong",     // Table outer and header borders (prefer using Alpha=1.0 here)
-	"TableBorderLight",      // Table inner borders (prefer using Alpha=1.0 here)
-	"TableRowBg",            // Table row background (even rows)
-	"TableRowBgAlt",         // Table row background (odd rows)
-	"TextSelectedBg",
-	"DragDropTarget",
-	"NavHighlight",          // Gamepad/keyboard: current highlighted item
-	"NavWindowingHighlight", // Highlight window when using CTRL+TAB
-	"NavWindowingDimBg",     // Darken/colorize entire screen behind the CTRL+TAB window list", when active
-	"ModalWindowDimBg"     // Darken/colorize entire screen behind a modal window", when one is active
+	"ImGuiCol_Text",
+	"ImGuiCol_TextDisabled",
+	"ImGuiCol_WindowBg",              // Background of normal windows
+	"ImGuiCol_ChildBg",               // Background of child windows
+	"ImGuiCol_PopupBg",               // Background of popups", menus", tooltips windows
+	"ImGuiCol_Border",
+	"ImGuiCol_BorderShadow",
+	"ImGuiCol_FrameBg",               // Background of checkbox", radio button", plot", slider", text input
+	"ImGuiCol_FrameBgHovered",
+	"ImGuiCol_FrameBgActive",
+	"ImGuiCol_TitleBg",
+	"ImGuiCol_TitleBgActive",
+	"ImGuiCol_TitleBgCollapsed",
+	"ImGuiCol_MenuBarBg",
+	"ImGuiCol_ScrollbarBg",
+	"ImGuiCol_ScrollbarGrab",
+	"ImGuiCol_ScrollbarGrabHovered",
+	"ImGuiCol_ScrollbarGrabActive",
+	"ImGuiCol_CheckMark",
+	"ImGuiCol_SliderGrab",
+	"ImGuiCol_SliderGrabActive",
+	"ImGuiCol_Button",
+	"ImGuiCol_ButtonHovered",
+	"ImGuiCol_ButtonActive",
+	"ImGuiCol_Header",                // Header* colors are used for CollapsingHeader", TreeNode", Selectable", MenuItem
+	"ImGuiCol_HeaderHovered",
+	"ImGuiCol_HeaderActive",
+	"ImGuiCol_Separator",
+	"ImGuiCol_SeparatorHovered",
+	"ImGuiCol_SeparatorActive",
+	"ImGuiCol_ResizeGrip",
+	"ImGuiCol_ResizeGripHovered",
+	"ImGuiCol_ResizeGripActive",
+	"ImGuiCol_Tab",
+	"ImGuiCol_TabHovered",
+	"ImGuiCol_TabActive",
+	"ImGuiCol_TabUnfocused",
+	"ImGuiCol_TabUnfocusedActive",
+	"ImGuiCol_DockingPreview",        // Preview overlay color when about to docking something
+	"ImGuiCol_DockingEmptyBg",        // Background color for empty node (e.g. CentralNode with no window docked into it)
+	"ImGuiCol_PlotLines",
+	"ImGuiCol_PlotLinesHovered",
+	"ImGuiCol_PlotHistogram",
+	"ImGuiCol_PlotHistogramHovered",
+	"ImGuiCol_TableHeaderBg",         // Table header background
+	"ImGuiCol_TableBorderStrong",     // Table outer and header borders (prefer using Alpha=1.0 here)
+	"ImGuiCol_TableBorderLight",      // Table inner borders (prefer using Alpha=1.0 here)
+	"ImGuiCol_TableRowBg",            // Table row background (even rows)
+	"ImGuiCol_TableRowBgAlt",         // Table row background (odd rows)
+	"ImGuiCol_TextSelectedBg",
+	"ImGuiCol_DragDropTarget",
+	"ImGuiCol_NavHighlight",          // Gamepad/keyboard: current highlighted item
+	"ImGuiCol_NavWindowingHighlight", // Highlight window when using CTRL+TAB
+	"ImGuiCol_NavWindowingDimBg",     // Darken/colorize entire screen behind the CTRL+TAB window list", when active
+	"ImGuiCol_ModalWindowDimBg"     // Darken/colorize entire screen behind a modal window", when one is active
 };
 
 inline property_flags operator|(property_flags a, property_flags b)
@@ -172,9 +174,12 @@ class ImGuiElement
 //virtual functions
 public:
 	virtual void RenderPropertiesInternal();
-	virtual void RenderHead(ImVec2 ContentRegionAvail) {};
-	virtual void RenderInternal(ImVec2 ContentRegionAvail) {};
-	virtual void RenderFoot(ImVec2 ContentRegionAvail) {};
+	//return code string for this element
+	virtual std::string RenderHead() { return ""; };
+	//return code string for this element
+	virtual std::string RenderInternal() { return ""; };
+	//return code string for this element
+	virtual std::string RenderFoot() { return ""; };
 	virtual void Clone() {};
 	virtual void UndoLocal();
 	virtual void RedoLocal();
@@ -185,7 +190,7 @@ public:
 
 //methods
 public:
-	void Render(ImVec2 ContentRegionAvail);
+	void Render(ImVec2 ContentRegionAvail, int current_depth);
 	void Delete();
 	void Redo();
 	void Undo();
@@ -197,7 +202,6 @@ public:
 	void PopColorAndStyles();
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
-	
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length);
 
@@ -217,6 +221,10 @@ public:
 	bool v_inherit_all_colors;
 	bool v_inherit_all_styles;
 	bool v_sameline;
+	
+	int v_depth;
+	ImVec2 ContentRegionAvail;
+	std::string ContentRegionString;
 	
 	ImGuiElement* v_parent;
 	std::vector<ImGuiElement*> children;
@@ -271,7 +279,8 @@ private:
 	void KeyBinds();
 	void ApplyResize(ImVec2 literal_size);
 	void ApplyPos(ImVec2 literal_pos);
-	ImVec2 current_region_avail; //updated on render from workspace
+	bool ChildrenUseRelative();
+	std::string GetContentRegionString();
 	int color_pops;
 	int style_pops;
 	ImVec2 current_drag_delta;

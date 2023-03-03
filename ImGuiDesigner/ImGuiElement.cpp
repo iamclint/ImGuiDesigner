@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <random>
 #include "Notifications.h"
+#include <boost/algorithm/string.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
 //get mouse location delta of item
 static inline std::unordered_map<ImGuiElement*, std::vector<ImGuiElement>> undo_stack;
@@ -44,7 +45,7 @@ ImGuiElement::ImGuiElement()
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
-	v_font(), v_sameline(false)
+	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0,0))
 {
 	ImGuiContext& g = *GImGui;
 	v_property_flags = property_flags::disabled;
@@ -157,19 +158,19 @@ void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 
 void ImGuiElement::PushStyleColor(ImGuiCol idx, const ImVec4& col)
 {
-	igd::active_workspace->code << "ImGui::PushStyleColor(" << idx << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
+	igd::active_workspace->code << "ImGui::PushStyleColor(" << ImGuiColor_Strings[idx] << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
 	ImGui::PushStyleColor(idx, col);
 	color_pops++;
 }
 void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, float val)
 {
-	igd::active_workspace->code << "ImGui::PushStyleVar(" << idx << ", " << val << ");" << std::endl;
+	igd::active_workspace->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", " << val << ");" << std::endl;
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }
 void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 {
-	igd::active_workspace->code << "ImGui::PushStyleVar(" << idx << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
+	igd::active_workspace->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }
@@ -460,8 +461,8 @@ void ImGuiElement::ApplyResize(ImVec2 literal_size)
 	}
 	else if (v_size.type == Vec2Type::Relative)
 	{
-		v_size.value.x = (literal_size.x / current_region_avail.x)*100;
-		v_size.value.y = (literal_size.y / current_region_avail.y)*100;
+		v_size.value.x = (literal_size.x / ContentRegionAvail.x)*100;
+		v_size.value.y = (literal_size.y / ContentRegionAvail.y)*100;
 	}
 }
 void ImGuiElement::ApplyPos(ImVec2 literal_pos)
@@ -472,8 +473,8 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 	}
 	else if (v_pos.type == Vec2Type::Relative)
 	{
-		v_pos.value.x = (literal_pos.x / current_region_avail.x)*100;
-		v_pos.value.y = (literal_pos.y / current_region_avail.y)*100;
+		v_pos.value.x = (literal_pos.x / ContentRegionAvail.x)*100;
+		v_pos.value.y = (literal_pos.y / ContentRegionAvail.y)*100;
 	}
 }
 
@@ -518,7 +519,7 @@ bool ImGuiElement::Resize()
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 	}
 
-	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !is_dragging && resize == resize_direction::none)
+	if (ImGui::IsMouseClicked(0) && !is_dragging && resize == resize_direction::none)
 	{
 		if (is_mouse_hovering_br)
 			resize = resize_direction::bottom_right;
@@ -639,17 +640,55 @@ void ImGuiElement::PopColorAndStyles()
 	style_pops = 0;
 }
 
-void ImGuiElement::Render(ImVec2 ContentRegionAvail)
+std::string GetCodeTabs(int depth)
 {
-	current_region_avail = ContentRegionAvail;
+	std::string tabs = "";
+	for (int i = 0; i < depth; i++)
+	{
+		tabs += "\t\t";
+	}
+	return tabs;
+}
+
+std::string ImGuiElement::GetContentRegionString()
+{
+	std::vector<std::string> sp_id;
+	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	std::string content_region_id = sp_id.front();
+	boost::replace_all(content_region_id, " ", "_");
+	return "ContentRegionAvail_" + content_region_id + std::to_string(v_depth);
+}
+
+bool ImGuiElement::ChildrenUseRelative()
+{
+	for (auto& child : this->children)
+	{
+		if (child->v_pos.type == Vec2Type::Relative || child->v_size.type == Vec2Type::Relative)
+			return true;
+	}
+	return false;
+}
+
+void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
+{
+	v_depth = current_depth;
+	ContentRegionAvail = _ContentRegionAvail;
+	if (ContentRegionString == "")
+		ContentRegionString = "ContentRegionAvail";
 	ImGuiContext& g = *GImGui;
 	if (v_pos.value.x != 0 || v_pos.value.y != 0)
 	{
 		
-		if (v_pos.type==Vec2Type::Absolute)
+		if (v_pos.type == Vec2Type::Absolute)
+		{
+			igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SetCursorPos({" << v_pos.value.x << ", " << v_pos.value.y << "});" << std::endl;
 			ImGui::SetCursorPos(v_pos.value);
+		}
 		else
+		{
+			igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << v_pos.value.x / 100 << ", " << ContentRegionString << ".y * " << v_pos.value.y / 100 << "});" << std::endl;
 			ImGui::SetCursorPos({ ContentRegionAvail.x * (v_pos.value.x / 100), ContentRegionAvail.y * (v_pos.value.y / 100) });
+		}
 	}
 		
 	
@@ -657,7 +696,7 @@ void ImGuiElement::Render(ImVec2 ContentRegionAvail)
 	style_pops = 0;
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
 	{
-		igd::active_workspace->code << "ImGui::BeginDisabled();" << std::endl;
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::BeginDisabled();" << std::endl;
 		ImGui::BeginDisabled();
 	}
 	
@@ -685,25 +724,36 @@ void ImGuiElement::Render(ImVec2 ContentRegionAvail)
 	
 	if (this->v_font.font)
 	{
-		igd::active_workspace->code << "ImGui::PushFont(" << this->v_font.font << ");" << std::endl;
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::PushFont(" << this->v_font.name << ");" << std::endl;
 		ImGui::PushFont(this->v_font.font);
 	}
 
 	if (this->v_sameline)
 	{
-		igd::active_workspace->code << "ImGui::SameLine();" << std::endl;
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SameLine();" << std::endl;
 		ImGui::SameLine();
 	}
-	this->RenderHead(ContentRegionAvail);
+	std::string RenderHead = this->RenderHead();
+	if (RenderHead !="")
+		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderHead << std::endl;
+
 	if (this->children.size() > 0)
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
+		std::string content_region_string = GetContentRegionString();
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "{" << std::endl;
+		if (this->ChildrenUseRelative())
+			igd::active_workspace->code << GetCodeTabs(current_depth + 1) << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();" << std::endl;
 		for (auto& child : this->children)
 		{
+			child->ContentRegionString = content_region_string;
+			//child->v_depth = current_depth + 1;
 			if (child->delete_me)
 				continue;
-			child->Render(region_avail);
+			//igd::active_workspace->code << "\t\t";
+			child->Render(region_avail, current_depth+1);
 		}
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "}" << std::endl;
 
 		for (auto it = this->children.begin(); it != this->children.end();)
 		{
@@ -723,19 +773,22 @@ void ImGuiElement::Render(ImVec2 ContentRegionAvail)
 			}
 		}
 	}
-	
-	this->RenderInternal(ContentRegionAvail);
-	this->RenderFoot(ContentRegionAvail);
+	std::string RenderInternal = this->RenderInternal();
+	std::string RenderFoot = this->RenderFoot();;
+	if (RenderInternal != "")
+		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderInternal << std::endl;
+	if (RenderFoot != "")
+		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderFoot << std::endl;
 	
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0)
 	{
 		ImGui::EndDisabled();
-		igd::active_workspace->code << "ImGui::EndDisabled();" << std::endl;
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::EndDisabled();" << std::endl;
 	}
 	if (this->v_font.font)
 	{
 		ImGui::PopFont();
-		igd::active_workspace->code << "ImGui::PopFont();" << std::endl;
+		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::PopFont();" << std::endl;
 	}
 	PopColorAndStyles();
 
@@ -750,11 +803,14 @@ void ImGuiElement::Render(ImVec2 ContentRegionAvail)
 	
 	if (igd::active_workspace->active_element == this)
 	{
-		Resize();
-		Drag();
+		if (Resize() || Drag())
+			igd::active_workspace->is_interacting = true;
+		else
+			igd::active_workspace->is_interacting = false;
 		KeyMove();
 		DrawSelection();
 		KeyBinds();
+		
 	}
 	if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow)
 		Select();

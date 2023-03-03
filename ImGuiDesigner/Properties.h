@@ -15,5 +15,10 @@ private:
 	void getChildParents(ImGuiElement* parent);
 	void getAllChildren(ImGuiElement* parent);
 	void buildTree(ImGuiElement* parent);
+	void General();
+	void Colors();
+	void Styles();
 	bool modified;
+	const int item_width = 200;
+	bool is_workspace;
 };

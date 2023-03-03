@@ -3985,7 +3985,7 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
 
         // When a window stop being submitted while being dragged, it may will its viewport until next Begin()
         const bool window_disappared = (!moving_window->WasActive || moving_window->Viewport == NULL);
-        if (g.IO.MouseDown[0] && IsMousePosValid(&g.IO.MousePos) && !window_disappared)
+        if (g.IO.MouseDown[0] && IsMousePosValid(&g.IO.MousePos) && !window_disappared && !(moving_window->Flags & ImGuiWindowFlags_NoMove))
         {
             ImVec2 pos = g.IO.MousePos - g.ActiveIdClickOffset;
             if (moving_window->Pos.x != pos.x || moving_window->Pos.y != pos.y)

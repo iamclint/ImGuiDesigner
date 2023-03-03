@@ -28,9 +28,10 @@ public:
 	std::string id;
 	bool is_open;
 	bool loading_workspace;
+	bool is_interacting;
 	ImGuiElement* basic_workspace_element;
-
-	
+private:
+	void GenerateStaticVars();
 
 };
 
