@@ -12,3 +12,4 @@ bin-int/
 # Exclude
 !vendor/bin
 /ImGuiDesigner/widgets
+/ImGuiDesigner/imgui.ini
