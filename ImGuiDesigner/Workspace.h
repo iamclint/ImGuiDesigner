@@ -10,6 +10,7 @@ public:
 	std::vector<ImGuiElement*> elements_buffer;
 	std::vector<ImGuiElement*> undo_stack;
 	std::vector<ImGuiElement*> redo_stack;
+	std::vector<ImGuiElement*> sort_buffer;
 	ImGuiElement* copied_element;
 	ImGuiElement* active_element;
 	void AddNewElement(ImGuiElement* ele, bool force_base = false);

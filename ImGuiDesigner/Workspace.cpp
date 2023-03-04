@@ -17,7 +17,7 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false)
+	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}
 {
 	basic_workspace_element = new ImGuiElement();
 	basic_workspace_element->v_inherit_all_colors = true;
@@ -235,12 +235,17 @@ void WorkSpace::OnUIRender() {
 		}
 		elements_buffer.clear();
 	}
-	
-	for (auto& element : elements)
+
+
+	for (int r = 0;auto& element : elements)
 	{
+		if (!element)
+			continue;
 		if (element->delete_me)
 			continue;
+		element->v_render_index = r;
 		element->Render(region_avail, 1, this);
+		r++;
 	}
 	
 	//delete from elements if delete_me is true
@@ -256,6 +261,20 @@ void WorkSpace::OnUIRender() {
 			++it;
 		}
 	}
+
+	if (sort_buffer.size() > 0)
+	{
+		//should only be
+		for (auto& element : sort_buffer)
+		{
+			if (element->v_parent)
+				igd::VecMove(element->v_parent->children, elements.size(), element->v_render_index);
+			else
+				igd::VecMove(igd::active_workspace->elements, elements.size(), element->v_render_index);
+		}
+		sort_buffer.clear();
+	}
+	
 	std::string f = code.str();
 	this->code << "}" << std::endl << "ImGui::End();" << std::endl;
 	ImGui::End(); 

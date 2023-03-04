@@ -238,7 +238,8 @@ public:
 	bool v_inherit_all_colors;
 	bool v_inherit_all_styles;
 	bool v_sameline;
-	
+	int v_render_index;
+	bool needs_resort;
 	WorkSpace* v_workspace;
 	int v_depth;
 	ImVec2 ContentRegionAvail;

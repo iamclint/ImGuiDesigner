@@ -45,7 +45,7 @@ ImGuiElement::ImGuiElement()
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
-	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0,0))
+	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -785,14 +785,16 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		if (this->ChildrenUseRelative())
 			this->AddCode("{");
 		this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();",current_depth + 1);
-		for (auto& child : this->children)
+		for (int r =0;auto& child : this->children)
 		{
 			child->ContentRegionString = content_region_string;
 			//child->v_depth = current_depth + 1;
 			if (child->delete_me)
 				continue;
 			//igd::active_workspace->code << "\t\t";
+			child->v_render_index = r;
 			child->Render(region_avail, current_depth+1, ws);
+			r++;
 		}
 		this->AddCode("}");
 
