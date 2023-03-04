@@ -785,36 +785,18 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		if (this->ChildrenUseRelative())
 			this->AddCode("{");
 		this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();",current_depth + 1);
+
 		for (int r =0;auto& child : this->children)
 		{
 			child->ContentRegionString = content_region_string;
-			//child->v_depth = current_depth + 1;
 			if (child->delete_me)
 				continue;
-			//igd::active_workspace->code << "\t\t";
 			child->v_render_index = r;
 			child->Render(region_avail, current_depth+1, ws);
 			r++;
 		}
 		this->AddCode("}");
 
-		for (auto it = this->children.begin(); it != this->children.end();)
-		{
-			if (!(*it)->v_parent)
-			{
-				igd::active_workspace->elements.push_back(*it);
-				it = this->children.erase(it);
-			}
-			else if ((*it)->v_parent!=this)
-			{
-				(*it)->v_parent->children.push_back(*it);
-				it = this->children.erase(it);
-			}
-			else
-			{
-				++it;
-			}
-		}
 	}
 	std::string RenderInternal = this->RenderInternal();
 	std::string RenderFoot = this->RenderFoot();;

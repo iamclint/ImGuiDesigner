@@ -24,6 +24,7 @@ public:
 	void Colors();
 	void Save(std::string file_path);
 	void Open(std::string file_path);
+	bool FixParentChildRelationships(ImGuiElement* element);
 	void RenderCode();
 	std::string GetIDForVariable();
 	WorkSpace();

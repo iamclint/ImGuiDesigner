@@ -9,6 +9,8 @@
 #include "vulkan/vulkan.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
+#include <boost/algorithm/string.hpp>
+
 void Properties::PropertyLabel(const char* lbl)
 {
 	ImGui::TableNextColumn();
@@ -53,6 +55,14 @@ void Properties::getAllChildren(ImGuiElement* parent)
 	}
 }
 
+std::string GetIDNoPound(std::string id)
+{
+	std::vector<std::string> sp_id;
+	boost::split(sp_id, id, boost::is_any_of("##"));
+	std::string stripped_id = sp_id.front();
+	return stripped_id;
+}
+
 void Properties::buildTree(ImGuiElement* current_element)
 {
 	ImGuiElement* drop_target = nullptr;
@@ -71,7 +81,14 @@ void Properties::buildTree(ImGuiElement* current_element)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 	if (igd::active_workspace->active_element == current_element)
 		flags |= ImGuiTreeNodeFlags_Selected;
-	bool IsOpen = ImGui::TreeNodeEx(current_element->v_id.c_str(), flags);
+	
+	std::stringstream ss;
+	ss << GetIDNoPound(current_element->v_id);
+	if (current_element->v_can_have_children)
+		ss << " (" << current_element->children.size() << ")";
+
+	//if (ImGui::GetDragDropPayload())
+	bool IsOpen = ImGui::TreeNodeEx(ss.str().c_str(), flags);
 	{
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			igd::active_workspace->active_element = current_element;
@@ -88,6 +105,8 @@ void Properties::buildTree(ImGuiElement* current_element)
 
 				bool parent_changed = false;
 				//dragged onto an element that can have children just add it to the children
+				int new_index = current_element->v_render_index;
+
 				if (current_element->v_can_have_children && source_element->v_parent != current_element)
 				{
 					parent_changed = true;
@@ -101,9 +120,11 @@ void Properties::buildTree(ImGuiElement* current_element)
 					source_element->PushUndo();
 				}
 
-				int new_index = current_element->v_render_index;
-				if (current_element->v_render_index < source_element->v_render_index)
+				if (current_element->children.size() > 0)
+					new_index = 0;
+				else if (current_element->v_render_index < source_element->v_render_index || parent_changed)
 					new_index += 1;
+
 
 				if (!parent_changed)
 				{
@@ -115,7 +136,6 @@ void Properties::buildTree(ImGuiElement* current_element)
 				else
 				{
 					source_element->v_render_index = new_index;
-					igd::active_workspace->sort_buffer.push_back(source_element);
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -136,10 +156,19 @@ void Properties::buildTree(ImGuiElement* current_element)
 					continue;
 				buildTree(element);
 			}
+			if (current_element == drop_target && ImGui::GetDragDropPayload() && current_element->v_can_have_children)
+			{
+				ImGuiElement* source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);
+				ImGui::BeginDisabled();
+				if (ImGui::TreeNodeEx(source_element->v_id.c_str(), ImGuiTreeNodeFlags_Leaf))
+					ImGui::TreePop();
+				ImGui::EndDisabled();
+			}
 			ImGui::TreePop();
 		}
 
-		if (current_element == drop_target && ImGui::GetDragDropPayload())
+
+		if (current_element == drop_target && ImGui::GetDragDropPayload() && !current_element->v_can_have_children)
 		{
 			ImGuiElement* source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);
 			ImGui::BeginDisabled();
@@ -286,32 +315,32 @@ void Properties::General()
 		}
 	}
 
-	if (!is_workspace)
-	{
-		PropertyLabel("Parent:");
-		ImGui::PushItemWidth(item_width);
-		if (ImGui::BeginCombo(getPropertyId("parent"), igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
-		{
-			if (ImGui::Selectable("None"))
-			{
-				igd::active_workspace->active_element->v_parent = nullptr;
-				igd::active_workspace->active_element->PushUndo();
-			}
-			for (auto& element : igd::active_workspace->elements)
-			{
-				if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
-					continue;
-				if (element->children.size() > 0)
-					getChildParents(element);
-				if (ImGui::Selectable(element->v_id.c_str()))
-				{
-					igd::active_workspace->active_element->v_parent = element;
-					igd::active_workspace->active_element->PushUndo();
-				}
-			}
-			ImGui::EndCombo();
-		}
-	}
+	//if (!is_workspace)
+	//{
+	//	PropertyLabel("Parent:");
+	//	ImGui::PushItemWidth(item_width);
+	//	if (ImGui::BeginCombo(getPropertyId("parent"), igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
+	//	{
+	//		if (ImGui::Selectable("None"))
+	//		{
+	//			igd::active_workspace->active_element->v_parent = nullptr;
+	//			igd::active_workspace->active_element->PushUndo();
+	//		}
+	//		for (auto& element : igd::active_workspace->elements)
+	//		{
+	//			if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
+	//				continue;
+	//			if (element->children.size() > 0)
+	//				getChildParents(element);
+	//			if (ImGui::Selectable(element->v_id.c_str()))
+	//			{
+	//				igd::active_workspace->active_element->v_parent = element;
+	//				igd::active_workspace->active_element->PushUndo();
+	//			}
+	//		}
+	//		ImGui::EndCombo();
+	//	}
+	//}
 
 	ImGui::PushItemWidth(item_width);
 	igd::active_workspace->active_element->RenderPropertiesInternal();
@@ -404,7 +433,15 @@ void Properties::OnUIRender() {
 	ImGuiIO& io = g.IO;
 	ImGui::Begin("Properties");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-	if (ImGui::TreeNodeEx("Element Tree", ImGuiTreeNodeFlags_DefaultOpen))
+
+	bool tn = (ImGui::TreeNodeEx(STS() << "Element Tree (" << igd::active_workspace->elements.size() << ")", ImGuiTreeNodeFlags_DefaultOpen));
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("Drag and drop here in the element tree to change parents and re-sort your elements.");
+		ImGui::EndTooltip();
+	}
+	if (tn)
 	{
 		if (ImGui::BeginDragDropTarget()) {
 			{
@@ -418,9 +455,16 @@ void Properties::OnUIRender() {
 			{
 				std::stringstream ss;
 				ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
-				source_element->v_parent = nullptr;
-				source_element->PushUndo();
-				igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, 0);
+				if (!source_element->v_parent)
+				{
+					igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, 0);
+				}
+				else
+				{
+					source_element->v_parent = nullptr;
+					source_element->PushUndo();
+					source_element->v_render_index = 0;
+				}
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -432,7 +476,47 @@ void Properties::OnUIRender() {
 			buildTree(e);
 		}
 
+		static bool is_last_hovered = false;
+		ImGuiElement* source_element=nullptr;
+		if (ImGui::GetDragDropPayload())
+			source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);
+		std::string title = "\t\t\t\t\t\t\t\t\t##some_invis_leaf";
+		if (source_element && is_last_hovered)
+		{
+			title = source_element->v_id + "##some_invis_leaf";
+		}
+		ImGui::BeginDisabled();
+		if (ImGui::TreeNodeEx(title.c_str(), ImGuiTreeNodeFlags_Leaf))
+		{
+			if (ImGui::BeginDragDropTarget())
+			{
+				is_last_hovered = true;
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE"))
+				{
+
+					ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
+					if (!source_element->v_parent)
+					{
+						igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, igd::active_workspace->elements.size()-1);
+					}
+					else
+					{
+						source_element->v_parent = nullptr;
+						source_element->PushUndo();
+						source_element->v_render_index = igd::active_workspace->elements.size();
+					}
+				}
+
+			}
+			else
+				is_last_hovered = false;
+			ImGui::TreePop();
+		}
+			ImGui::EndDisabled();
+
 		ImGui::TreePop();
+
+
 	}
 
 	

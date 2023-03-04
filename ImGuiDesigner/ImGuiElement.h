@@ -172,6 +172,7 @@ struct ImGuiElementVec2
 };
 
 class STS {
+private:
 	std::ostringstream ss;
 public:
 	template<typename T>
@@ -182,7 +183,11 @@ public:
 	inline operator std::string() const {
 		return ss.str();
 	}
+	inline operator const char*() const {
+		return ss.str().c_str();
+	}
 };
+
 
 class ImGuiElement
 {

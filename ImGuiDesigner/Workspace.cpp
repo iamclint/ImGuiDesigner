@@ -180,6 +180,70 @@ void WorkSpace::RenderCode()
 	}
 	this->code.str("");
 }
+
+
+bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
+{
+	std::vector<ImGuiElement*>* element_vector;
+	if (element && element->v_can_have_children)
+	{
+		element_vector = &element->children;
+	}
+	else if (!element)
+	{
+		element_vector = &this->elements;
+	}
+	else
+	{
+		return false;
+	}
+	
+
+	for (auto it = element_vector->begin(); it != element_vector->end();)
+	{
+		ImGuiElement* cElement = (*it);
+		if (!cElement)
+		{
+			++it;
+			continue;
+		}
+		//if it doesn't have a parent and the element vector is not the base vector add it to it
+		if (!cElement->v_parent && element_vector!=&this->elements)
+		{
+			std::cout << "Moving element " << cElement->v_id << " -> workspace" << std::endl;
+			if (cElement->v_render_index>=this->elements.size())
+				this->elements.push_back(cElement);
+			else
+				this->elements.emplace(this->elements.begin()+cElement->v_render_index, cElement);
+			it = element_vector->erase(it);
+			return false;
+		}
+		else if (cElement->v_parent != element) //if the element has a parent and the parent is not the element we are looking at
+		{
+			std::cout << "Moving element " << cElement->v_id << " -> " << cElement->v_parent->v_id << std::endl;
+			if (cElement->v_render_index >= this->elements.size())
+				cElement->v_parent->children.push_back(cElement);
+			else
+				cElement->v_parent->children.emplace(cElement->v_parent->children.begin() + cElement->v_render_index, cElement);
+			it = element_vector->erase(it);
+			return false;
+		}
+		else
+		{
+			++it;
+		}
+
+		if (cElement->v_can_have_children)
+		{
+			if (!FixParentChildRelationships(cElement))
+				return false;
+		}
+	}
+	return true;
+}
+
+
+
 void WorkSpace::OnUIRender() {
 	if (!is_open)
 	{
@@ -196,7 +260,7 @@ void WorkSpace::OnUIRender() {
 	
 	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
-
+	this->FixParentChildRelationships(nullptr);
 	this->GenerateStaticVars();
 
 	if (!this->basic_workspace_element->v_inherit_all_colors)
@@ -235,7 +299,7 @@ void WorkSpace::OnUIRender() {
 		}
 		elements_buffer.clear();
 	}
-
+	
 
 	for (int r = 0;auto& element : elements)
 	{
@@ -248,32 +312,9 @@ void WorkSpace::OnUIRender() {
 		r++;
 	}
 	
-	//delete from elements if delete_me is true
-	for (auto it = elements.begin(); it != elements.end();)
-	{
-		if ((*it)->v_parent)
-		{
-			(*it)->v_parent->children.push_back(*it);
-			it = elements.erase(it);
-		}
-		else
-		{
-			++it;
-		}
-	}
 
-	if (sort_buffer.size() > 0)
-	{
-		//should only be
-		for (auto& element : sort_buffer)
-		{
-			if (element->v_parent)
-				igd::VecMove(element->v_parent->children, elements.size(), element->v_render_index);
-			else
-				igd::VecMove(igd::active_workspace->elements, elements.size(), element->v_render_index);
-		}
-		sort_buffer.clear();
-	}
+
+
 	
 	std::string f = code.str();
 	this->code << "}" << std::endl << "ImGui::End();" << std::endl;
