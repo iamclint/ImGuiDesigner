@@ -9,6 +9,9 @@
 #include <fstream>
 
 void ToolBar::OnUIRender() {
+
+	if (igd::active_workspace)
+		igd::active_workspace->RenderCode();
 	static char* buf =new char[25];
 	memset(buf, 0, 25);
 	strcpy_s(buf, 25, "Input Text");

@@ -8,7 +8,9 @@
 #include "../json/single_include/nlohmann/json.hpp"
 #include "FontManager.h"
 #include "imgui_internal.h"
+#include "Workspace.h"
 struct ElementFont;
+class WorkSpace;
 enum class property_flags : int
 {
 	None = 0,
@@ -169,6 +171,19 @@ struct ImGuiElementVec2
 	ImGuiElementVec2() : value(), type(Vec2Type::Absolute) {}
 };
 
+class STS {
+	std::ostringstream ss;
+public:
+	template<typename T>
+	inline STS& operator<<(const T& val) {
+		ss << val;
+		return *this;
+	}
+	inline operator std::string() const {
+		return ss.str();
+	}
+};
+
 class ImGuiElement
 {
 //virtual functions
@@ -190,18 +205,20 @@ public:
 
 //methods
 public:
-	void Render(ImVec2 ContentRegionAvail, int current_depth);
+	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace);
 	void Delete();
 	void Redo();
 	void Undo();
 	void PushUndo();
 	void SaveAsWidget(std::string name);
-	void PushStyleColor(ImGuiCol idx, const ImVec4& col);
-	void PushStyleVar(ImGuiStyleVar idx, float val);
-	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
-	void PopColorAndStyles();
+	void PushStyleColor(ImGuiCol idx, const ImVec4& col, void* ws = nullptr);
+	void PushStyleVar(ImGuiStyleVar idx, float val, void* ws = nullptr);
+	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val, void* ws = nullptr);
+	void PopColorAndStyles(void* ws = nullptr);
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
+	void AllStylesAndColors();
+	std::string GetIDForVariable();
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length);
 
@@ -222,6 +239,7 @@ public:
 	bool v_inherit_all_styles;
 	bool v_sameline;
 	
+	WorkSpace* v_workspace;
 	int v_depth;
 	ImVec2 ContentRegionAvail;
 	std::string ContentRegionString;
@@ -281,6 +299,7 @@ private:
 	void ApplyPos(ImVec2 literal_pos);
 	bool ChildrenUseRelative();
 	std::string GetContentRegionString();
+	void AddCode(std::string code, int depth=-1);
 	int color_pops;
 	int style_pops;
 	ImVec2 current_drag_delta;

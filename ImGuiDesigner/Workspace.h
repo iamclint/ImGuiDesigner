@@ -23,6 +23,8 @@ public:
 	void Colors();
 	void Save(std::string file_path);
 	void Open(std::string file_path);
+	void RenderCode();
+	std::string GetIDForVariable();
 	WorkSpace();
 	~WorkSpace();
 	std::string id;
@@ -30,6 +32,7 @@ public:
 	bool loading_workspace;
 	bool is_interacting;
 	ImGuiElement* basic_workspace_element;
+	
 private:
 	void GenerateStaticVars();
 

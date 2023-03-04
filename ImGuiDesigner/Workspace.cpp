@@ -7,6 +7,7 @@
 #include <fstream>
 #include <filesystem>
 #include "igd_elements.h"
+#include <boost/algorithm/string.hpp>
 WorkSpace::~WorkSpace()
 {
 	for (auto& ele : elements)
@@ -25,8 +26,20 @@ WorkSpace::WorkSpace()
 		id = "Workspace";
 	else
 		id = "Workspace " + std::to_string(igd::workspaces.size()) + "##" + ImGuiElement::RandomID(10);
+
+	basic_workspace_element->AllStylesAndColors();
 	is_open = true;
 }
+
+std::string WorkSpace::GetIDForVariable()
+{
+	std::vector<std::string> sp_id;
+	boost::split(sp_id, this->id, boost::is_any_of("##"));
+	std::string content_region_id = sp_id.front();
+	boost::replace_all(content_region_id, " ", "_");
+	return content_region_id;
+}
+
 
 ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
 {
@@ -85,6 +98,7 @@ void WorkSpace::Save(std::string file_path)
 	std::ofstream file;
 	file.open(file_path);
 	nlohmann::json main_obj;
+	main_obj.push_back(basic_workspace_element->GetJsonWithChildren());
 	for (auto& e : elements)
 	{
 		main_obj.push_back(e->GetJsonWithChildren());
@@ -133,7 +147,7 @@ void WorkSpace::Colors()
 	for (auto& c : this->basic_workspace_element->v_colors)
 	{
 		if (!c.second.inherit)
-			this->basic_workspace_element->PushStyleColor(c.first, c.second.value);
+			this->basic_workspace_element->PushStyleColor(c.first, c.second.value, this);
 	}
 }
 void WorkSpace::Styles()
@@ -142,17 +156,30 @@ void WorkSpace::Styles()
 	for (auto& c : this->basic_workspace_element->v_styles)
 	{
 		if (c.second.type == StyleVarType::Float)
-			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Float);
+			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Float, this);
 		else if (c.second.type == StyleVarType::Vec2)
-			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Vec2);
+			this->basic_workspace_element->PushStyleVar(c.first, c.second.value.Vec2, this);
 	}
 }
 
 void WorkSpace::GenerateStaticVars()
 {
-	igd::active_workspace->code << "static bool " << this->id << " = true;" << std::endl;
+	this->code << "static bool " << this->GetIDForVariable() << " = true;" << std::endl;
 }
+void WorkSpace::RenderCode() 
+{
+	if (this != igd::active_workspace)
+		this->code.str("");
 
+	if (this == igd::active_workspace)
+	{
+		ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
+		ImGui::Begin("Code Generation", 0, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove);
+		ImGui::TextUnformatted(this->code.str().c_str());
+		ImGui::End();
+	}
+	this->code.str("");
+}
 void WorkSpace::OnUIRender() {
 	if (!is_open)
 	{
@@ -166,8 +193,7 @@ void WorkSpace::OnUIRender() {
 		}
 		return;
 	}
-	this->code.str("");
-
+	
 	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
 
@@ -180,10 +206,11 @@ void WorkSpace::OnUIRender() {
 
 	if (this->basic_workspace_element->v_font.font)
 	{
-		igd::active_workspace->code << "ImGui::PushFont(" << this->basic_workspace_element->v_font.name << ");" << std::endl;
+		this->code << "ImGui::PushFont(" << this->basic_workspace_element->v_font.name << ");" << std::endl;
 		ImGui::PushFont(this->basic_workspace_element->v_font.font);
 	}
-	igd::active_workspace->code << "ImGui::Begin(\"" << this->id << "\", &" << this->id << ", " << this->basic_workspace_element->v_flags << ");" << std::endl << "{" << std::endl;
+	
+	this->code << "ImGui::Begin(\"" << this->id << "\", &" << this->GetIDForVariable() << ", " << this->basic_workspace_element->v_flags << ");" << std::endl << "{" << std::endl;
 	int flags = ImGuiWindowFlags_NoSavedSettings;
 	if (igd::active_workspace->active_element && this->is_interacting)
 		flags |= ImGuiWindowFlags_NoMove;
@@ -195,9 +222,10 @@ void WorkSpace::OnUIRender() {
 	{
 		this->active_element = nullptr;
 		igd::active_workspace = this;
+		std::cout << "Appearing" << std::endl;
 	}
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
-	igd::active_workspace->code << "\t\tImVec2 ContentRegionAvail = ImGui::GetContentRegionAvail();" << std::endl;
+	this->code << "\t\tImVec2 ContentRegionAvail = ImGui::GetContentRegionAvail();" << std::endl;
 
 	if (elements_buffer.size() > 0)
 	{
@@ -212,7 +240,7 @@ void WorkSpace::OnUIRender() {
 	{
 		if (element->delete_me)
 			continue;
-		element->Render(region_avail, 1);
+		element->Render(region_avail, 1, this);
 	}
 	
 	//delete from elements if delete_me is true
@@ -229,20 +257,17 @@ void WorkSpace::OnUIRender() {
 		}
 	}
 	std::string f = code.str();
-	code << "}" << std::endl << "ImGui::End();" << std::endl;
+	this->code << "}" << std::endl << "ImGui::End();" << std::endl;
 	ImGui::End(); 
 	
 	if (this->basic_workspace_element->v_font.font)
 	{
-		igd::active_workspace->code << "ImGui::PopFont();" << std::endl;
+		this->code << "ImGui::PopFont();" << std::endl;
 		ImGui::PopFont();
 	}
-	this->basic_workspace_element->PopColorAndStyles();
+	this->basic_workspace_element->PopColorAndStyles(this);
 	
-	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
-	ImGui::Begin("Code Generation", 0, ImGuiWindowFlags_NoSavedSettings  | ImGuiWindowFlags_NoMove);
-		ImGui::TextUnformatted(code.str().c_str());
-	ImGui::End();
+
 }
 
 void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)

@@ -53,25 +53,44 @@ void Properties::getAllChildren(ImGuiElement* parent)
 	}
 }
 
-void Properties::buildTree(ImGuiElement* parent)
+void Properties::buildTree(ImGuiElement* current_element)
 {
 	ImGuiContext& g = *GImGui;
-	for (auto& element : parent->children)
+	int flags = 0;
+	if (current_element->children.size() == 0)
+		flags |= ImGuiTreeNodeFlags_Leaf;
+	if (igd::active_workspace->active_element == current_element)
+		flags |= ImGuiTreeNodeFlags_Selected;
+	bool IsOpen = ImGui::TreeNodeEx(current_element->v_id.c_str(), flags);
 	{
-		if (element->delete_me)
-			continue;
-		if (!element->v_can_have_children && ImGui::Selectable(element->v_id.c_str()))
-			igd::active_workspace->active_element = element;
-
-		if (element->v_can_have_children)
-		{
-			if (ImGui::TreeNode(element->v_id.c_str()))
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			igd::active_workspace->active_element = current_element;
+		if (ImGui::BeginDragDropTarget()) {
+			// Some processing...
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE"))
 			{
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-					igd::active_workspace->active_element = element;
-				buildTree(element);
-				ImGui::TreePop();
+				std::cout << "DragDropTarget: " << ((ImGuiElement*)payload->Data)->v_id << " >> " << current_element->v_id << std::endl;
 			}
+			ImGui::EndDragDropTarget();
+		}
+
+		if (ImGui::BeginDragDropSource()) {
+			// Some processing...
+			ImGui::SetDragDropPayload("_TREENODE", &current_element, sizeof(current_element));
+			ImGui::Text(current_element->v_id.c_str());
+		//	std::cout << "DragDropSource: " << current_element->v_id << std::endl;
+			ImGui::EndDragDropSource();
+		}
+
+		if (IsOpen)
+		{
+			for (auto& element : current_element->children)
+			{
+				if (element->delete_me)
+					continue;
+				buildTree(element);
+			}
+			ImGui::TreePop();
 		}
 	}
 }
@@ -337,21 +356,10 @@ void Properties::OnUIRender() {
 		{
 			if (e->delete_me)
 				continue;
-
-			if (e->v_can_have_children)
-			{
-				if (ImGui::TreeNode(e->v_id.c_str()))
-				{
-					if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-						igd::active_workspace->active_element = e;
-					buildTree(e);
-					ImGui::TreePop();
-				}
-			}
-			else
-				if (ImGui::Selectable(e->v_id.c_str()))
-					igd::active_workspace->active_element = e;
+			buildTree(e);
 		}
+
+
 		ImGui::TreePop();
 	}
 

@@ -47,8 +47,12 @@ ImGuiElement::ImGuiElement()
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0,0))
 {
-	ImGuiContext& g = *GImGui;
 	v_property_flags = property_flags::disabled;
+}
+
+void ImGuiElement::AllStylesAndColors()
+{
+	ImGuiContext& g = *GImGui;
 	v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 	v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
 	v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
@@ -118,6 +122,7 @@ ImGuiElement::ImGuiElement()
 	v_styles[ImGuiStyleVar_Alpha] = g.Style.Alpha;
 	v_styles[ImGuiStyleVar_WindowMinSize] = g.Style.WindowMinSize;
 }
+
 void ImGuiElement::RenderPropertiesInternal()
 {
 	
@@ -156,21 +161,30 @@ void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 	}
 }
 
-void ImGuiElement::PushStyleColor(ImGuiCol idx, const ImVec4& col)
+void ImGuiElement::PushStyleColor(ImGuiCol idx, const ImVec4& col, void* ws)
 {
-	igd::active_workspace->code << "ImGui::PushStyleColor(" << ImGuiColor_Strings[idx] << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
+	WorkSpace* w = (WorkSpace*)ws;
+	if (!w)
+		w = igd::active_workspace;
+	w->code << "ImGui::PushStyleColor(" << ImGuiColor_Strings[idx] << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
 	ImGui::PushStyleColor(idx, col);
 	color_pops++;
 }
-void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, float val)
+void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, float val, void* ws)
 {
-	igd::active_workspace->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", " << val << ");" << std::endl;
+	WorkSpace* w = (WorkSpace*)ws;
+	if (!w)
+		w = igd::active_workspace;
+	w->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", " << val << ");" << std::endl;
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }
-void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
+void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val, void* ws)
 {
-	igd::active_workspace->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
+	WorkSpace* w = (WorkSpace*)ws;
+	if (!w)
+		w = igd::active_workspace;
+	w->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }
@@ -624,17 +638,20 @@ void ImGuiElement::DrawSelection()
 	ImGui::GetWindowDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
 }
 
-void ImGuiElement::PopColorAndStyles()
+void ImGuiElement::PopColorAndStyles(void* ws)
 {
+	WorkSpace* w = (WorkSpace*)ws;
+	if (!w)
+		w = igd::active_workspace;
 	if (style_pops > 0)
 	{
 		ImGui::PopStyleVar(style_pops);
-		igd::active_workspace->code << "ImGui::PopStyleVar(" << style_pops << ");" << std::endl;
+		w->code << "ImGui::PopStyleVar(" << style_pops << ");" << std::endl;
 	}
 	if (color_pops > 0)
 	{
 		ImGui::PopStyleColor(color_pops);
-		igd::active_workspace->code << "ImGui::PopStyleColor(" << color_pops << ");" << std::endl;
+		w->code << "ImGui::PopStyleColor(" << color_pops << ");" << std::endl;
 	}
 	color_pops = 0;
 	style_pops = 0;
@@ -648,6 +665,15 @@ std::string GetCodeTabs(int depth)
 		tabs += "\t\t";
 	}
 	return tabs;
+}
+
+std::string ImGuiElement::GetIDForVariable()
+{
+	std::vector<std::string> sp_id;
+	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	std::string content_region_id = sp_id.front();
+	boost::replace_all(content_region_id, " ", "_");
+	return content_region_id + std::to_string(v_depth);
 }
 
 std::string ImGuiElement::GetContentRegionString()
@@ -669,8 +695,19 @@ bool ImGuiElement::ChildrenUseRelative()
 	return false;
 }
 
-void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
+
+void ImGuiElement::AddCode(std::string code, int depth)
 {
+	if (this->v_workspace)
+	{
+		v_workspace->code << GetCodeTabs(depth==-1 ? v_depth : depth) << code << std::endl;
+	}
+}
+
+void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws)
+{
+	//v_generate_code = generate_code;
+	v_workspace = ws;
 	v_depth = current_depth;
 	ContentRegionAvail = _ContentRegionAvail;
 	if (ContentRegionString == "")
@@ -681,12 +718,12 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 		
 		if (v_pos.type == Vec2Type::Absolute)
 		{
-			igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SetCursorPos({" << v_pos.value.x << ", " << v_pos.value.y << "});" << std::endl;
+			this->AddCode(STS() << "ImGui::SetCursorPos({" << v_pos.value.x << ", " << v_pos.value.y << "});");
 			ImGui::SetCursorPos(v_pos.value);
 		}
 		else
 		{
-			igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << v_pos.value.x / 100 << ", " << ContentRegionString << ".y * " << v_pos.value.y / 100 << "});" << std::endl;
+			this->AddCode(STS() << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << v_pos.value.x / 100 << ", " << ContentRegionString << ".y * " << v_pos.value.y / 100 << "});");
 			ImGui::SetCursorPos({ ContentRegionAvail.x * (v_pos.value.x / 100), ContentRegionAvail.y * (v_pos.value.y / 100) });
 		}
 	}
@@ -696,7 +733,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 	style_pops = 0;
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
 	{
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::BeginDisabled();" << std::endl;
+		this->AddCode("ImGui::BeginDisabled();");
 		ImGui::BeginDisabled();
 	}
 	
@@ -705,6 +742,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 		for (auto& c : this->v_colors)
 		{
 			if (c.second.inherit)
+
 				continue;
 			this->PushStyleColor(c.first, c.second.value);
 		}
@@ -724,26 +762,29 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 	
 	if (this->v_font.font)
 	{
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::PushFont(" << this->v_font.name << ");" << std::endl;
+		this->AddCode(STS() << "ImGui::PushFont(" << this->v_font.name << ");");
 		ImGui::PushFont(this->v_font.font);
 	}
 
 	if (this->v_sameline)
 	{
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::SameLine();" << std::endl;
+		this->AddCode("ImGui::SameLine();");
 		ImGui::SameLine();
 	}
 	std::string RenderHead = this->RenderHead();
 	if (RenderHead !="")
-		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderHead << std::endl;
+		this->AddCode(RenderHead);
 
 	if (this->children.size() > 0)
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
 		std::string content_region_string = GetContentRegionString();
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "{" << std::endl;
+		
+		this->AddCode("{");
+		
 		if (this->ChildrenUseRelative())
-			igd::active_workspace->code << GetCodeTabs(current_depth + 1) << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();" << std::endl;
+			this->AddCode("{");
+		this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();",current_depth + 1);
 		for (auto& child : this->children)
 		{
 			child->ContentRegionString = content_region_string;
@@ -751,9 +792,9 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 			if (child->delete_me)
 				continue;
 			//igd::active_workspace->code << "\t\t";
-			child->Render(region_avail, current_depth+1);
+			child->Render(region_avail, current_depth+1, ws);
 		}
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "}" << std::endl;
+		this->AddCode("}");
 
 		for (auto it = this->children.begin(); it != this->children.end();)
 		{
@@ -776,19 +817,19 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth)
 	std::string RenderInternal = this->RenderInternal();
 	std::string RenderFoot = this->RenderFoot();;
 	if (RenderInternal != "")
-		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderInternal << std::endl;
+		this->AddCode(RenderInternal);
 	if (RenderFoot != "")
-		igd::active_workspace->code << GetCodeTabs(current_depth) << RenderFoot << std::endl;
+		this->AddCode(RenderFoot);
 	
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0)
 	{
 		ImGui::EndDisabled();
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::EndDisabled();" << std::endl;
+		this->AddCode("ImGui::EndDisabled();");
 	}
 	if (this->v_font.font)
 	{
 		ImGui::PopFont();
-		igd::active_workspace->code << GetCodeTabs(current_depth) << "ImGui::PopFont();" << std::endl;
+		this->AddCode("ImGui::PopFont();");
 	}
 	PopColorAndStyles();
 
