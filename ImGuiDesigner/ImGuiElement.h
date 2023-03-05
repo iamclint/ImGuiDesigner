@@ -225,7 +225,7 @@ public:
 	void AllStylesAndColors();
 	std::string GetIDForVariable();
 	nlohmann::json GetJsonWithChildren();
-	static std::string RandomID(size_t length);
+	static std::string RandomID(size_t length=15);
 
 //properties	
 public:

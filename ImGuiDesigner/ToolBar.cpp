@@ -11,19 +11,18 @@
 void ToolBar::OnUIRender() {
 
 	if (igd::active_workspace)
+	{
 		igd::active_workspace->RenderCode();
+		igd::active_workspace->RenderAdd();
+	}
+	
 	static char* buf =new char[25];
 	memset(buf, 0, 25);
 	strcpy_s(buf, 25, "Input Text");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 	ImGui::Begin("ToolBar");
-	ImGui::PushItemWidth(140);
-	if (ImGui::Button("New Workspace##toolbar_new_workspace"))
-	{
-		igd::active_workspace->active_element = nullptr;
-		igd::add_workspace = true;
-	}
+
 	ImGui::Text("Elements");
 	ImGui::Separator();
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;

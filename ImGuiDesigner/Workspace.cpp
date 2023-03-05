@@ -22,10 +22,7 @@ WorkSpace::WorkSpace()
 	basic_workspace_element = new ImGuiElement();
 	basic_workspace_element->v_inherit_all_colors = true;
 	basic_workspace_element->v_inherit_all_styles = true;
-	if (igd::workspaces.size() == 0)
-		id = "Workspace";
-	else
-		id = "Workspace " + std::to_string(igd::workspaces.size()) + "##" + ImGuiElement::RandomID(10);
+	id = "Workspace##" + ImGuiElement::RandomID();
 
 	basic_workspace_element->AllStylesAndColors();
 	is_open = true;
@@ -180,6 +177,35 @@ void WorkSpace::RenderCode()
 	}
 	this->code.str("");
 }
+//imgui window clicked
+
+
+
+void WorkSpace::RenderAdd()
+{
+	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Always);
+	if (ImGui::Begin("+##toolbar_new_workspace", 0, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
+	{
+	}
+	if (!ImGui::IsMouseDragging(0))
+	{
+		ImGuiWindow* window = ImGui::FindWindowByName("+##toolbar_new_workspace");
+		window->DockOrder = -(igd::workspaces.size() + 1);
+		ImGuiTabBar* tab_bar = window->DockNode->TabBar;
+		ImGuiTabItem* tab = ImGui::TabBarFindTabByID(tab_bar, window->TabId);
+		ImGui::TabBarQueueReorder(tab_bar, tab, 1);
+		if (window->DockTabItemStatusFlags & ImGuiItemStatusFlags_HoveredRect)
+		{
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				igd::active_workspace->active_element = nullptr;
+				igd::add_workspace = true;
+			}
+		}
+	}
+	ImGui::End();
+
+}
 
 
 bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
@@ -242,19 +268,14 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 	return true;
 }
 
-
-
 void WorkSpace::OnUIRender() {
+	
 	if (!is_open)
 	{
-		if (this != igd::workspaces.front()) //don't delete the top most work space
-		{
+		if (igd::workspaces.size()>1) //don't delete the top most work space
 			igd::delete_workspace.push_back(this);
-		}
 		else
-		{
 			is_open = true;
-		}
 		return;
 	}
 	
@@ -326,7 +347,6 @@ void WorkSpace::OnUIRender() {
 		ImGui::PopFont();
 	}
 	this->basic_workspace_element->PopColorAndStyles(this);
-	
 
 }
 

@@ -40,7 +40,7 @@ void ImGuiElement::PushUndoLocal()
 	undo_stack[this].push_back(*this);
 }
 ImGuiElement::ImGuiElement()
-	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID(10)), v_label("new element"),
+	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID()), v_label("new element"),
 	v_parent(nullptr), v_border(0),
 	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
@@ -199,7 +199,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 			v_pos = { ImVec2(j["pos"]["x"],j["pos"]["y"]), j["pos"]["type"] };
 		}
 
-		v_id = j["id"].get<std::string>() + "##" + RandomID(10);
+		v_id = j["id"].get<std::string>() + "##" + RandomID();
 		v_label = j["label"];
 		v_size = { ImVec2(j["size"]["x"],j["size"]["y"]), j["size"]["type"] };
 		v_disabled = j["disabled"];

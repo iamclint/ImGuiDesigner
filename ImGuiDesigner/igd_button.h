@@ -21,7 +21,7 @@ namespace igd
 			v_flags = ImGuiButtonFlags_None;
 			v_property_flags = property_flags::disabled | property_flags::pos;
 			v_size = ImVec2(0, 0);
-			v_id = ("new button##" + RandomID(10)).c_str();
+			v_id = ("new button##" + RandomID()).c_str();
 			v_label = "new button";
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
@@ -67,7 +67,7 @@ namespace igd
 		{
 			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new Button()));
 			*igd::active_workspace->elements_buffer.back() = *this;
-			igd::active_workspace->elements_buffer.back()->v_id = RandomID(10).c_str();
+			igd::active_workspace->elements_buffer.back()->v_id = RandomID().c_str();
 		}
 
 		//Extends the property window with the properties specific of this element

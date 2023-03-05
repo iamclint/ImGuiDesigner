@@ -16,7 +16,7 @@ namespace igd
 			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border;
 			v_size = ImVec2(0, 0);
-			v_id = ("child window##" + RandomID(10)).c_str();
+			v_id = ("child window##" + RandomID()).c_str();
 			v_label = "";
 			v_border = true;
 			v_can_have_children = true;
@@ -117,7 +117,7 @@ namespace igd
 		{
 			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new ChildWindow()));
 			*igd::active_workspace->elements_buffer.back() = *this;
-			igd::active_workspace->elements_buffer.back()->v_id = RandomID(10).c_str();
+			igd::active_workspace->elements_buffer.back()->v_id = RandomID().c_str();
 		}
 		
 		//Extends the property window with the properties specific of this element

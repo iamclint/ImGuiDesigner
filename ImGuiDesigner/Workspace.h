@@ -26,6 +26,7 @@ public:
 	void Open(std::string file_path);
 	bool FixParentChildRelationships(ImGuiElement* element);
 	void RenderCode();
+	void RenderAdd();
 	std::string GetIDForVariable();
 	WorkSpace();
 	~WorkSpace();
