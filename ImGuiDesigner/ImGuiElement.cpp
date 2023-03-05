@@ -253,7 +253,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_name)
 {
 	j["type"] = type_name;
-	int pound_pos = v_id.find("#");
+	size_t pound_pos = v_id.find("#");
 	if (pound_pos != std::string::npos)
 		j["id"] = v_id.substr(0, pound_pos);
 	else
@@ -325,7 +325,7 @@ void ImGuiElement::SaveAsWidget(std::string name)
 	if (!std::filesystem::exists("widgets"))
 		std::filesystem::create_directory("widgets");
 
-	int find_pound = name.find("#");
+	size_t find_pound = name.find("#");
 	if (find_pound != std::string::npos)
 		name = name.substr(0, find_pound);
 	//check if file exists
@@ -427,17 +427,7 @@ void ImGuiElement::KeyMove()
 
 void ImGuiElement::KeyBinds()
 {
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)) && ImGui::GetIO().KeyCtrl)
-	{
-		igd::active_workspace->copied_element = this;
-	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)) && ImGui::GetIO().KeyCtrl)
-	{
-		
-		if (igd::active_workspace->copied_element)
-			igd::active_workspace->copied_element->Clone();
-		
-	}
+
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive() && !igd::notifications->IsShowing())
 	{
 		igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + this->v_id, "", [this](bool conf) {
@@ -715,20 +705,18 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	ImGuiContext& g = *GImGui;
 	if (v_pos.value.x != 0 || v_pos.value.y != 0)
 	{
-		
 		if (v_pos.type == Vec2Type::Absolute)
 		{
-			this->AddCode(STS() << "ImGui::SetCursorPos({" << v_pos.value.x << ", " << v_pos.value.y << "});");
+			this->AddCode(STS() << "ImGui::SetCursorPos({" << igd::fString(v_pos.value.x) << ", " << igd::fString(v_pos.value.y) << "});");
 			ImGui::SetCursorPos(v_pos.value);
 		}
 		else
 		{
-			this->AddCode(STS() << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << v_pos.value.x / 100 << ", " << ContentRegionString << ".y * " << v_pos.value.y / 100 << "});");
+			this->AddCode(STS() << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << igd::fString(v_pos.value.x / 100.0f) << ", " << ContentRegionString << ".y * " << igd::fString(v_pos.value.y / 100.0f) << "});");
 			ImGui::SetCursorPos({ ContentRegionAvail.x * (v_pos.value.x / 100), ContentRegionAvail.y * (v_pos.value.y / 100) });
 		}
 	}
-		
-	
+
 	bool need_disable_pop = false;
 	color_pops = 0;
 	style_pops = 0;
@@ -823,14 +811,14 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 	PopColorAndStyles();
 
-	//reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
-	if (v_pos.value.x != 0 || v_pos.value.y != 0)
-	{
-		if (v_pos.type == Vec2Type::Absolute)
-			ImGui::SetCursorPos(last_known_cursor);
-	}
-	else
-		last_known_cursor = ImGui::GetCursorPos();
+	////reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
+	//if (v_pos.value.x != 0 || v_pos.value.y != 0)
+	//{
+	//	ImGui::SetCursorPos(last_known_cursor);
+
+	//}
+	//else
+	//	last_known_cursor = ImGui::GetCursorPos();
 	
 	if (igd::active_workspace->active_element == this)
 	{

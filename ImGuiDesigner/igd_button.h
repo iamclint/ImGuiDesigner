@@ -63,14 +63,19 @@ namespace igd
 			undo_stack[this].push_back(*this);
 		}
 
-		virtual void Clone() override
+		virtual ImGuiElement* Clone() override
 		{
-			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new Button()));
-			*igd::active_workspace->elements_buffer.back() = *this;
+			Button* new_element = new Button();
+			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
-				new_id = new_id.substr(0, new_id.find("##")+2);
-			this->v_id = new_id+RandomID();
+				new_id = new_id.substr(0, new_id.find("##") + 2);
+			if (active_workspace->active_element->v_can_have_children)
+				new_element->v_parent = active_workspace->active_element;
+			else
+				new_element->v_parent = active_workspace->active_element->v_parent;
+			new_element->v_id = new_id + RandomID();
+			return new_element;
 		}
 
 		//Extends the property window with the properties specific of this element
@@ -94,12 +99,12 @@ namespace igd
 			if (v_size.type == Vec2Type::Absolute)
 			{
 				ImGui::Button(v_id.c_str(), v_size.value);
-				code << "ImGui::Button(\"" << v_id << "\",  {" << v_size.value.x <<"," << v_size.value.y << "});";
+				code << "ImGui::Button(\"" << v_id << "\",  {" << igd::fString(v_size.value.x) <<"," << igd::fString(v_size.value.y) << "});";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{
 				ImGui::Button(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
-				code << "ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<<v_size.value.x / 100<<", " << ContentRegionString << ".y * " << v_size.value.y / 100 << "}); ";
+				code << "ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<< igd::fString(v_size.value.x / 100.f) <<", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100.f) << "}); ";
 			}
 			return code.str();
 		}

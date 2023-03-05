@@ -432,8 +432,8 @@ void Properties::OnUIRender() {
 	ImGuiIO& io = g.IO;
 	ImGui::Begin("Properties");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-
-	bool tn = (ImGui::TreeNodeEx(STS() << "Element Tree (" << std::count_if(igd::active_workspace->elements.begin(), igd::active_workspace->elements.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")", ImGuiTreeNodeFlags_DefaultOpen));
+	std::string title = STS() << "Element Tree (" << std::count_if(igd::active_workspace->elements.begin(), igd::active_workspace->elements.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
+	bool tn = (ImGui::TreeNodeEx(title.c_str(), ImGuiTreeNodeFlags_DefaultOpen));
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
@@ -502,7 +502,7 @@ void Properties::OnUIRender() {
 					{
 						source_element->v_parent = nullptr;
 						source_element->PushUndo();
-						source_element->v_render_index = igd::active_workspace->elements.size();
+						source_element->v_render_index = (int)igd::active_workspace->elements.size();
 					}
 				}
 				ImGui::EndDragDropTarget();

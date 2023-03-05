@@ -174,6 +174,7 @@ struct ImGuiElementVec2
 class STS {
 private:
 	std::ostringstream ss;
+	std::unique_ptr<std::vector<char>> buffer;
 public:
 	template<typename T>
 	inline STS& operator<<(const T& val) {
@@ -184,7 +185,9 @@ public:
 		return ss.str();
 	}
 	inline operator const char*() const {
-		return ss.str().c_str();
+		std::string str = ss.str();
+		std::copy(str.begin(), str.end(), std::back_inserter(*buffer.get()));
+		return buffer.get()->data();
 	}
 };
 
@@ -200,7 +203,7 @@ public:
 	virtual std::string RenderInternal() { return ""; };
 	//return code string for this element
 	virtual std::string RenderFoot() { return ""; };
-	virtual void Clone() {};
+	virtual ImGuiElement* Clone() { return nullptr; };
 	virtual void UndoLocal();
 	virtual void RedoLocal();
 	virtual void PushUndoLocal();

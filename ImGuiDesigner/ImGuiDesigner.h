@@ -22,6 +22,16 @@ namespace igd
 			}
 		}
 	}
+	inline std::string fString(float val)
+	{
+		std::stringstream ss;
+		if (val == (int)val)
+			ss << val << ".f";
+		else
+			ss << val << "f";
+		return ss.str();
+	}
+
 	extern Notifications* notifications;
 	extern WorkSpace* active_workspace;
 	extern std::vector<WorkSpace*> workspaces;

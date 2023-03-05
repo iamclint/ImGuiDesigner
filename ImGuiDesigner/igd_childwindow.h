@@ -113,14 +113,28 @@ namespace igd
 			undo_stack[this].push_back(*this);
 		}
 
-		virtual void Clone() override
+		virtual ImGuiElement* Clone() override
 		{
-			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new ChildWindow()));
-			*igd::active_workspace->elements_buffer.back() = *this;
+			ChildWindow* new_element = new ChildWindow();
+			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
-				new_id = new_id.substr(0, new_id.find("##")+2);
-			this->v_id = new_id + RandomID();
+				new_id = new_id.substr(0, new_id.find("##") + 2);
+
+			if (active_workspace->active_element->v_can_have_children)
+				new_element->v_parent = active_workspace->active_element;
+			else
+				new_element->v_parent = active_workspace->active_element->v_parent;
+
+			new_element->v_id = new_id + RandomID();
+			new_element->children.clear();
+			for (auto& child : this->children)
+			{
+				ImGuiElement* n = child->Clone();
+				n->v_parent = new_element;
+				new_element->children.push_back(n);
+			}
+			return new_element;
 		}
 		
 		//Extends the property window with the properties specific of this element
@@ -139,12 +153,12 @@ namespace igd
 			if (v_size.type == Vec2Type::Absolute)
 			{
 				ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << v_size.value.x << "," << v_size.value.y << "}, " << v_border << ", " << v_flags << ");";
+				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}, " << v_border << ", " << v_flags << ");";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{
 				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << v_size.value.x / 100 << ", " << ContentRegionString << ".y * " << v_size.value.y / 100 << " }, " << v_border << ", " << v_flags << "); ";
+				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << " }, " << v_border << ", " << v_flags << "); ";
 			}
 			return code_out.str();
 		}

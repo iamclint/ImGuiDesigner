@@ -107,6 +107,24 @@ void WorkSpace::Save(std::string file_path)
 
 void WorkSpace::KeyBinds()
 {
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)) && ImGui::GetIO().KeyCtrl)
+	{
+		std::cout << "Copied element: " << igd::active_workspace->active_element->v_id << std::endl;
+		igd::active_workspace->copied_element = igd::active_workspace->active_element;
+	}
+
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)) && ImGui::GetIO().KeyCtrl)
+	{
+		if (igd::active_workspace->copied_element)
+		{
+			std::cout << "Pasting element: " << igd::active_workspace->copied_element->v_id << std::endl;
+			if (igd::active_workspace->active_element->v_can_have_children)
+				igd::active_workspace->active_element->children.push_back(igd::active_workspace->copied_element->Clone());
+			else
+				igd::active_workspace->elements_buffer.push_back(igd::active_workspace->copied_element->Clone());
+		}
+
+	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)) && ImGui::GetIO().KeyCtrl)
 	{
 		if (undo_stack.size() > 0)
@@ -195,7 +213,7 @@ void WorkSpace::RenderAdd()
 	if (!ImGui::IsMouseDragging(0))
 	{
 		ImGuiWindow* window = ImGui::FindWindowByName("+##toolbar_new_workspace");
-		window->DockOrder = -(igd::workspaces.size() + 1);
+		window->DockOrder = -(short)(igd::workspaces.size() + 1);
 		ImGuiTabBar* tab_bar = window->DockNode->TabBar;
 		ImGuiTabItem* tab = ImGui::TabBarFindTabByID(tab_bar, window->TabId);
 		ImGui::TabBarQueueReorder(tab_bar, tab, 1);
@@ -339,10 +357,6 @@ void WorkSpace::OnUIRender() {
 		element->Render(region_avail, 1, this);
 		r++;
 	}
-	
-
-
-
 	
 	std::string f = code.str();
 	this->code << "}" << std::endl << "ImGui::End();" << std::endl;

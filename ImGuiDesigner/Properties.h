@@ -6,7 +6,7 @@
 class Properties : public Walnut::Layer
 {
 public:
-	Properties() : modified(false) {}
+	Properties() : modified(false), is_workspace(false) {}
 	virtual void OnUIRender() override;
 	virtual void OnUpdate(float f) override;
 	void PropertyLabel(const char* lbl);
@@ -19,6 +19,6 @@ private:
 	void Colors();
 	void Styles();
 	bool modified;
-	const int item_width = 200;
+	const float item_width = 200;
 	bool is_workspace;
 };

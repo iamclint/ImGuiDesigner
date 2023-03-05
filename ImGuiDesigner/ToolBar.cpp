@@ -59,14 +59,14 @@ void ToolBar::OnUIRender() {
 	}
 	ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, 1.0f);
 	ImGui::BeginDisabled();
-	static float slider_float = 13.426;
+	static float slider_float = 13.426f;
 	ImGui::SliderFloat("##toolbar_input_slider_float", &slider_float, 0, 100);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
 
 	}
 	static int slider_int = 13;
-	ImGui::SliderInt("##toolbar_input_slider_int", &slider_int, 8.0f, 72.0f, "%.0f");
+	ImGui::SliderInt("##toolbar_input_slider_int", &slider_int, 8.0, 72);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
 

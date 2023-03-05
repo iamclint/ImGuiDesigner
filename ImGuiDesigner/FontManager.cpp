@@ -7,10 +7,22 @@ std::filesystem::path FontManager::GetWindowsFontsDirectory()
 {
 	//get windows font directory
 	char windir[MAX_PATH];
-	GetWindowsDirectoryA(windir, MAX_PATH);
-	std::string fontdir = windir;
-	fontdir += "\\Fonts\\";
-	return fontdir;
+	//GetWindowsDirectoryA return validation
+	if (GetWindowsDirectoryA(windir, MAX_PATH))
+	{
+		std::filesystem::path path = windir;
+		path /= "Fonts";
+		return path;
+	}
+	else
+	{
+		std::cout << "Failed to get windows directory" << std::endl;
+		return "";
+	}
+	//GetWindowsDirectoryA(windir, MAX_PATH);
+	//std::string fontdir = windir;
+	//fontdir += "\\Fonts\\";
+	return "";
 }
 
 std::filesystem::path FontManager::FindFont(std::string name)
@@ -48,7 +60,7 @@ void FontManager::OnUpdate(float ssa)
 		{
 			std::cout << "Loading font: " << f.name << " " << f.path << std::endl;
 			if (!this->LoadedFonts[f.map_name].font)
-				LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), f.size);
+				LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), (float)f.size);
 
 			if (f.element)
 			{
