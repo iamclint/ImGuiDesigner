@@ -80,7 +80,7 @@ void Properties::buildTree(ImGuiElement* current_element)
 	std::vector<std::string> id = GetIDSplit(current_element->v_id);
 	ss << id[0];// GetIDNoPound(current_element->v_id);
 	if (current_element->v_can_have_children)
-		ss << " (" << current_element->children.size() << ")";
+		ss << " (" << std::count_if(current_element->children.begin(), current_element->children.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
 	if (id.size()>=1)
 		ss << "##" << id[id.size() - 1];
 
@@ -433,7 +433,7 @@ void Properties::OnUIRender() {
 	ImGui::Begin("Properties");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
 
-	bool tn = (ImGui::TreeNodeEx(STS() << "Element Tree (" << igd::active_workspace->elements.size() << ")", ImGuiTreeNodeFlags_DefaultOpen));
+	bool tn = (ImGui::TreeNodeEx(STS() << "Element Tree (" << std::count_if(igd::active_workspace->elements.begin(), igd::active_workspace->elements.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")", ImGuiTreeNodeFlags_DefaultOpen));
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
@@ -491,23 +491,18 @@ void Properties::OnUIRender() {
 			if (ImGui::BeginDragDropTarget())
 			{
 				is_last_hovered = true;
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE", ImGuiDragDropFlags_AcceptBeforeDelivery))
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE"))
 				{
-					if (payload->IsDelivery())
-						std::cout << "wtf" << std::endl;
-					if (payload->IsDelivery())
+					ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
+					if (!source_element->v_parent)
 					{
-						ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
-						if (!source_element->v_parent)
-						{
-							igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, igd::active_workspace->elements.size() - 1);
-						}
-						else
-						{
-							source_element->v_parent = nullptr;
-							source_element->PushUndo();
-							source_element->v_render_index = igd::active_workspace->elements.size();
-						}
+						igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, igd::active_workspace->elements.size() - 1);
+					}
+					else
+					{
+						source_element->v_parent = nullptr;
+						source_element->PushUndo();
+						source_element->v_render_index = igd::active_workspace->elements.size();
 					}
 				}
 				ImGui::EndDragDropTarget();

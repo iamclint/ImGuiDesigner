@@ -729,12 +729,19 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 		
 	
+	bool need_disable_pop = false;
 	color_pops = 0;
 	style_pops = 0;
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
 	{
-		this->AddCode("ImGui::BeginDisabled();");
-		ImGui::BeginDisabled();
+		if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+		{
+			this->AddCode("ImGui::BeginDisabled();");
+			need_disable_pop = true;
+			ImGui::BeginDisabled();
+		}
+			
+
 	}
 	
 	if (!this->v_inherit_all_colors)
@@ -783,8 +790,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		this->AddCode("{");
 		
 		if (this->ChildrenUseRelative())
-			this->AddCode("{");
-		this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();",current_depth + 1);
+			this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();", current_depth + 1);
 
 		for (int r =0;auto& child : this->children)
 		{
@@ -805,7 +811,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	if (RenderFoot != "")
 		this->AddCode(RenderFoot);
 	
-	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0)
+	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
 	{
 		ImGui::EndDisabled();
 		this->AddCode("ImGui::EndDisabled();");

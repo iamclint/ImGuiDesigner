@@ -67,7 +67,10 @@ namespace igd
 		{
 			igd::active_workspace->elements_buffer.push_back((ImGuiElement*)(new Button()));
 			*igd::active_workspace->elements_buffer.back() = *this;
-			igd::active_workspace->elements_buffer.back()->v_id = RandomID().c_str();
+			std::string new_id = this->v_id;
+			if (new_id.find("##") != std::string::npos)
+				new_id = new_id.substr(0, new_id.find("##"));
+			this->v_id = new_id+RandomID();
 		}
 
 		//Extends the property window with the properties specific of this element

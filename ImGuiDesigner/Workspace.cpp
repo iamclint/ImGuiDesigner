@@ -171,8 +171,13 @@ void WorkSpace::RenderCode()
 	if (this == igd::active_workspace)
 	{
 		ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
-		ImGui::Begin("Code Generation", 0, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove);
-		ImGui::TextUnformatted(this->code.str().c_str());
+		if (ImGui::Begin("Code Generation", 0))
+		{
+			std::string co = this->code.str();
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.0f, 0.0f, 0.0f, 1.0f });
+			ImGui::InputTextMultiline("##asdfasdfsdaf", &co, {ImGui::GetContentRegionAvail().x-5,ImGui::GetContentRegionAvail().y-5}, ImGuiInputTextFlags_ReadOnly);
+			ImGui::PopStyleColor();
+		}
 		ImGui::End();
 	}
 	this->code.str("");
@@ -236,7 +241,7 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 		//if it doesn't have a parent and the element vector is not the base vector add it to it
 		if (!cElement->v_parent && element_vector!=&this->elements)
 		{
-			std::cout << "Moving element " << cElement->v_id << " -> workspace" << std::endl;
+			std::cout << "Moving element " << cElement->v_id << " -> workspace " << "Index: " << cElement->v_render_index  << std::endl;
 			if (cElement->v_render_index>=this->elements.size())
 				this->elements.push_back(cElement);
 			else
@@ -246,11 +251,13 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 		}
 		else if (cElement->v_parent != element) //if the element has a parent and the parent is not the element we are looking at
 		{
-			std::cout << "Moving element " << cElement->v_id << " -> " << cElement->v_parent->v_id << std::endl;
-			if (cElement->v_render_index >= this->elements.size())
+			std::cout << "Moving element " << cElement->v_id << " -> " << cElement->v_parent->v_id << " Index: " << cElement->v_render_index << std::endl;
+			if (cElement->v_render_index >= cElement->v_parent->children.size())
 				cElement->v_parent->children.push_back(cElement);
 			else
+			{
 				cElement->v_parent->children.emplace(cElement->v_parent->children.begin() + cElement->v_render_index, cElement);
+			}
 			it = element_vector->erase(it);
 			return false;
 		}
