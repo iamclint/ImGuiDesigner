@@ -84,9 +84,7 @@ void ToolBar::OnUIRender() {
 	{
 		g.MouseCursor = ImGuiMouseCursor_Hand;
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-		{
-
-		}
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
 	}
 	
 	ImGui::PopStyleVar();

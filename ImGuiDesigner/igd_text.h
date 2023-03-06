@@ -10,29 +10,20 @@
 
 namespace igd
 {
-	class Button : ImGuiElement
+	class Text : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<Button*, std::vector<Button>> undo_stack;
-		static inline std::unordered_map<Button*, std::vector<Button>> redo_stack;
-		static inline std::string json_identifier = "button";
-
-		Button() {
+		static inline std::unordered_map<Text*, std::vector<Text>> undo_stack;
+		static inline std::unordered_map<Text*, std::vector<Text>> redo_stack;
+		static inline std::string json_identifier = "text";
+		Text() {
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;
-			v_property_flags = property_flags::disabled | property_flags::pos;
+			v_property_flags = property_flags::disabled | property_flags::pos | property_flags::label | property_flags::no_id | property_flags::no_resize;
 			v_size = ImVec2(0, 0);
-			v_id = ("new button##" + RandomID()).c_str();
-			v_label = "new button";
+			v_id = "Text Element";// ("new text##" + RandomID()).c_str();
+			v_label = "Some text value";
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-			v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
-			v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
-			v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
-			v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
-			v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
-			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
-			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
 			v_can_have_children = false;
 			PushUndo();
 		}
@@ -44,7 +35,7 @@ namespace igd
 				redo_stack[this].push_back(*this);
 				if (undo_stack[this].size() > 1)
 					undo_stack[this].pop_back();
-				
+
 				*this = undo_stack[this].back();
 			}
 		}
@@ -57,7 +48,7 @@ namespace igd
 				redo_stack[this].pop_back();
 			}
 		}
-		
+
 		virtual void PushUndoLocal() override
 		{
 			//keep an undo stack locally for this type
@@ -66,7 +57,7 @@ namespace igd
 
 		virtual ImGuiElement* Clone() override
 		{
-			Button* new_element = new Button();
+			Text* new_element = new Text();
 			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
@@ -97,23 +88,16 @@ namespace igd
 			std::stringstream code;
 			if (v_id == "")
 				return "";
-			if (v_size.type == Vec2Type::Absolute)
-			{
-				ImGui::Button(v_id.c_str(), v_size.value);
-				code << "ImGui::Button(\"" << v_id << "\",  {" << igd::fString(v_size.value.x) <<"," << igd::fString(v_size.value.y) << "});";
-			}
-			else if (v_size.type == Vec2Type::Relative)
-			{
-				ImGui::Button(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
-				code << "ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<< igd::fString(v_size.value.x / 100.f) <<", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100.f) << "}); ";
-			}
+
+			ImGui::Text(v_label.c_str());
+			code << "ImGui::Text(\"" << v_label << "\");";
 			return code.str();
 		}
 
 		virtual std::string RenderFoot() override
 		{
 			return "";
-		
+
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{
@@ -125,11 +109,10 @@ namespace igd
 			GenerateStylesColorsJson(j, json_identifier);
 			return j;
 		}
-
 		static ImGuiElement* load(ImGuiElement* parent, nlohmann::json data)
 		{
-			std::cout << "Adding a button" << std::endl;
-			igd::Button* b = new igd::Button();
+			std::cout << "Adding text" << std::endl;
+			igd::Text* b = new igd::Text();
 			ImGuiElement* f = (ImGuiElement*)b;
 			f->v_parent = parent;
 			b->FromJSON(data);
@@ -139,5 +122,5 @@ namespace igd
 				parent->children.push_back((ImGuiElement*)b);
 			return f;
 		}
-};
+	};
 }

@@ -6,46 +6,20 @@
 
 namespace igd
 {
-	class ChildWindow : ImGuiElement
+	class Window : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> undo_stack;
-		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> redo_stack;
-		static inline std::string json_identifier = "child window";
-		ChildWindow() {
+		static inline std::unordered_map<Window*, std::vector<Window>> undo_stack;
+		static inline std::unordered_map<Window*, std::vector<Window>> redo_stack;
+		Window() {
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border;
 			v_size = ImVec2(0, 0);
-			v_id = ("child window##" + RandomID()).c_str();
+			v_id = ("window##" + RandomID()).c_str();
 			v_label = "";
 			v_border = true;
 			v_can_have_children = true;
-
-			//available child window flags
-			v_custom_flags[ImGuiWindowFlags_NoMove] = "ImGuiWindowFlags_NoMove";
-			v_custom_flags[ImGuiWindowFlags_NoScrollbar] = "ImGuiWindowFlags_NoScrollbar";
-			v_custom_flags[ImGuiWindowFlags_NoScrollWithMouse] = "ImGuiWindowFlags_NoScrollWithMouse";
-			v_custom_flags[ImGuiWindowFlags_NoCollapse] = "ImGuiWindowFlags_NoCollapse";
-			v_custom_flags[ImGuiWindowFlags_AlwaysAutoResize] = "ImGuiWindowFlags_AlwaysAutoResize";
-			v_custom_flags[ImGuiWindowFlags_NoBackground] = "ImGuiWindowFlags_NoBackground";
-			v_custom_flags[ImGuiWindowFlags_NoMouseInputs] = "ImGuiWindowFlags_NoMouseInputs";
-			v_custom_flags[ImGuiWindowFlags_MenuBar] = "ImGuiWindowFlags_MenuBar";
-			v_custom_flags[ImGuiWindowFlags_HorizontalScrollbar] = "ImGuiWindowFlags_HorizontalScrollbar";
-			v_custom_flags[ImGuiWindowFlags_NoFocusOnAppearing] = "ImGuiWindowFlags_NoFocusOnAppearing";
-			v_custom_flags[ImGuiWindowFlags_NoBringToFrontOnFocus] = "ImGuiWindowFlags_NoBringToFrontOnFocus";
-			v_custom_flags[ImGuiWindowFlags_AlwaysVerticalScrollbar] = "ImGuiWindowFlags_AlwaysVerticalScrollbar";
-			v_custom_flags[ImGuiWindowFlags_AlwaysHorizontalScrollbar] = "ImGuiWindowFlags_AlwaysHorizontalScrollbar";
-			v_custom_flags[ImGuiWindowFlags_AlwaysUseWindowPadding] = "ImGuiWindowFlags_AlwaysUseWindowPadding";
-			v_custom_flags[ImGuiWindowFlags_NoNavInputs] = "ImGuiWindowFlags_NoNavInputs";
-			v_custom_flags[ImGuiWindowFlags_NoNavFocus] = "ImGuiWindowFlags_NoNavFocus";
-			v_custom_flags[ImGuiWindowFlags_UnsavedDocument] = "ImGuiWindowFlags_UnsavedDocument";
-			v_custom_flags[ImGuiWindowFlags_NoNav] = "ImGuiWindowFlags_NoNav";
-			v_custom_flags[ImGuiWindowFlags_NoInputs] = "ImGuiWindowFlags_NoInputs";
-			
-			v_custom_flag_groups[ImGuiWindowFlags_NoNav] = true;
-			v_custom_flag_groups[ImGuiWindowFlags_NoInputs] = true;
-			
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
 			v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
@@ -92,8 +66,8 @@ namespace igd
 			v_colors[ImGuiCol_DragDropTarget] = ImGui::GetStyleColorVec4(ImGuiCol_DragDropTarget);
 			v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
 			v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
-			
-			
+
+
 			v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
 			v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
@@ -141,7 +115,7 @@ namespace igd
 
 		virtual ImGuiElement* Clone() override
 		{
-			ChildWindow* new_element = new ChildWindow();
+			Window* new_element = new Window();
 			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
@@ -162,11 +136,11 @@ namespace igd
 			}
 			return new_element;
 		}
-		
+
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-			
+
 		}
 
 		virtual std::string RenderHead() override
@@ -178,13 +152,13 @@ namespace igd
 
 			if (v_size.type == Vec2Type::Absolute)
 			{
-				ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}, " << v_border << ", " << this->buildFlagString() << ");";
+				ImGui::Begin(v_id.c_str(), v_size.value, v_border, v_flags);
+				code_out << "ImGui::Begin(\"" << v_id << "\", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}, " << v_border << ", " << v_flags << ");";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{
-				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << " }, " << v_border << ", " << this->buildFlagString() << "); ";
+				ImGui::Begin(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
+				code_out << "ImGui::Begin(\"" << v_id << "\", { " << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << " }, " << v_border << ", " << v_flags << "); ";
 			}
 			return code_out.str();
 		}
@@ -197,8 +171,8 @@ namespace igd
 		{
 			if (v_id == "")
 				return "";
-			ImGui::EndChild();
-			return "ImGui::EndChild();";
+			ImGui::End();
+			return "ImGui::End();";
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{
@@ -207,23 +181,9 @@ namespace igd
 		virtual nlohmann::json GetJson() override
 		{
 			nlohmann::json j;
-			GenerateStylesColorsJson(j, json_identifier);
+			GenerateStylesColorsJson(j, "child window");
 			return j;
 		}
 
-		static ImGuiElement* load(ImGuiElement* parent, nlohmann::json data)
-		{
-			ImGuiElement* new_parent = nullptr;
-			std::cout << "Child Window found" << std::endl;
-			igd::ChildWindow* b = new igd::ChildWindow();
-			b->FromJSON(data);
-			new_parent = (ImGuiElement*)b;
-			if (parent)
-				parent->children.push_back((ImGuiElement*)b);
-			else
-				igd::active_workspace->AddNewElement((ImGuiElement*)b, true);
-			new_parent->v_parent = parent;
-			return new_parent;
-		}
 	};
 }

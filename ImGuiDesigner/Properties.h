@@ -18,6 +18,7 @@ private:
 	void General();
 	void Colors();
 	void Styles();
+	void Flags();
 	bool modified;
 	const float item_width = 200;
 	bool is_workspace;

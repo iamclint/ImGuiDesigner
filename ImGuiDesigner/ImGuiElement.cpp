@@ -694,6 +694,36 @@ void ImGuiElement::AddCode(std::string code, int depth)
 	}
 }
 
+bool ImGuiElement::IsFlagGroup(std::pair<int, std::string> current_flag)
+{
+	for (auto& [flag, str] : v_custom_flags)
+	{
+		bool any_on = (flag & current_flag.first) != 0;
+		bool all_on = (this->v_flags & flag) == flag;
+		if (flag == current_flag.first)
+			continue;
+		if (any_on && all_on)
+			return true;
+	}
+	return false;
+}
+
+std::string ImGuiElement::buildFlagString()
+{
+	std::stringstream ss;
+	for (auto& [flag, str] : v_custom_flags)
+	{
+		bool any_on = (flag & this->v_flags) != 0;
+		bool all_on = (this->v_flags & flag) == flag;
+		bool is_group_on = (v_custom_flag_groups[flag] && all_on);
+		if ((flag & v_flags) && (!IsFlagGroup({ flag,str }) || is_group_on))
+			ss << str << " | ";
+	}
+	if (ss.str().length() > 0)
+		return ss.str().substr(0, ss.str().length() - 3);
+	else
+		return "0";
+}
 void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws)
 {
 	//v_generate_code = generate_code;
@@ -856,7 +886,7 @@ int GetRandomInt(int min, int max)
 {
 	std::random_device rd;
 	std::mt19937 mt(rd());
-	std::uniform_real_distribution<double> dist(min, max);
+	std::uniform_real_distribution <double> dist(min, max);
 	return dist(mt);
 }
 

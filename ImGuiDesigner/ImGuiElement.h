@@ -18,7 +18,8 @@ enum class property_flags : int
 	pos = 1 << 1,   // Disable scrollbars (window can still scroll with mouse or programmatically)
 	border = 1 << 2,   // Disable drawing background color (WindowBg, etc.) and outside border. Similar as using SetNextWindowBgAlpha(0.0f).
 	disabled = 1 << 3,
-
+	no_id = 1 << 4,
+	no_resize = 1 << 5
 };
 
 static inline const char* ImGuiStyleVar_Strings[] = {
@@ -226,6 +227,7 @@ public:
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
 	void AllStylesAndColors();
+	std::string buildFlagString();
 	std::string GetIDForVariable();
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length=15);
@@ -248,6 +250,8 @@ public:
 	bool v_sameline;
 	int v_render_index;
 	bool needs_resort;
+	std::unordered_map<int, std::string> v_custom_flags;
+	std::unordered_map<int, bool> v_custom_flag_groups;
 	WorkSpace* v_workspace;
 	int v_depth;
 	ImVec2 ContentRegionAvail;
@@ -295,6 +299,7 @@ public:
 		v_inherit_all_styles = other.v_inherit_all_styles;
 		v_font = other.v_font;
 		v_sameline = other.v_sameline;
+		v_custom_flags = other.v_custom_flags;
 	}
 		
 private:
@@ -307,8 +312,10 @@ private:
 	void ApplyResize(ImVec2 literal_size);
 	void ApplyPos(ImVec2 literal_pos);
 	bool ChildrenUseRelative();
+	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
+	
 	int color_pops;
 	int style_pops;
 	ImVec2 current_drag_delta;

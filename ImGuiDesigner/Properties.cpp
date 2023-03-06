@@ -57,8 +57,19 @@ std::vector<std::string> GetIDSplit(std::string id)
 	boost::split(sp_id, id, boost::is_any_of("##"));
 	return sp_id;
 }
+std::string GetFlagName(std::string flag)
+{
+	std::vector<std::string> sp_flag;
+	boost::split(sp_flag, flag, boost::is_any_of("_"));
+	if (sp_flag.size() > 0)
+		return sp_flag[sp_flag.size() - 1];
+	else
+		return "";
+}
 void Properties::buildTree(ImGuiElement* current_element)
 {
+	if (!current_element)
+		return;
 	ImGuiElement* drop_target = nullptr;
 	if (ImGui::GetDragDropPayload())
 	{
@@ -184,24 +195,27 @@ const char* getPropertyId(std::string name)
 void Properties::General()
 {
 	ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
-	if (!is_workspace)
+	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_id))
 	{
-		PropertyLabel("ID:");
-		ImGui::PushItemWidth(item_width);
-		ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
-	}
-	else
-	{
-		PropertyLabel("ID:");
-		ImGui::PushItemWidth(item_width);
-		static bool refocus = false;
-		if (refocus)
+		if (!is_workspace)
 		{
-			ImGui::SetKeyboardFocusHere();
-			refocus = false;
+			PropertyLabel("ID:");
+			ImGui::PushItemWidth(item_width);
+			ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
 		}
-		if (ImGui::InputText("##property_id", &igd::active_workspace->id))
-			refocus = true;
+		else
+		{
+			PropertyLabel("ID:");
+			ImGui::PushItemWidth(item_width);
+			static bool refocus = false;
+			if (refocus)
+			{
+				ImGui::SetKeyboardFocusHere();
+				refocus = false;
+			}
+			if (ImGui::InputText("##property_id", &igd::active_workspace->id))
+				refocus = true;
+		}
 	}
 	if (igd::active_workspace->active_element->v_property_flags & property_flags::label && !is_workspace)
 	{
@@ -247,7 +261,7 @@ void Properties::General()
 	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
 		igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 
-	if (!is_workspace)
+	if (!is_workspace && !(igd::active_workspace->active_element->v_property_flags & property_flags::no_resize))
 	{
 		PropertyLabel("Size:");
 		ImGui::PushItemWidth(item_width);
@@ -317,33 +331,6 @@ void Properties::General()
 		}
 	}
 
-	//if (!is_workspace)
-	//{
-	//	PropertyLabel("Parent:");
-	//	ImGui::PushItemWidth(item_width);
-	//	if (ImGui::BeginCombo(getPropertyId("parent"), igd::active_workspace->active_element->v_parent ? igd::active_workspace->active_element->v_parent->v_id.c_str() : "None"))
-	//	{
-	//		if (ImGui::Selectable("None"))
-	//		{
-	//			igd::active_workspace->active_element->v_parent = nullptr;
-	//			igd::active_workspace->active_element->PushUndo();
-	//		}
-	//		for (auto& element : igd::active_workspace->elements)
-	//		{
-	//			if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
-	//				continue;
-	//			if (element->children.size() > 0)
-	//				getChildParents(element);
-	//			if (ImGui::Selectable(element->v_id.c_str()))
-	//			{
-	//				igd::active_workspace->active_element->v_parent = element;
-	//				igd::active_workspace->active_element->PushUndo();
-	//			}
-	//		}
-	//		ImGui::EndCombo();
-	//	}
-	//}
-
 	ImGui::PushItemWidth(item_width);
 	igd::active_workspace->active_element->RenderPropertiesInternal();
 
@@ -394,9 +381,6 @@ void Properties::Styles()
 	if (igd::active_workspace->active_element->v_styles.size() > 0)
 	{
 		PropertySeparator();
-		//PropertyLabel("");
-
-		//ImGui::Dummy({ 26, 0 }); ImGui::SameLine();
 		ImGui::TableNextColumn();
 		if (ImGui::Checkbox("Inherit all styles##inherit_styles", &igd::active_workspace->active_element->v_inherit_all_styles))
 			modified = true;
@@ -405,7 +389,7 @@ void Properties::Styles()
 
 	for (auto& c : igd::active_workspace->active_element->v_styles)
 	{
-		PropertyLabel(ImGuiStyleVar_Strings[c.first]);
+		PropertyLabel(GetFlagName(ImGuiStyleVar_Strings[c.first]).c_str());
 		ImGui::PushItemWidth(item_width);
 		if (c.second.type == StyleVarType::Float)
 		{
@@ -421,6 +405,17 @@ void Properties::Styles()
 		ImGui::SameLine();
 		if (ImGui::Checkbox(("Inherit##" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
 			modified = true;
+	}
+	ImGui::EndTable();
+}
+void Properties::Flags()
+{
+	ImGui::BeginTable("PropertiesTableFlags", 2, ImGuiTableFlags_SizingFixedFit);
+	for (auto& [flag, str] : igd::active_workspace->active_element->v_custom_flags)
+	{
+		PropertyLabel(GetFlagName(str).c_str());
+		ImGui::PushItemWidth(item_width);
+		ImGui::CheckboxFlags(("##" + str).c_str(), &igd::active_workspace->active_element->v_flags, flag);
 	}
 	ImGui::EndTable();
 }
@@ -530,17 +525,30 @@ void Properties::OnUIRender() {
 			General();
 			ImGui::TreePop();
 		}
-		if (ImGui::TreeNode("Colors"))
+		if (igd::active_workspace->active_element->v_colors.size() > 0)
 		{
-			Colors();
-			ImGui::TreePop();
+			if (ImGui::TreeNode("Colors"))
+			{
+				Colors();
+				ImGui::TreePop();
+			}
 		}
-		if (ImGui::TreeNode("Styles"))
+		if (igd::active_workspace->active_element->v_styles.size() > 0)
 		{
-			Styles();
-			ImGui::TreePop();
+			if (ImGui::TreeNode("Styles"))
+			{
+				Styles();
+				ImGui::TreePop();
+			}
 		}
-		
+		if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
+		{
+			if (ImGui::TreeNode("Flags"))
+			{
+				Flags();
+				ImGui::TreePop();
+			}
+		}
 		if (ImGui::Button("Delete##property_delete"))
 			igd::active_workspace->active_element->Delete();
 	}
