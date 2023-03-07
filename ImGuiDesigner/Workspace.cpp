@@ -10,77 +10,29 @@
 #include <boost/algorithm/string.hpp>
 WorkSpace::~WorkSpace()
 {
-	for (auto& ele : elements)
+	for (auto& ele : basic_workspace_element->children)
 	{
 		delete ele;
 	}
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}
+	: code{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}
 {
-	basic_workspace_element = new ImGuiElement();
-	basic_workspace_element->v_inherit_all_colors = true;
-	basic_workspace_element->v_inherit_all_styles = true;
-	id = "Workspace##" + ImGuiElement::RandomID();
-	basic_workspace_element->AllStylesAndColors();
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoTitleBar] = "ImGuiWindowFlags_NoTitleBar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoResize] = "ImGuiWindowFlags_NoResize";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoDocking] = "ImGuiWindowFlags_NoDocking";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoMove] = "ImGuiWindowFlags_NoMove";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoScrollbar] = "ImGuiWindowFlags_NoScrollbar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoScrollWithMouse] = "ImGuiWindowFlags_NoScrollWithMouse";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoCollapse] = "ImGuiWindowFlags_NoCollapse";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_AlwaysAutoResize] = "ImGuiWindowFlags_AlwaysAutoResize";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoBackground] = "ImGuiWindowFlags_NoBackground";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoMouseInputs] = "ImGuiWindowFlags_NoMouseInputs";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_MenuBar] = "ImGuiWindowFlags_MenuBar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_HorizontalScrollbar] = "ImGuiWindowFlags_HorizontalScrollbar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoFocusOnAppearing] = "ImGuiWindowFlags_NoFocusOnAppearing";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoBringToFrontOnFocus] = "ImGuiWindowFlags_NoBringToFrontOnFocus";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_AlwaysVerticalScrollbar] = "ImGuiWindowFlags_AlwaysVerticalScrollbar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_AlwaysHorizontalScrollbar] = "ImGuiWindowFlags_AlwaysHorizontalScrollbar";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_AlwaysUseWindowPadding] = "ImGuiWindowFlags_AlwaysUseWindowPadding";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoNavInputs] = "ImGuiWindowFlags_NoNavInputs";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoNavFocus] = "ImGuiWindowFlags_NoNavFocus";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_UnsavedDocument] = "ImGuiWindowFlags_UnsavedDocument";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoNav] = "ImGuiWindowFlags_NoNav";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoInputs] = "ImGuiWindowFlags_NoInputs";
-	basic_workspace_element->v_custom_flags[ImGuiWindowFlags_NoDecoration] = "ImGuiWindowFlags_NoDecoration";
-		
-	basic_workspace_element->v_custom_flag_groups[ImGuiWindowFlags_NoNav] = true;
-	basic_workspace_element->v_custom_flag_groups[ImGuiWindowFlags_NoInputs] = true;
-	basic_workspace_element->v_custom_flag_groups[ImGuiWindowFlags_NoDecoration] = true;
-
+	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	is_open = true;
 }
-
-std::string WorkSpace::GetIDForVariable()
-{
-	std::vector<std::string> sp_id;
-	boost::split(sp_id, this->id, boost::is_any_of("##"));
-	std::string content_region_id = sp_id.front();
-	boost::replace_all(content_region_id, " ", "_");
-	return content_region_id;
-}
-
 
 ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
 {
 	try
 	{
-		if (obj["type"] == "main window")
-		{
-			std::cout << "Main Window found" << std::endl;
-			igd::active_workspace->basic_workspace_element->FromJSON(obj);
-			return igd::active_workspace->basic_workspace_element;
-		}
+		if (igd::element_load_functions[obj["type"]])
+			return igd::element_load_functions[obj["type"]](parent, obj);
 		else
 		{
-			if (igd::element_load_functions[obj["type"]])
-				return igd::element_load_functions[obj["type"]](parent, obj);
-			else
-				return nullptr;
+			igd::notifications->GenericNotification("Error", "Unknown element type: " + obj["type"].get<std::string>());
+			return nullptr;
 		}
 	}
 	catch (nlohmann::json::exception ex)
@@ -103,7 +55,7 @@ void WorkSpace::Save(std::string file_path)
 	file.open(file_path);
 	nlohmann::json main_obj;
 	main_obj.push_back(basic_workspace_element->GetJsonWithChildren());
-	for (auto& e : elements)
+	for (auto& e : basic_workspace_element->children)
 	{
 		if (e->delete_me)
 			continue;
@@ -186,10 +138,6 @@ void WorkSpace::Styles()
 	}
 }
 
-void WorkSpace::GenerateStaticVars()
-{
-	this->code << "static bool " << this->GetIDForVariable() << " = true;" << std::endl;
-}
 void WorkSpace::RenderCode() 
 {
 	if (this != igd::active_workspace)
@@ -249,7 +197,8 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 	}
 	else if (!element)
 	{
-		element_vector = &this->elements;
+		element = this->basic_workspace_element;
+		element_vector = &this->basic_workspace_element->children;
 	}
 	else
 	{
@@ -266,13 +215,14 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 			continue;
 		}
 		//if it doesn't have a parent and the element vector is not the base vector add it to it
-		if (!cElement->v_parent && element_vector!=&this->elements)
+		if (!cElement->v_parent)
 		{
 			std::cout << "Moving element " << cElement->v_id << " -> workspace " << "Index: " << cElement->v_render_index  << std::endl;
-			if (cElement->v_render_index>=this->elements.size())
-				this->elements.push_back(cElement);
+			if (cElement->v_render_index>=this->basic_workspace_element->children.size())
+				this->basic_workspace_element->children.push_back(cElement);
 			else
-				this->elements.emplace(this->elements.begin()+cElement->v_render_index, cElement);
+				this->basic_workspace_element->children.emplace(this->basic_workspace_element->children.begin()+cElement->v_render_index, cElement);
+			cElement->v_parent = this->basic_workspace_element;
 			it = element_vector->erase(it);
 			return false;
 		}
@@ -313,71 +263,21 @@ void WorkSpace::OnUIRender() {
 		return;
 	}
 	
-	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
-	ImGui::SetNextWindowSize({ 600, 600 }, ImGuiCond_Once);
+	if (!igd::active_workspace->active_element)
+		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
+
 	this->FixParentChildRelationships(nullptr);
-	this->GenerateStaticVars();
-
-	if (!this->basic_workspace_element->v_inherit_all_colors)
-		this->Colors();
-	if (!this->basic_workspace_element->v_inherit_all_styles)
-		this->Styles();
-
-	if (this->basic_workspace_element->v_font.font)
-	{
-		this->code << "ImGui::PushFont(" << this->basic_workspace_element->v_font.name << ");" << std::endl;
-		ImGui::PushFont(this->basic_workspace_element->v_font.font);
-	}
 	
-	this->code << "ImGui::Begin(\"" << this->id << "\", &" << this->GetIDForVariable() << ", " << this->basic_workspace_element->buildFlagString() << ");" << std::endl << "{" << std::endl;
-	int flags = ImGuiWindowFlags_NoSavedSettings;
-	if (igd::active_workspace->active_element && this->is_interacting)
-		flags |= ImGuiWindowFlags_NoMove;
-	
-	ImGui::Begin(id.c_str(), &is_open, flags | this->basic_workspace_element->v_flags);
-	if (this==igd::active_workspace)
-		KeyBinds();
-	if (ImGui::IsWindowAppearing())
-	{
-		this->active_element = nullptr;
-		igd::active_workspace = this;
-		std::cout << "Appearing" << std::endl;
-	}
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
-	this->code << "\t\tImVec2 ContentRegionAvail = ImGui::GetContentRegionAvail();" << std::endl;
-
+	basic_workspace_element->Render(region_avail, 1, this);
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)
 		{
-			elements.push_back(element);
+			basic_workspace_element->children.push_back(element);
 		}
 		elements_buffer.clear();
 	}
-	
-
-	for (int r = 0;auto& element : elements)
-	{
-		if (!element)
-			continue;
-		if (element->delete_me)
-			continue;
-		element->v_render_index = r;
-		element->Render(region_avail, 1, this);
-		r++;
-	}
-	
-	std::string f = code.str();
-	this->code << "}" << std::endl << "ImGui::End();" << std::endl;
-	ImGui::End(); 
-	
-	if (this->basic_workspace_element->v_font.font)
-	{
-		this->code << "ImGui::PopFont();" << std::endl;
-		ImGui::PopFont();
-	}
-	this->basic_workspace_element->PopColorAndStyles(this);
-
 }
 
 void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
@@ -390,8 +290,10 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 	else
 	{
 		this->active_element = nullptr;
-		this->elements.push_back(ele);
-		this->active_element = this->elements.back();
+		ele->v_parent = this->basic_workspace_element;
+		this->basic_workspace_element->children.push_back(ele);
+		this->active_element = this->basic_workspace_element->children.back();
+		
 	}
 }
 

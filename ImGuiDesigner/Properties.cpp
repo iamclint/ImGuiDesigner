@@ -86,6 +86,7 @@ void Properties::buildTree(ImGuiElement* current_element)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 	if (igd::active_workspace->active_element == current_element)
 		flags |= ImGuiTreeNodeFlags_Selected;
+	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	
 	std::stringstream ss;
 	std::vector<std::string> id = GetIDSplit(current_element->v_id);
@@ -136,10 +137,10 @@ void Properties::buildTree(ImGuiElement* current_element)
 
 				if (!parent_changed)
 				{
-					if (source_element->v_parent)
+					//if (source_element->v_parent)
 						igd::VecMove(source_element->v_parent->children, source_element->v_render_index, new_index);
-					else
-						igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, new_index);
+//					else
+	//					igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, new_index);
 				}
 				else
 				{
@@ -197,27 +198,11 @@ void Properties::General()
 	ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
 	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_id))
 	{
-		if (!is_workspace)
-		{
-			PropertyLabel("ID:");
-			ImGui::PushItemWidth(item_width);
-			ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
-		}
-		else
-		{
-			PropertyLabel("ID:");
-			ImGui::PushItemWidth(item_width);
-			static bool refocus = false;
-			if (refocus)
-			{
-				ImGui::SetKeyboardFocusHere();
-				refocus = false;
-			}
-			if (ImGui::InputText("##property_id", &igd::active_workspace->id))
-				refocus = true;
-		}
+		PropertyLabel("ID:");
+		ImGui::PushItemWidth(item_width);
+		ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
 	}
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::label && !is_workspace)
+	if (igd::active_workspace->active_element->v_property_flags & property_flags::label)
 	{
 		PropertyLabel("Label:");
 		ImGui::PushItemWidth(item_width);
@@ -261,7 +246,7 @@ void Properties::General()
 	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
 		igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 
-	if (!is_workspace && !(igd::active_workspace->active_element->v_property_flags & property_flags::no_resize))
+	if (igd::active_workspace->active_element->v_property_flags & property_flags::no_resize)
 	{
 		PropertyLabel("Size:");
 		ImGui::PushItemWidth(item_width);
@@ -291,7 +276,7 @@ void Properties::General()
 
 	}
 
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::pos && !is_workspace)
+	if (igd::active_workspace->active_element->v_property_flags & property_flags::pos)
 	{
 		PropertyLabel("Position:");
 		ImGui::PushItemWidth(item_width);
@@ -427,7 +412,7 @@ void Properties::OnUIRender() {
 	ImGuiIO& io = g.IO;
 	ImGui::Begin("Properties");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-	std::string title = STS() << "Element Tree (" << std::count_if(igd::active_workspace->elements.begin(), igd::active_workspace->elements.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
+	std::string title = STS() << "Element Tree (" << std::count_if(igd::active_workspace->basic_workspace_element->children.begin(), igd::active_workspace->basic_workspace_element->children.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
 	bool tn = (ImGui::TreeNodeEx(title.c_str(), ImGuiTreeNodeFlags_DefaultOpen));
 	if (ImGui::IsItemHovered())
 	{
@@ -447,23 +432,16 @@ void Properties::OnUIRender() {
 			}
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE"))
 			{
-				std::stringstream ss;
 				ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
-				if (!source_element->v_parent)
-				{
-					igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, 0);
-				}
-				else
-				{
-					source_element->v_parent = nullptr;
-					source_element->PushUndo();
-					source_element->v_render_index = 0;
-				}
+				source_element->v_parent = igd::active_workspace->basic_workspace_element;
+				source_element->v_render_index = 0;
+				source_element->PushUndo();
+			//	igd::VecMove(source_element->v_parent->children, source_element->v_render_index, 0);
 			}
 			ImGui::EndDragDropTarget();
 		}
 
-		for (auto& e : igd::active_workspace->elements)
+		for (auto& e : igd::active_workspace->basic_workspace_element->children)
 		{
 			if (e->delete_me)
 				continue;
@@ -489,16 +467,10 @@ void Properties::OnUIRender() {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_TREENODE"))
 				{
 					ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
-					if (!source_element->v_parent)
-					{
-						igd::VecMove(igd::active_workspace->elements, source_element->v_render_index, igd::active_workspace->elements.size() - 1);
-					}
-					else
-					{
-						source_element->v_parent = nullptr;
-						source_element->PushUndo();
-						source_element->v_render_index = (int)igd::active_workspace->elements.size();
-					}
+					source_element->v_parent = igd::active_workspace->basic_workspace_element;
+					source_element->v_render_index = (int)igd::active_workspace->basic_workspace_element->children.size() - 1;
+					source_element->PushUndo();
+					//	igd::VecMove(source_element->v_parent->children, source_element->v_render_index, (int)igd::active_workspace->basic_workspace_element->children.size()-1);
 				}
 				ImGui::EndDragDropTarget();
 			}

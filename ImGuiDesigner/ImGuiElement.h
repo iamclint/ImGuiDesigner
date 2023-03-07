@@ -226,7 +226,6 @@ public:
 	void PopColorAndStyles(void* ws = nullptr);
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
-	void AllStylesAndColors();
 	std::string buildFlagString();
 	std::string GetIDForVariable();
 	nlohmann::json GetJsonWithChildren();

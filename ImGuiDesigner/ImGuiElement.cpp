@@ -49,80 +49,6 @@ ImGuiElement::ImGuiElement()
 {
 	v_property_flags = property_flags::disabled;
 }
-
-void ImGuiElement::AllStylesAndColors()
-{
-	ImGuiContext& g = *GImGui;
-	v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-	v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-	v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
-	v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
-	v_colors[ImGuiCol_Border] = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-	v_colors[ImGuiCol_BorderShadow] = ImGui::GetStyleColorVec4(ImGuiCol_BorderShadow);
-	v_colors[ImGuiCol_ChildBg] = ImGui::GetStyleColorVec4(ImGuiCol_ChildBg);
-	v_colors[ImGuiCol_CheckMark] = ImGui::GetStyleColorVec4(ImGuiCol_CheckMark);
-	v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
-	v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
-	v_colors[ImGuiCol_FrameBgHovered] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
-	v_colors[ImGuiCol_Header] = ImGui::GetStyleColorVec4(ImGuiCol_Header);
-	v_colors[ImGuiCol_HeaderActive] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
-	v_colors[ImGuiCol_HeaderHovered] = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
-	v_colors[ImGuiCol_NavHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavHighlight);
-	v_colors[ImGuiCol_PlotHistogram] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogram);
-	v_colors[ImGuiCol_PlotHistogramHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered);
-	v_colors[ImGuiCol_PlotLines] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLines);
-	v_colors[ImGuiCol_PlotLinesHovered] = ImGui::GetStyleColorVec4(ImGuiCol_PlotLinesHovered);
-	v_colors[ImGuiCol_ScrollbarBg] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarBg);
-	v_colors[ImGuiCol_ScrollbarGrab] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrab);
-	v_colors[ImGuiCol_ScrollbarGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
-	v_colors[ImGuiCol_ScrollbarGrabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabHovered);
-	v_colors[ImGuiCol_SliderGrab] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrab);
-	v_colors[ImGuiCol_SliderGrabActive] = ImGui::GetStyleColorVec4(ImGuiCol_SliderGrabActive);
-	v_colors[ImGuiCol_Tab] = ImGui::GetStyleColorVec4(ImGuiCol_Tab);
-	v_colors[ImGuiCol_TabActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabActive);
-	v_colors[ImGuiCol_TabHovered] = ImGui::GetStyleColorVec4(ImGuiCol_TabHovered);
-	v_colors[ImGuiCol_TabUnfocused] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocused);
-	v_colors[ImGuiCol_TabUnfocusedActive] = ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocusedActive);
-	v_colors[ImGuiCol_ResizeGrip] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGrip);
-	v_colors[ImGuiCol_ResizeGripActive] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripActive);
-	v_colors[ImGuiCol_ResizeGripHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ResizeGripHovered);
-	v_colors[ImGuiCol_Separator] = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
-	v_colors[ImGuiCol_SeparatorActive] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive);
-	v_colors[ImGuiCol_SeparatorHovered] = ImGui::GetStyleColorVec4(ImGuiCol_SeparatorHovered);
-	v_colors[ImGuiCol_TextSelectedBg] = ImGui::GetStyleColorVec4(ImGuiCol_TextSelectedBg);
-	v_colors[ImGuiCol_TextDisabled] = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
-	v_colors[ImGuiCol_TableBorderLight] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderLight);
-	v_colors[ImGuiCol_TableBorderStrong] = ImGui::GetStyleColorVec4(ImGuiCol_TableBorderStrong);
-	v_colors[ImGuiCol_TableHeaderBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableHeaderBg);
-	v_colors[ImGuiCol_TableRowBg] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBg);
-	v_colors[ImGuiCol_TableRowBgAlt] = ImGui::GetStyleColorVec4(ImGuiCol_TableRowBgAlt);
-	v_colors[ImGuiCol_DragDropTarget] = ImGui::GetStyleColorVec4(ImGuiCol_DragDropTarget);
-	v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
-	v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
-	v_colors[ImGuiCol_WindowBg] = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-	v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
-	v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
-	v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
-	v_styles[ImGuiStyleVar_DisabledAlpha] = g.Style.DisabledAlpha;
-	v_styles[ImGuiStyleVar_FrameBorderSize] = g.Style.FrameBorderSize;
-	v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
-	v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
-	v_styles[ImGuiStyleVar_GrabMinSize] = g.Style.GrabMinSize;
-	v_styles[ImGuiStyleVar_GrabRounding] = g.Style.GrabRounding;
-	v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
-	v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
-	v_styles[ImGuiStyleVar_ScrollbarRounding] = g.Style.ScrollbarRounding;
-	v_styles[ImGuiStyleVar_ScrollbarSize] = g.Style.ScrollbarSize;
-	v_styles[ImGuiStyleVar_SelectableTextAlign] = g.Style.SelectableTextAlign;
-	v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
-	v_styles[ImGuiStyleVar_WindowBorderSize] = g.Style.WindowBorderSize;
-	v_styles[ImGuiStyleVar_WindowPadding] = g.Style.WindowPadding;
-	v_styles[ImGuiStyleVar_WindowRounding] = g.Style.WindowRounding;
-	v_styles[ImGuiStyleVar_WindowTitleAlign] = g.Style.WindowTitleAlign;
-	v_styles[ImGuiStyleVar_Alpha] = g.Style.Alpha;
-	v_styles[ImGuiStyleVar_WindowMinSize] = g.Style.WindowMinSize;
-}
-
 void ImGuiElement::RenderPropertiesInternal()
 {
 	
@@ -688,9 +614,12 @@ bool ImGuiElement::ChildrenUseRelative()
 
 void ImGuiElement::AddCode(std::string code, int depth)
 {
+	std::vector<std::string> sp_data;
+	boost::split(sp_data, code, boost::is_any_of("\n"));
 	if (this->v_workspace)
 	{
-		v_workspace->code << GetCodeTabs(depth==-1 ? v_depth : depth) << code << std::endl;
+		for (auto& data : sp_data)
+			v_workspace->code << GetCodeTabs(depth==-1 ? v_depth : depth) << data << std::endl;
 	}
 }
 

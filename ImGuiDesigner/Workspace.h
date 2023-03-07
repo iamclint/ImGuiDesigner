@@ -6,7 +6,7 @@ class WorkSpace : public Walnut::Layer
 {
 public:
 	
-	std::vector<ImGuiElement*> elements;
+	//std::vector<ImGuiElement*> elements;
 	std::vector<ImGuiElement*> elements_buffer;
 	std::vector<ImGuiElement*> undo_stack;
 	std::vector<ImGuiElement*> redo_stack;
@@ -27,10 +27,8 @@ public:
 	bool FixParentChildRelationships(ImGuiElement* element);
 	void RenderCode();
 	void RenderAdd();
-	std::string GetIDForVariable();
 	WorkSpace();
 	~WorkSpace();
-	std::string id;
 	bool is_open;
 	bool loading_workspace;
 	bool is_interacting;
