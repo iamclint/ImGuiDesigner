@@ -100,7 +100,10 @@ namespace igd
 			if (v_size.type == Vec2Type::Absolute)
 			{
 				ImGui::Button(v_id.c_str(), v_size.value);
-				code << "ImGui::Button(\"" << v_id << "\",  {" << igd::fString(v_size.value.x) <<"," << igd::fString(v_size.value.y) << "});";
+				code << "ImGui::Button(\"" << v_id << "\"";
+				if (v_size.value.x != 0 || v_size.value.y != 0)
+					code << ", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}";
+				code << ");";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{

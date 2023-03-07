@@ -246,7 +246,7 @@ void Properties::General()
 	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
 		igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::no_resize)
+	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_resize))
 	{
 		PropertyLabel("Size:");
 		ImGui::PushItemWidth(item_width);
