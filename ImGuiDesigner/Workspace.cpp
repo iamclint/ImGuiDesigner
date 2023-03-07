@@ -268,6 +268,8 @@ void WorkSpace::OnUIRender() {
 
 	this->FixParentChildRelationships(nullptr);
 	
+
+	
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
 	basic_workspace_element->Render(region_avail, 1, this);
 	if (elements_buffer.size() > 0)
@@ -287,14 +289,25 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 		this->active_element->children.push_back(ele);
 		this->active_element->children.back()->v_parent = this->active_element;
 	}
+	else if (this->active_element)
+	{
+		if (this->active_element->v_parent)
+		{
+			this->active_element->v_parent->children.push_back(ele);
+			ele->v_parent = this->active_element->v_parent;
+		}
+		else
+		{
+			this->active_element->children.push_back(ele);
+			ele->v_parent = this->active_element->v_parent;
+		}
+	}
 	else
 	{
-		this->active_element = nullptr;
 		ele->v_parent = this->basic_workspace_element;
 		this->basic_workspace_element->children.push_back(ele);
-		this->active_element = this->basic_workspace_element->children.back();
-		
 	}
+	this->active_element = ele;
 }
 
 void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
