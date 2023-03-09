@@ -39,7 +39,7 @@ void ToolBar::OnUIRender() {
 	ImGui::InputText("##toolbar_input_text", buf, 25, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
-		
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputText()));
 	}
 	memset(buf, 0, 25);
 	strcpy_s(buf, 25, "1.67456");
@@ -87,6 +87,15 @@ void ToolBar::OnUIRender() {
 			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
 	}
 	
+
+	ImGui::Button("Separator");
+	if (ImGui::IsItemHovered())
+	{
+		g.MouseCursor = ImGuiMouseCursor_Hand;
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Separator()));
+	}
+
 	ImGui::PopStyleVar();
 	ImGui::PopItemWidth();
 

@@ -285,7 +285,7 @@ public:
 		v_parent = other.v_parent;
 		v_property_flags = other.v_property_flags;
 		is_dragging = other.is_dragging;
-		resize = other.resize;
+		ResizeDirection = other.ResizeDirection;
 		current_drag_delta = other.current_drag_delta;
 		last_size = other.last_size;
 		delete_me = other.delete_me;
@@ -319,7 +319,7 @@ private:
 	int style_pops;
 	ImVec2 current_drag_delta;
 	bool is_dragging;
-	resize_direction resize;
+	resize_direction ResizeDirection;
 	ImVec2 last_size;
 	ImVec2 last_position;
 	ImVec2 last_known_cursor;

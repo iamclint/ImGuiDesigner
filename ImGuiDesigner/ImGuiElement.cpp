@@ -42,7 +42,7 @@ void ImGuiElement::PushUndoLocal()
 ImGuiElement::ImGuiElement()
 	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID()), v_label("new element"),
 	v_parent(nullptr), v_border(0),
-	v_pos(ImVec2(0, 0)), is_dragging(false), resize(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
+	v_pos(ImVec2(0, 0)), is_dragging(false), ResizeDirection(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false)
@@ -304,14 +304,18 @@ bool ImGuiElement::Drag()
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 	ImVec2 Item_Location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x, g.LastItemData.Rect.Min.y - window->Pos.y);
-	if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0) && resize==resize_direction::none)
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection==resize_direction::none)
 	{
+		const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+		ImGui::SetActiveID(id, g.CurrentWindow);
 		is_dragging = true;
 		ImVec2 mouse_location = get_mouse_location();
 		current_drag_delta = { mouse_location.x - Item_Location.x - ImGui::GetScrollX(),mouse_location.y - Item_Location.y - ImGui::GetScrollY() };
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_dragging)
 	{
+		const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+		ImGui::SetActiveID(id, g.CurrentWindow);
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		ImVec2 mouse_location = get_mouse_location();
@@ -410,7 +414,10 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 
 bool ImGuiElement::Resize()
 {
-	float delta_offset = 10.0f;
+	if (v_property_flags & property_flags::no_resize)
+		return false;
+	
+	float delta_offset = 5.0f;
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 	ImGuiIO& io = g.IO;
@@ -429,7 +436,7 @@ bool ImGuiElement::Resize()
 	bool is_mouse_hovering_bl = fabs(mouse_delta_bl.x) < delta_offset && fabs(mouse_delta_bl.y) < delta_offset;
 	bool is_mouse_hovering_tl = fabs(mouse_delta_tl.x) < delta_offset && fabs(mouse_delta_tl.y) < delta_offset;
 	
-	if (resize == resize_direction::none)
+	if (ResizeDirection == resize_direction::none)
 	{
 		if (is_mouse_hovering_br)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
@@ -449,33 +456,36 @@ bool ImGuiElement::Resize()
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 	}
 
-	if (ImGui::IsMouseClicked(0) && !is_dragging && resize == resize_direction::none)
+	if (ImGui::IsMouseClicked(0) && !is_dragging && ResizeDirection == resize_direction::none)
 	{
 		if (is_mouse_hovering_br)
-			resize = resize_direction::bottom_right;
+			ResizeDirection = resize_direction::bottom_right;
 		else if (is_mouse_hovering_r)
-			resize = resize_direction::right;
+			ResizeDirection = resize_direction::right;
 		else if (is_mouse_hovering_tr)
-			resize = resize_direction::top_right;
+			ResizeDirection = resize_direction::top_right;
 		else if (is_mouse_hovering_l)
-			resize = resize_direction::left;
+			ResizeDirection = resize_direction::left;
 		else if (is_mouse_hovering_b)
-			resize = resize_direction::bottom;
+			ResizeDirection = resize_direction::bottom;
 		else if (is_mouse_hovering_t)
-			resize = resize_direction::top;
+			ResizeDirection = resize_direction::top;
 		else if (is_mouse_hovering_bl)
-			resize = resize_direction::bottom_left;
+			ResizeDirection = resize_direction::bottom_left;
 		else if (is_mouse_hovering_tl)
-			resize = resize_direction::top_left;
+			ResizeDirection = resize_direction::top_left;
 		
 		last_size = current_size;
 		last_position = item_location;
 	}
-	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && resize!=resize_direction::none)
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ResizeDirection!=resize_direction::none)
 	{
+		
+		const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+		ImGui::SetActiveID(id, g.CurrentWindow);
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 		did_resize = true;
-		switch (resize)
+		switch (ResizeDirection)
 		{
 			case resize_direction::top_right:
 			{
@@ -532,15 +542,31 @@ bool ImGuiElement::Resize()
 			}
 		}
 	}
-	return resize != resize_direction::none;
+	return ResizeDirection != resize_direction::none;
 }
 
 void ImGuiElement::Select()
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && resize == resize_direction::none)
+	ImGuiWindow* window = g.CurrentWindow;
+
+	//ImGui::GetWindowDrawList()->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImColor(1.0f, 0.0, 0.0f, 1.0f));
+//	g.NavDisableMouseHover = false;
+	//if (this->v_label == "test")
+	//{
+	//	ImGui::SetActiveID(g.LastItemData.ID, g.CurrentWindow);
+	//	if (ImGui::ItemHoverable(g.LastItemData.Rect, g.LastItemData.ID))
+	//		std::cout << "ItemHoverable: " << v_id << std::endl;
+	//}
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
 	{
+		std::cout << "hovered: " << v_id << std::endl;
+	}
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none)
+	{
+	//	const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+		ImGui::SetActiveID(g.LastItemData.ID, g.CurrentWindow);
 		igd::active_workspace->active_element = this;
 	}
 
@@ -800,7 +826,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 			PushUndo();
 			did_resize = false;
 		}
-		resize = resize_direction::none;
+		ResizeDirection = resize_direction::none;
 		if (did_move)
 		{
 			PushUndo();
