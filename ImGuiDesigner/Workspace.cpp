@@ -350,12 +350,12 @@ void WorkSpace::load(std::filesystem::path path)
 		{
 			if (s.contains("obj"))
 			{
-				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s["obj"], nullptr);
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s["obj"], igd::active_workspace->basic_workspace_element);
 				GetAllChildren(s["obj"], parent);
 			}
 			else
 			{
-				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s, nullptr);
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s, igd::active_workspace->basic_workspace_element);
 				GetAllChildren(s, parent);
 			}
 			elements++;

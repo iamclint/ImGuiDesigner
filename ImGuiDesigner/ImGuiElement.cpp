@@ -89,28 +89,19 @@ void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 
 void ImGuiElement::PushStyleColor(ImGuiCol idx, const ImVec4& col, void* ws)
 {
-	WorkSpace* w = (WorkSpace*)ws;
-	if (!w)
-		w = igd::active_workspace;
-	w->code << "ImGui::PushStyleColor(" << ImGuiColor_Strings[idx] << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));" << std::endl;
+	this->AddCode(STS() << "ImGui::PushStyleColor(" << ImGuiColor_Strings[idx] << ", ImVec4(" << col.x << ", " << col.y << ", " << col.z << ", " << col.w << "));");
 	ImGui::PushStyleColor(idx, col);
 	color_pops++;
 }
 void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, float val, void* ws)
 {
-	WorkSpace* w = (WorkSpace*)ws;
-	if (!w)
-		w = igd::active_workspace;
-	w->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", " << val << ");" << std::endl;
+	this->AddCode(STS() << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", " << val << ");");
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }
 void ImGuiElement::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val, void* ws)
 {
-	WorkSpace* w = (WorkSpace*)ws;
-	if (!w)
-		w = igd::active_workspace;
-	w->code << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", ImVec2(" << val.x << ", " << val.y << "));" << std::endl;
+	this->AddCode(STS() << "ImGui::PushStyleVar(" << ImGuiStyleVar_Strings[idx] << ", ImVec2(" << val.x << ", " << val.y << "));");
 	ImGui::PushStyleVar(idx, val);
 	style_pops++;
 }

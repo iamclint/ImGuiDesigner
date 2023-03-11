@@ -140,7 +140,7 @@ void ToolBar::OnUIRender() {
 			{
 				if (ImGui::MenuItem("Add"))
 				{
-
+					igd::active_workspace->load(p.path());
 				}
 				if (ImGui::MenuItem("Delete"))
 				{
