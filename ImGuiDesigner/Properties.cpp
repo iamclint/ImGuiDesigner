@@ -434,9 +434,9 @@ void Properties::OnUIRender() {
 			{
 				ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
 				source_element->v_parent = igd::active_workspace->basic_workspace_element;
-				source_element->v_render_index = 0;
+				igd::VecMove(source_element->v_parent->children, source_element->v_render_index, 0);
+				//source_element->v_render_index = 0;
 				source_element->PushUndo();
-			//	igd::VecMove(source_element->v_parent->children, source_element->v_render_index, 0);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -468,7 +468,9 @@ void Properties::OnUIRender() {
 				{
 					ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
 					source_element->v_parent = igd::active_workspace->basic_workspace_element;
-					source_element->v_render_index = (int)igd::active_workspace->basic_workspace_element->children.size();
+					std::cout << "Moved index: " << source_element->v_render_index << " to " << igd::active_workspace->basic_workspace_element->children.size() << std::endl;
+					igd::VecMove(source_element->v_parent->children, source_element->v_render_index, igd::active_workspace->basic_workspace_element->children.size()-1);
+					source_element->v_render_index = (int)igd::active_workspace->basic_workspace_element->children.size()-1;
 					source_element->PushUndo();
 					//	igd::VecMove(source_element->v_parent->children, source_element->v_render_index, (int)igd::active_workspace->basic_workspace_element->children.size()-1);
 				}

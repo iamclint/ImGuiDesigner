@@ -7,6 +7,7 @@
 #include "..\ImGuiDesigner.h"
 
 #include <iostream>
+
 namespace igd
 { 
 	WorkSpace* active_workspace;

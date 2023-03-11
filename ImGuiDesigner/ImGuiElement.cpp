@@ -550,23 +550,10 @@ void ImGuiElement::Select()
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 	ImGuiWindow* window = g.CurrentWindow;
-
-	//ImGui::GetWindowDrawList()->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImColor(1.0f, 0.0, 0.0f, 1.0f));
-//	g.NavDisableMouseHover = false;
-	//if (this->v_label == "test")
-	//{
-	//	ImGui::SetActiveID(g.LastItemData.ID, g.CurrentWindow);
-	//	if (ImGui::ItemHoverable(g.LastItemData.Rect, g.LastItemData.ID))
-	//		std::cout << "ItemHoverable: " << v_id << std::endl;
-	//}
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none)
 	{
-		std::cout << "hovered: " << v_id << std::endl;
-	}
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none)
-	{
-	//	const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
-		ImGui::SetActiveID(g.LastItemData.ID, g.CurrentWindow);
+		const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+		ImGui::SetActiveID(id/*g.LastItemData.ID*/, g.CurrentWindow); //using actual last item id it causes weirdness in children windows
 		igd::active_workspace->active_element = this;
 	}
 
@@ -804,35 +791,37 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	//}
 	//else
 	//	last_known_cursor = ImGui::GetCursorPos();
-	
-	if (igd::active_workspace->active_element == this)
+	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
 	{
-		if (Resize() || Drag())
-			igd::active_workspace->is_interacting = true;
-		else
-			igd::active_workspace->is_interacting = false;
-		KeyMove();
-		DrawSelection();
-		KeyBinds();
-		
-	}
-	if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow)
-		Select();
-	
-	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		if (did_resize)
+		if (igd::active_workspace->active_element == this)
 		{
-			PushUndo();
-			did_resize = false;
+			if (Resize() || Drag())
+				igd::active_workspace->is_interacting = true;
+			else
+				igd::active_workspace->is_interacting = false;
+			KeyMove();
+			DrawSelection();
+			KeyBinds();
+
 		}
-		ResizeDirection = resize_direction::none;
-		if (did_move)
+		if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput)
+			Select();
+
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
-			PushUndo();
-			did_move = false;
+			if (did_resize)
+			{
+				PushUndo();
+				did_resize = false;
+			}
+			ResizeDirection = resize_direction::none;
+			if (did_move)
+			{
+				PushUndo();
+				did_move = false;
+			}
+			is_dragging = false;
 		}
-		is_dragging = false;
 	}
 }
 

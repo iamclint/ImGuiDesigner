@@ -2,6 +2,12 @@
 #include "Walnut/Application.h"
 #include "ImGuiElement.h"
 #include <vector>
+enum class InteractionMode : int
+{
+	designer,
+	user
+};
+
 class WorkSpace : public Walnut::Layer
 {
 public:
@@ -13,6 +19,7 @@ public:
 	std::vector<ImGuiElement*> sort_buffer;
 	ImGuiElement* copied_element;
 	ImGuiElement* active_element;
+	InteractionMode interaction_mode;
 	void AddNewElement(ImGuiElement* ele, bool force_base = false);
 	ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent);
 	void load(std::filesystem::path path);

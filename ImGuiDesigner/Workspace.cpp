@@ -17,7 +17,7 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}
+	: code{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}, interaction_mode(InteractionMode::designer)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	is_open = true;

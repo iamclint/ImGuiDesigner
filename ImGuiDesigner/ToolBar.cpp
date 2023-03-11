@@ -10,11 +10,14 @@
 
 void ToolBar::OnUIRender() {
 
+
 	if (igd::active_workspace)
 	{
 		igd::active_workspace->RenderCode();
 		igd::active_workspace->RenderAdd();
 	}
+	else
+		return;
 	
 	static char* buf =new char[25];
 	memset(buf, 0, 25);
@@ -22,6 +25,22 @@ void ToolBar::OnUIRender() {
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 	ImGui::Begin("ToolBar");
+	ImGui::Text("Interaction Mode");
+	ImGui::Separator();
+	if (ImGui::BeginCombo("##", igd::active_workspace->interaction_mode == InteractionMode::designer ? "Designer" : "User"))
+	{
+		if (ImGui::Selectable("Designer"))
+		{
+			igd::active_workspace->interaction_mode = InteractionMode::designer;
+		}
+		if (ImGui::Selectable("User"))
+		{
+			igd::active_workspace->interaction_mode = InteractionMode::user;
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::Spacing(); ImGui::Spacing();
+	ImGui::Spacing(); ImGui::Spacing();
 
 	ImGui::Text("Elements");
 	ImGui::Separator();
@@ -47,7 +66,7 @@ void ToolBar::OnUIRender() {
 	ImGui::InputText("##toolbar_input_float", buf, 25, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
-
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputFloat()));
 	}
 	memset(buf, 0, 25);
 	strcpy_s(buf, 25, "32");
@@ -55,27 +74,28 @@ void ToolBar::OnUIRender() {
 	ImGui::InputText("##toolbar_input_int", buf, 25, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
-
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputInt()));
 	}
 	ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, 1.0f);
 	ImGui::BeginDisabled();
 	static float slider_float = 13.426f;
 	ImGui::SliderFloat("##toolbar_input_slider_float", &slider_float, 0, 100);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
-
+		std::cout << "wtf" << std::endl;
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderFloat()));
 	}
 	static int slider_int = 13;
 	ImGui::SliderInt("##toolbar_input_slider_int", &slider_int, 8.0, 72);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
-
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderInt()));
 	}
 	static bool check_bool = true;
 	ImGui::Checkbox("##toolbar_input_checkbox", &check_bool);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
-
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::CheckBox()));
 	}
 
 	ImGui::EndDisabled();

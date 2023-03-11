@@ -10,26 +10,23 @@
 
 namespace igd
 {
-	class InputText : ImGuiElement
+	class CheckBox : ImGuiElement
 	{
 	public:
 
-		static inline std::unordered_map<InputText*, std::vector<InputText>> undo_stack;
-		static inline std::unordered_map<InputText*, std::vector<InputText>> redo_stack;
-		static inline std::string json_identifier = "inputtext";
-		std::string input_data;
-		InputText() {
+		static inline std::unordered_map<CheckBox*, std::vector<CheckBox>> undo_stack;
+		static inline std::unordered_map<CheckBox*, std::vector<CheckBox>> redo_stack;
+		static inline std::string json_identifier = "checkbox";
+		bool is_checked;
+		CheckBox() {
+			is_checked = false;
 			ImGuiContext& g = *GImGui;
-			v_flags = ImGuiInputTextFlags_None;
+			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
 			v_size = ImVec2(0, 0);
-			v_id = ("InputText##" + RandomID()).c_str();
+			v_id = ("CheckBox##" + RandomID()).c_str();
 			v_label = "";
 
-			v_custom_flags[ImGuiInputTextFlags_AllowTabInput] = "ImGuiInputTextFlags_AllowTabInput";
-			v_custom_flags[ImGuiInputTextFlags_CharsDecimal] = "ImGuiInputTextFlags_CharsDecimal";
-			v_custom_flags[ImGuiInputTextFlags_CharsHexadecimal] = "ImGuiInputTextFlags_CharsHexadecimal";
-			v_custom_flags[ImGuiInputTextFlags_CharsUppercase] = "ImGuiInputTextFlags_CharsUppercase";
 			v_custom_flags[ImGuiInputTextFlags_CharsNoBlank] = "ImGuiInputTextFlags_CharsNoBlank";
 			v_custom_flags[ImGuiInputTextFlags_AutoSelectAll] = "ImGuiInputTextFlags_AutoSelectAll";
 			v_custom_flags[ImGuiInputTextFlags_EnterReturnsTrue] = "ImGuiInputTextFlags_EnterReturnsTrue";
@@ -37,16 +34,14 @@ namespace igd
 			v_custom_flags[ImGuiInputTextFlags_CallbackHistory] = "ImGuiInputTextFlags_CallbackHistory";
 			v_custom_flags[ImGuiInputTextFlags_CallbackAlways] = "ImGuiInputTextFlags_CallbackAlways";
 			v_custom_flags[ImGuiInputTextFlags_CallbackCharFilter] = "ImGuiInputTextFlags_CallbackCharFilter";
-			v_custom_flags[ImGuiInputTextFlags_CtrlEnterForNewLine] = "ImGuiInputTextFlags_CtrlEnterForNewLine";
 			v_custom_flags[ImGuiInputTextFlags_NoHorizontalScroll] = "ImGuiInputTextFlags_NoHorizontalScroll";
 			v_custom_flags[ImGuiInputTextFlags_AlwaysOverwrite] = "ImGuiInputTextFlags_AlwaysOverwrite";
 			v_custom_flags[ImGuiInputTextFlags_ReadOnly] = "ImGuiInputTextFlags_ReadOnly";
-			v_custom_flags[ImGuiInputTextFlags_Password] = "ImGuiInputTextFlags_Password";
 			v_custom_flags[ImGuiInputTextFlags_NoUndoRedo] = "ImGuiInputTextFlags_NoUndoRedo";
 			v_custom_flags[ImGuiInputTextFlags_CharsScientific] = "ImGuiInputTextFlags_CharsScientific";
 			v_custom_flags[ImGuiInputTextFlags_CallbackResize] = "ImGuiInputTextFlags_CallbackResize";
 			v_custom_flags[ImGuiInputTextFlags_CallbackEdit] = "ImGuiInputTextFlags_CallbackEdit";
-						
+
 			v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
 			v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
 			v_colors[ImGuiCol_FrameBgHovered] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
@@ -86,7 +81,7 @@ namespace igd
 
 		virtual ImGuiElement* Clone() override
 		{
-			InputText* new_element = new InputText();
+			CheckBox* new_element = new CheckBox();
 			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
@@ -102,7 +97,6 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-
 		}
 
 		virtual std::string RenderHead() override
@@ -115,19 +109,9 @@ namespace igd
 		{
 			ImGuiContext& g = *GImGui;
 			std::stringstream code;
-			code << "static std::string " << this->GetIDForVariable() << ";" << std::endl;
-			if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
-			{
-				ImGui::SetNextItemWidth(v_size.value.x);
-				code << "ImGui::SetNextItemWidth(" << igd::fString(v_size.value.x) << ");" << std::endl;
-			}
-			else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
-			{
-				ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
-				code << "ImGui::SetNextItemWidth(ContentRegionAvail.x * " << igd::fString(v_size.value.x / 100.f) << ");" << std::endl;
-			}
-			ImGui::InputText((v_label + "##" + v_id).c_str(), &input_data, v_flags);
-			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << this->buildFlagString() << ");";
+			code << "static bool " << this->GetIDForVariable() << ";" << std::endl;
+			ImGui::Checkbox((v_label + "##" + v_id).c_str(), &is_checked);
+			code << "ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ");";
 			return code.str();
 		}
 
@@ -148,8 +132,8 @@ namespace igd
 
 		static ImGuiElement* load(ImGuiElement* parent, nlohmann::json data)
 		{
-			std::cout << "Adding a InputText" << std::endl;
-			igd::InputText* b = new igd::InputText();
+			std::cout << "Adding a CheckBox" << std::endl;
+			igd::CheckBox* b = new igd::CheckBox();
 			ImGuiElement* f = (ImGuiElement*)b;
 			f->v_parent = parent;
 			b->FromJSON(data);

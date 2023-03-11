@@ -10,26 +10,28 @@
 
 namespace igd
 {
-	class InputText : ImGuiElement
+	class SliderInt : ImGuiElement
 	{
 	public:
 
-		static inline std::unordered_map<InputText*, std::vector<InputText>> undo_stack;
-		static inline std::unordered_map<InputText*, std::vector<InputText>> redo_stack;
-		static inline std::string json_identifier = "inputtext";
-		std::string input_data;
-		InputText() {
+		static inline std::unordered_map<SliderInt*, std::vector<SliderInt>> undo_stack;
+		static inline std::unordered_map<SliderInt*, std::vector<SliderInt>> redo_stack;
+		static inline std::string json_identifier = "sliderint";
+		int input_data;
+		int min;
+		int max;
+		std::string format;
+		SliderInt() {
+			input_data = 0;
+			min = 1;
+			max = 100;
 			ImGuiContext& g = *GImGui;
-			v_flags = ImGuiInputTextFlags_None;
+			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
 			v_size = ImVec2(0, 0);
-			v_id = ("InputText##" + RandomID()).c_str();
+			v_id = ("SliderInt##" + RandomID()).c_str();
 			v_label = "";
-
-			v_custom_flags[ImGuiInputTextFlags_AllowTabInput] = "ImGuiInputTextFlags_AllowTabInput";
-			v_custom_flags[ImGuiInputTextFlags_CharsDecimal] = "ImGuiInputTextFlags_CharsDecimal";
-			v_custom_flags[ImGuiInputTextFlags_CharsHexadecimal] = "ImGuiInputTextFlags_CharsHexadecimal";
-			v_custom_flags[ImGuiInputTextFlags_CharsUppercase] = "ImGuiInputTextFlags_CharsUppercase";
+			format = "%d";
 			v_custom_flags[ImGuiInputTextFlags_CharsNoBlank] = "ImGuiInputTextFlags_CharsNoBlank";
 			v_custom_flags[ImGuiInputTextFlags_AutoSelectAll] = "ImGuiInputTextFlags_AutoSelectAll";
 			v_custom_flags[ImGuiInputTextFlags_EnterReturnsTrue] = "ImGuiInputTextFlags_EnterReturnsTrue";
@@ -37,16 +39,14 @@ namespace igd
 			v_custom_flags[ImGuiInputTextFlags_CallbackHistory] = "ImGuiInputTextFlags_CallbackHistory";
 			v_custom_flags[ImGuiInputTextFlags_CallbackAlways] = "ImGuiInputTextFlags_CallbackAlways";
 			v_custom_flags[ImGuiInputTextFlags_CallbackCharFilter] = "ImGuiInputTextFlags_CallbackCharFilter";
-			v_custom_flags[ImGuiInputTextFlags_CtrlEnterForNewLine] = "ImGuiInputTextFlags_CtrlEnterForNewLine";
 			v_custom_flags[ImGuiInputTextFlags_NoHorizontalScroll] = "ImGuiInputTextFlags_NoHorizontalScroll";
 			v_custom_flags[ImGuiInputTextFlags_AlwaysOverwrite] = "ImGuiInputTextFlags_AlwaysOverwrite";
 			v_custom_flags[ImGuiInputTextFlags_ReadOnly] = "ImGuiInputTextFlags_ReadOnly";
-			v_custom_flags[ImGuiInputTextFlags_Password] = "ImGuiInputTextFlags_Password";
 			v_custom_flags[ImGuiInputTextFlags_NoUndoRedo] = "ImGuiInputTextFlags_NoUndoRedo";
 			v_custom_flags[ImGuiInputTextFlags_CharsScientific] = "ImGuiInputTextFlags_CharsScientific";
 			v_custom_flags[ImGuiInputTextFlags_CallbackResize] = "ImGuiInputTextFlags_CallbackResize";
 			v_custom_flags[ImGuiInputTextFlags_CallbackEdit] = "ImGuiInputTextFlags_CallbackEdit";
-						
+
 			v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
 			v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
 			v_colors[ImGuiCol_FrameBgHovered] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
@@ -86,7 +86,7 @@ namespace igd
 
 		virtual ImGuiElement* Clone() override
 		{
-			InputText* new_element = new InputText();
+			SliderInt* new_element = new SliderInt();
 			*new_element = *this;
 			std::string new_id = this->v_id;
 			if (new_id.find("##") != std::string::npos)
@@ -102,7 +102,14 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-
+			igd::properties->PropertyLabel("value:");
+			ImGui::InputInt("##properties_value", &input_data);
+			igd::properties->PropertyLabel("min:");
+			ImGui::InputInt("##properties_min", &min);
+			igd::properties->PropertyLabel("max:");
+			ImGui::InputInt("##properties_max", &max);
+			igd::properties->PropertyLabel("format:");
+			ImGui::InputText("##properties_format", &format);
 		}
 
 		virtual std::string RenderHead() override
@@ -115,7 +122,7 @@ namespace igd
 		{
 			ImGuiContext& g = *GImGui;
 			std::stringstream code;
-			code << "static std::string " << this->GetIDForVariable() << ";" << std::endl;
+			code << "static float " << this->GetIDForVariable() << ";" << std::endl;
 			if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
 			{
 				ImGui::SetNextItemWidth(v_size.value.x);
@@ -126,8 +133,8 @@ namespace igd
 				ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
 				code << "ImGui::SetNextItemWidth(ContentRegionAvail.x * " << igd::fString(v_size.value.x / 100.f) << ");" << std::endl;
 			}
-			ImGui::InputText((v_label + "##" + v_id).c_str(), &input_data, v_flags);
-			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << this->buildFlagString() << ");";
+			ImGui::SliderInt((v_label + "##" + v_id).c_str(), &input_data, min, max, format.c_str(), v_flags);
+			code << "ImGui::SliderInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::fString(min) << ", " << igd::fString(max) << ", \"" << format << "\", " << this->buildFlagString() << ");";
 			return code.str();
 		}
 
@@ -148,8 +155,8 @@ namespace igd
 
 		static ImGuiElement* load(ImGuiElement* parent, nlohmann::json data)
 		{
-			std::cout << "Adding a InputText" << std::endl;
-			igd::InputText* b = new igd::InputText();
+			std::cout << "Adding a SliderInt" << std::endl;
+			igd::SliderInt* b = new igd::SliderInt();
 			ImGuiElement* f = (ImGuiElement*)b;
 			f->v_parent = parent;
 			b->FromJSON(data);
