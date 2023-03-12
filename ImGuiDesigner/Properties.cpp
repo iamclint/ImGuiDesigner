@@ -316,7 +316,7 @@ void Properties::General()
 		ImGui::Checkbox("##property_sameline", &igd::active_workspace->active_element->v_sameline);
 	}
 
-
+	
 	if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
 	{
 		modified = false;
@@ -369,6 +369,11 @@ void Properties::Colors()
 		{
 			modified = true;
 		}
+		if (ImGui::IsItemHovered() && ImGui::IsItemClicked())
+		{
+			std::cout << "changed active color" << std::endl;
+			active_color = (ImColor*)&c.second;
+		}
 		ImGui::SameLine();
 		if (ImGui::Checkbox(("Inherit##" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), &c.second.inherit))
 			modified = true;
@@ -419,15 +424,8 @@ void Properties::Flags()
 	}
 	ImGui::EndTable();
 }
-void Properties::OnUIRender() {
-	static char* buf = new char[25];
-	memset(buf, 0, 25);
-	strcpy_s(buf, 25, "Input");
-	ImGuiContext& g = *GImGui;
-	ImGuiIO& io = g.IO;
-	igd::push_designer_theme();
-	ImGui::Begin("Properties");
-	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+void Properties::Tree()
+{
 	std::string title = STS() << "Element Tree (" << std::count_if(igd::active_workspace->basic_workspace_element->children.begin(), igd::active_workspace->basic_workspace_element->children.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
 	bool tn = (ImGui::TreeNodeEx(title.c_str(), ImGuiTreeNodeFlags_DefaultOpen));
 	if (ImGui::IsItemHovered())
@@ -465,7 +463,7 @@ void Properties::OnUIRender() {
 		}
 
 		static bool is_last_hovered = false;
-		ImGuiElement* source_element=nullptr;
+		ImGuiElement* source_element = nullptr;
 		if (ImGui::GetDragDropPayload())
 			source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);
 		std::string title = "##some_invis_leaf";
@@ -485,8 +483,8 @@ void Properties::OnUIRender() {
 					ImGuiElement* source_element = *(ImGuiElement**)(payload->Data);
 					source_element->v_parent = igd::active_workspace->basic_workspace_element;
 					std::cout << "Moved index: " << source_element->v_render_index << " to " << igd::active_workspace->basic_workspace_element->children.size() << std::endl;
-					igd::VecMove(source_element->v_parent->children, source_element->v_render_index, igd::active_workspace->basic_workspace_element->children.size()-1);
-					source_element->v_render_index = (int)igd::active_workspace->basic_workspace_element->children.size()-1;
+					igd::VecMove(source_element->v_parent->children, source_element->v_render_index, igd::active_workspace->basic_workspace_element->children.size() - 1);
+					source_element->v_render_index = (int)igd::active_workspace->basic_workspace_element->children.size() - 1;
 					source_element->PushUndo();
 					//	igd::VecMove(source_element->v_parent->children, source_element->v_render_index, (int)igd::active_workspace->basic_workspace_element->children.size()-1);
 				}
@@ -502,11 +500,24 @@ void Properties::OnUIRender() {
 
 
 	}
-
-	
+}
+void Properties::OnUIRender() {
+	static char* buf = new char[25];
+	memset(buf, 0, 25);
+	strcpy_s(buf, 25, "Input");
+	ImGuiContext& g = *GImGui;
+	ImGuiIO& io = g.IO;
 	if (!igd::active_workspace->active_element)
 		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
 	is_workspace = igd::active_workspace->active_element == igd::active_workspace->basic_workspace_element;
+	
+
+	igd::push_designer_theme();
+	ImGui::Begin("Properties");
+	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+
+	Tree();
+	
 	if (igd::active_workspace->active_element)
 	{
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -542,8 +553,27 @@ void Properties::OnUIRender() {
 		if (ImGui::Button("Delete##property_delete"))
 			igd::active_workspace->active_element->Delete();
 	}
-
-	
 	ImGui::End();
+
+	if (active_color)
+	{
+		for (auto& f : g.OpenPopupStack)
+		{
+			std::string name = f.Window->Name;
+			if (name.substr(0, 7) == "##Popup" && f.Window->ParentWindow && std::string(f.Window->ParentWindow->Name) == "Properties")
+			{
+				ImGui::Begin(name.c_str(), 0, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+				if (ImGui::Button("##red", { 20,20 }))
+					*active_color = ImColor(1.0f, 0.0f, 0.0f, 1.0f);
+				ImGui::PopStyleColor(3);
+				ImGui::End();
+			}
+
+		}
+	}
+
 	igd::pop_designer_theme();
 }

@@ -45,20 +45,6 @@ namespace igd
 	}
 }
 
-class ExampleLayer : public Walnut::Layer
-{
-public:
-	virtual void OnUIRender() override
-	{
-		ImGui::Begin("Hello");
-		ImGui::Button("Button");
-		ImGui::End();
-
-		ImGui::ShowDemoWindow();
-	}
-};
-
-
 void update_layer_stack()
 {
 	if (igd::delete_workspace.size()>0)
