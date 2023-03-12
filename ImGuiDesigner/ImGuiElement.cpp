@@ -45,7 +45,7 @@ ImGuiElement::ImGuiElement()
 	v_pos(ImVec2(0, 0)), is_dragging(false), ResizeDirection(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
-	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false)
+	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr)
 {
 	v_property_flags = property_flags::disabled;
 }

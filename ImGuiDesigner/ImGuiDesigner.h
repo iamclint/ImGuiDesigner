@@ -42,4 +42,5 @@ namespace igd
 	extern std::vector<WorkSpace*> delete_workspace;
 	extern FontManager* font_manager;
 	extern std::filesystem::path startup_path;
+	extern std::string open_file;
 }

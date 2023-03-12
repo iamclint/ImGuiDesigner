@@ -16,6 +16,7 @@ namespace igd
 	Notifications* notifications;
 	Walnut::Application* app;
 	bool add_workspace = false;
+	std::string open_file="";
 	std::vector<WorkSpace*> delete_workspace;
 	std::vector<ImGuiElement> undo_vector;
 	FontManager* font_manager;
@@ -26,6 +27,9 @@ namespace igd
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.192782, 0.204633, 0.202574, 1));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.281853, 0.281853, 0.281853, 1));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.316602, 0.316602, 0.316602, 1));
+		ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.199288, 0.199288, 0.199288, 1));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.199288, 0.199288, 0.199288, 1));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.199288, 0.199288, 0.199288, 1));
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.316602, 0.316602, 0.316602, 1));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.281853, 0.281853, 0.281853, 1));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.316602, 0.316602, 0.316602, 1));
@@ -37,7 +41,7 @@ namespace igd
 	void pop_designer_theme()
 	{
 		ImGui::PopStyleVar(4);
-		ImGui::PopStyleColor(7);
+		ImGui::PopStyleColor(10);
 	}
 }
 
@@ -84,6 +88,10 @@ void update_layer_stack()
 		igd::active_workspace = work.get();
 		igd::workspaces.push_back(igd::active_workspace);
 		igd::app->PushLayer(work);
+
+		if (igd::open_file!="")
+			igd::active_workspace->Open(igd::open_file);
+		igd::open_file = "";
 	}
 }
 
@@ -149,13 +157,21 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			if (ImGui::MenuItem("Open"))
 			{
 				igd::notifications->OpenFile([](std::string file) {
-					igd::active_workspace->Open(file);
-					});
+					igd::open_file = file;
+					igd::add_workspace = true;
+				});
 			}
 			if (ImGui::MenuItem("Save"))
 			{
 				igd::notifications->SaveFile([](std::string file) {
-					igd::active_workspace->Save(file);
+					//check if file exists
+					if (std::filesystem::exists(file))
+					igd::notifications->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
+						if (result)
+							igd::active_workspace->Save(file);
+					});
+					else
+						igd::active_workspace->Save(file);
 				});
 			}
 			if (ImGui::MenuItem("Exit"))

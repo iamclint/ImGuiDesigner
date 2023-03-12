@@ -252,6 +252,7 @@ public:
 	bool v_requires_open;
 	bool v_is_open;
 	bool needs_resort;
+	bool* v_window_bool;
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
 	WorkSpace* v_workspace;
@@ -303,6 +304,7 @@ public:
 		v_sameline = other.v_sameline;
 		v_custom_flags = other.v_custom_flags;
 		v_requires_open = other.v_requires_open;
+		v_window_bool = other.v_window_bool;
 	}
 		
 private:

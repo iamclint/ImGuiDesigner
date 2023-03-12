@@ -98,18 +98,21 @@ void Notifications::confirm()
 	if (ImGui::BeginPopupModal((this->title + "##confirm").c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text(this->message.c_str());
-
-		if (ImGui::Button("Yes") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (ImGui::Button("Yes", {140, 0}) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_KeyPadEnter)))
 		{
 			this->callback_confirmation(true);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No") || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+		if (ImGui::Button("No", { 140, 0 }) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
 		{
 			this->callback_confirmation(false);
 			ImGui::CloseCurrentPopup();
 		}
+		ImGui::Spacing();
 		ImGui::EndPopup();
 	}
 }
@@ -120,6 +123,8 @@ bool Notifications::IsShowing()
 }
 void Notifications::OnUIRender()
 {
+	igd::push_designer_theme();
 	generic();
 	confirm();
+	igd::pop_designer_theme();
 }

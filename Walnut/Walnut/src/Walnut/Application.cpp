@@ -656,61 +656,72 @@ namespace Walnut {
 				// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
 				// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+				ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.099288, 0.099288, 0.099288, 1));
+				ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.099288, 0.099288, 0.099288, 1));
+				ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.099288, 0.099288, 0.099288, 1));
+				ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.192782, 0.204633, 0.202574, 1));
+				ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.281853, 0.281853, 0.281853, 1));
+				ImGui::PushStyleColor(ImGuiCol_TabActive, ImVec4(0.316602, 0.316602, 0.316602, 1));
+				ImGui::PushStyleColor(ImGuiCol_TabUnfocused, ImVec4(0.192782, 0.204633, 0.202574, 1));
+				ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, ImVec4(0.192782, 0.204633, 0.202574, 1));
 				ImGui::Begin("DockSpace Demo", nullptr, window_flags);
-				ImGui::PopStyleVar();
-
-				ImGui::PopStyleVar(2);
-
-				// Submit the DockSpace
-				ImGuiIO& io = ImGui::GetIO();
-				if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 				{
-					ImGuiID dockspace_id = ImGui::GetID("VulkanAppDockspace");
-					ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-					static auto first_time = true;
-					if (first_time)
+					ImGui::PopStyleVar();
+
+					ImGui::PopStyleVar(2);
+
+					// Submit the DockSpace
+					ImGuiIO& io = ImGui::GetIO();
+					if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 					{
-						first_time = false;
+						ImGuiID dockspace_id = ImGui::GetID("VulkanAppDockspace");
+						ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+						static auto first_time = true;
+						if (first_time)
+						{
+							first_time = false;
 
-						ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
-						ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_HiddenTabBar);
-						ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+							ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
+							ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_HiddenTabBar);
+							ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
-						// split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
-						//   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
-						//                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
-						auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.12f, nullptr, &dockspace_id);
-						auto dock_id_down = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_id);
-						auto dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.28f, nullptr, &dockspace_id);
-						auto dock_id_left_fill= ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 1.0f, nullptr, &dockspace_id);
+							// split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
+							//   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
+							//                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
+							auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.12f, nullptr, &dockspace_id);
+							auto dock_id_down = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_id);
+							auto dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.28f, nullptr, &dockspace_id);
+							auto dock_id_left_fill = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 1.0f, nullptr, &dockspace_id);
 
-						// we now dock our windows into the docking node we made above
-						ImGui::DockBuilderDockWindow("Properties", dock_id_right);
-						ImGui::DockBuilderDockWindow("ToolBar", dock_id_left);
-						ImGui::DockBuilderDockWindow("WorkSpace", dock_id_left_fill);
-						ImGui::DockBuilderFinish(dockspace_id);
+							// we now dock our windows into the docking node we made above
+							ImGui::DockBuilderDockWindow("Properties", dock_id_right);
+							ImGui::DockBuilderDockWindow("ToolBar", dock_id_left);
+							ImGui::DockBuilderDockWindow("WorkSpace", dock_id_left_fill);
+							ImGui::DockBuilderFinish(dockspace_id);
+						}
 					}
-				}
 
 
-				if (m_UpdateLayerStackCallback)
-				{
-					m_UpdateLayerStackCallback();
-				}
-					
-				if (m_MenubarCallback)
-				{
-					if (ImGui::BeginMenuBar())
+					if (m_UpdateLayerStackCallback)
 					{
-						m_MenubarCallback();
-						ImGui::EndMenuBar();
+						m_UpdateLayerStackCallback();
 					}
+
+					if (m_MenubarCallback)
+					{
+						if (ImGui::BeginMenuBar())
+						{
+							m_MenubarCallback();
+							ImGui::EndMenuBar();
+						}
+					}
+
+					for (auto& layer : m_LayerStack)
+						layer->OnUIRender();
+
+					ImGui::End();
 				}
-
-				for (auto& layer : m_LayerStack)
-					layer->OnUIRender();
-
-				ImGui::End();
+				ImGui::PopStyleColor(8);
 			}
 
 			// Rendering

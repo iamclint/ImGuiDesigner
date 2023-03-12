@@ -20,6 +20,7 @@ WorkSpace::WorkSpace()
 	: code{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}, interaction_mode(InteractionMode::designer)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
+	basic_workspace_element->v_window_bool = &is_open;
 	is_open = true;
 }
 
@@ -146,6 +147,7 @@ void WorkSpace::RenderCode()
 	if (this == igd::active_workspace)
 	{
 		ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
+		igd::push_designer_theme();
 		if (ImGui::Begin("Code Generation", 0))
 		{
 			std::string co = this->code.str();
@@ -154,6 +156,7 @@ void WorkSpace::RenderCode()
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
+		igd::pop_designer_theme();
 	}
 	this->code.str("");
 }
@@ -163,6 +166,7 @@ void WorkSpace::RenderCode()
 
 void WorkSpace::RenderAdd()
 {
+	igd::push_designer_theme();
 	ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Always);
 	if (ImGui::Begin("+##toolbar_new_workspace", 0, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
 	{
@@ -184,7 +188,7 @@ void WorkSpace::RenderAdd()
 		}
 	}
 	ImGui::End();
-
+	igd::pop_designer_theme();
 }
 
 
@@ -360,7 +364,8 @@ void WorkSpace::load(std::filesystem::path path)
 			}
 			elements++;
 		}
-		
+		basic_workspace_element->v_window_bool = &is_open;
+		is_open = true;
 	}
 	catch (nlohmann::json::exception& ex)
 	{
