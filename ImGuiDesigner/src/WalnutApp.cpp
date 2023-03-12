@@ -21,6 +21,13 @@ namespace igd
 	std::vector<ImGuiElement> undo_vector;
 	FontManager* font_manager;
 	std::filesystem::path startup_path;
+	void UnPressKey(ImGuiKey key)
+	{
+		ImGuiKeyData* key_data = ImGui::GetKeyData(key);
+		key_data->DownDuration = -1.f;
+		key_data->Down = false;
+		ImGui::GetIO().KeysDown[key] = false;
+	}
 	void push_designer_theme()
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
@@ -107,6 +114,12 @@ void create_directories()
 	}
 	path = std::filesystem::current_path();
 	path.append("projects");
+	if (!std::filesystem::exists(path))
+	{
+		std::filesystem::create_directory(path);
+	}
+	path = std::filesystem::current_path();
+	path.append("palettes");
 	if (!std::filesystem::exists(path))
 	{
 		std::filesystem::create_directory(path);

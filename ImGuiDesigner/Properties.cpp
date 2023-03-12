@@ -10,6 +10,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include <boost/algorithm/string.hpp>
+#include "../json/single_include/nlohmann/json.hpp"
+#include <fstream>
 
 void Properties::PropertyLabel(const char* lbl)
 {
@@ -349,13 +351,26 @@ void Properties::General()
 	
 	ImGui::EndTable();
 }
+
+bool Properties::ColorSelector(ImVec4 color, std::string title)
+{
+	ImGui::TableNextColumn();
+	bool rval = false;
+	ImGui::PushStyleColor(ImGuiCol_Button, color);
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+	if (ImGui::Button(("##color_palette_color_" +  title).c_str(), {20,20}))
+		rval = true;
+	ImGui::TableNextColumn();
+	ImGui::Text(title.c_str());
+	ImGui::PopStyleColor(3);
+	return rval;
+}
 void Properties::Colors()
 {
 	ImGui::BeginTable("PropertiesTableColors", 2, ImGuiTableFlags_SizingFixedFit);
 	if (igd::active_workspace->active_element->v_colors.size() > 0)
 	{
-		//PropertyLabel("");
-		//ImGui::Dummy({26, 0}); ImGui::SameLine();
 		ImGui::TableNextColumn();
 		if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &igd::active_workspace->active_element->v_inherit_all_colors))
 			modified = true;
@@ -554,26 +569,193 @@ void Properties::OnUIRender() {
 			igd::active_workspace->active_element->Delete();
 	}
 	ImGui::End();
-
+	
+	
+	
+	//some trickery to expand the color picker popup
 	if (active_color)
 	{
 		for (auto& f : g.OpenPopupStack)
 		{
+			if (!f.Window)
+				continue;
 			std::string name = f.Window->Name;
 			if (name.substr(0, 7) == "##Popup" && f.Window->ParentWindow && std::string(f.Window->ParentWindow->Name) == "Properties")
 			{
-				ImGui::Begin(name.c_str(), 0, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-				if (ImGui::Button("##red", { 20,20 }))
-					*active_color = ImColor(1.0f, 0.0f, 0.0f, 1.0f);
-				ImGui::PopStyleColor(3);
+				ImGui::Begin(name.c_str());
+				if (ImGui::Button("Open Palette"))
+					ImGui::OpenPopup("color_palette");
+
+				if (!this->color_palette.has_filename())
+				{
+					for (auto& p : std::filesystem::directory_iterator("palettes"))
+					{
+						if (p.path().extension() == ".igp")
+						{
+							this->LoadPalette(p.path());
+							break;
+						}
+					}
+				}
+				if (ImGui::BeginPopup("color_palette", ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize))
+				{
+					if (!std::filesystem::exists("palettes"))
+						std::filesystem::create_directory("palettes");
+					if (ImGui::BeginCombo("Palettes", this->color_palette.stem().string().c_str()))
+					{
+						std::filesystem::path delete_path;
+						//iterate over all files with extension igp in the palettes folder
+						for (auto& p : std::filesystem::directory_iterator("palettes"))
+						{
+							if (p.path().extension() == ".igp")
+							{
+								if (ImGui::Selectable(p.path().stem().string().c_str(), (p.path() == this->color_palette)))
+									this->LoadPalette(p.path());
+								if (ImGui::BeginPopupContextItem(("##context_menu_palette_" + p.path().stem().string()).c_str()))
+								{
+									if (ImGui::MenuItem("Delete"))
+										delete_path = p.path();
+									ImGui::EndPopup();
+								}
+							}
+						}
+						if (delete_path.has_filename())
+						{
+							igd::notifications->Confirmation("Delete Palette", "Delete Palette " + delete_path.stem().string() + "?", "", [delete_path, this](bool rval) {
+								if (rval)
+								{
+									std::filesystem::remove(delete_path);
+									if (delete_path == this->color_palette)
+									{
+										this->color_palette.clear();
+										this->color_palette_colors.clear();
+									}
+								}
+							});
+						}
+						if (ImGui::Selectable("New Palette"))
+						{
+							igd::notifications->InputText("New Palette", "Name your new palette", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
+								if (save)
+								{
+									std::cout << "Saving palette " << name << std::endl;
+									std::filesystem::path path = "palettes/" + name + ".igp";
+									if (std::filesystem::exists(path))
+										igd::notifications->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + path.string(), "", [path, this](bool result) {
+											if (result)
+											{
+												this->color_palette_colors.clear();
+												this->color_palette = path;
+												this->SavePalette();
+											}
+										});
+									else
+									{
+										this->color_palette_colors.clear();
+										this->color_palette = path;
+										std::cout << "generate new file" << std::endl;
+										this->SavePalette();
+									}
+								}
+							});
+						}
+						ImGui::EndCombo();
+					}
+
+					int delete_index = -1;
+					if (ImGui::BeginTable("##color_palette_table", 2))
+					{
+						for (int index = 0; auto& c : this->color_palette_colors)
+						{
+							if (ColorSelector(c.color, c.name.c_str()))
+								*active_color = c.color;
+							if (ImGui::BeginPopupContextItem(("##context_menu_palette_" + c.name).c_str()))
+							{
+								if (ImGui::MenuItem("Delete"))
+									delete_index = index;
+								ImGui::EndPopup();
+							}
+							index++;
+						}
+						if (delete_index != -1)
+						{
+							this->color_palette_colors.erase(this->color_palette_colors.begin() + delete_index);
+							this->SavePalette();
+						}
+						if (ColorSelector(*active_color, "Add to Palette"))
+						{
+							igd::notifications->InputText("Color Name", "Name for color", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
+								if (save)
+								{
+									this->color_palette_colors.push_back({ name, *this->active_color });
+									this->SavePalette();
+								}
+								});
+						}
+	
+						ImGui::EndTable();
+					}
+					igd::notifications->OnUIRender();
+					if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+					{
+						igd::UnPressKey(ImGuiKey_Enter);
+						igd::UnPressKey(ImGuiKey_KeyPadEnter);
+						igd::UnPressKey(ImGuiKey_Escape);
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
+				}
+				
 				ImGui::End();
+				
 			}
 
 		}
 	}
 
+
 	igd::pop_designer_theme();
+}
+void Properties::LoadPalette(std::filesystem::path palette_path)
+{
+	this->color_palette_colors.clear();
+	this->color_palette = palette_path;
+	std::ifstream i(palette_path);
+	try
+	{
+		nlohmann::json json_file = nlohmann::json::parse(i);
+		int elements = 0;
+		for (auto& color : json_file)
+		{
+			this->color_palette_colors.push_back({ color["name"], ImColor((float)color["color"]["x"],(float)color["color"]["y"],(float)color["color"]["z"],(float)color["color"]["w"]) });
+		}
+	}
+	catch (nlohmann::json::exception& ex)
+	{
+		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		std::cerr << "parse error at byte " << ex.what() << std::endl;
+	}
+	catch (nlohmann::json::parse_error& ex)
+	{
+		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+	}
+}
+void Properties::SavePalette()
+{
+	//save palette with json
+	std::ofstream file;
+	file.open(this->color_palette);
+	nlohmann::json obj = nlohmann::json::array();
+	for (auto& c : color_palette_colors)
+	{
+		nlohmann::json color;
+		color["name"] = c.name;
+		color["color"] = { { "x", c.color.x },{ "y", c.color.y }, { "z", c.color.z }, { "w", c.color.w } };
+		obj.push_back(color);
+	}
+	file << obj.dump() << std::endl;
+	std::cout << obj.dump() << std::endl;
+	file.close();
+	
 }

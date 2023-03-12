@@ -31,6 +31,7 @@ namespace igd
 			ss << val << "f";
 		return ss.str();
 	}
+	void UnPressKey(ImGuiKey key);
 	void push_designer_theme();
 	void pop_designer_theme();
 	extern Notifications* notifications;
