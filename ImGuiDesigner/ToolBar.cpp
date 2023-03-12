@@ -24,6 +24,9 @@ void ToolBar::OnUIRender() {
 	strcpy_s(buf, 25, "Input Text");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
+
+	igd::push_designer_theme();
+	
 	ImGui::Begin("ToolBar");
 	ImGui::Text("Interaction Mode");
 	ImGui::Separator();
@@ -46,15 +49,8 @@ void ToolBar::OnUIRender() {
 	ImGui::Separator();
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
 	
-	if (ImGui::Button("Child Window##toolbar_input_child", {140, 0}))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
-	}
-	if (ImGui::Button("Button##toolbar_input_button", { 140, 0 }))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Button()));
-	}
-	ImGui::PushItemWidth(140);
+
+	/*ImGui::PushItemWidth(140);
 	ImGui::InputText("##toolbar_input_text", buf, 25, ImGuiInputTextFlags_ReadOnly);
 	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
 	{
@@ -106,18 +102,33 @@ void ToolBar::OnUIRender() {
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
 	}
-	
+	*/
+	float width = 140;
+	if (ImGui::Button("Child Window", {width, 0}))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
+	if (ImGui::Button("Button", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Button()));
+	if (ImGui::Button("Input Text", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputText()));
+	if (ImGui::Button("Input Int", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputInt()));
+	if (ImGui::Button("Slider Int", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderInt()));
+	if (ImGui::Button("Input Float", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputFloat()));
+	if (ImGui::Button("Slider Float", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderFloat()));
+	if (ImGui::Button("Checkbox", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::CheckBox()));
+	if (ImGui::Button("Text", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
+	if (ImGui::Button("Separator", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Separator()));
+	if (ImGui::Button("Combo", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Combo()));
+	if (ImGui::Button("Selectable", { width, 0 }))
+		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Selectable()));
 
-	ImGui::Button("Separator");
-	if (ImGui::IsItemHovered())
-	{
-		g.MouseCursor = ImGuiMouseCursor_Hand;
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Separator()));
-	}
-
-	ImGui::PopStyleVar();
-	ImGui::PopItemWidth();
 
 	ImGui::Spacing();
 	ImGui::Spacing();
@@ -163,4 +174,5 @@ void ToolBar::OnUIRender() {
 	}
 	
 	ImGui::End();
+	igd::pop_designer_theme();
 }

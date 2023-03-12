@@ -12,6 +12,8 @@
 #include "igd_sliderfloat.h"
 #include "igd_sliderint.h"
 #include "igd_checkbox.h"
+#include "igd_combo.h"
+#include "igd_selectable.h"
 namespace igd
 {
 	static inline std::unordered_map<std::string, std::function<ImGuiElement*(ImGuiElement*, nlohmann::json)>> element_load_functions = {
@@ -26,5 +28,7 @@ namespace igd
 		{igd::SliderFloat::json_identifier, igd::SliderFloat::load },
 		{igd::SliderInt::json_identifier, igd::SliderInt::load },
 		{igd::CheckBox::json_identifier, igd::CheckBox::load},
+		{igd::Combo::json_identifier, igd::Combo::load},
+		{igd::Selectable::json_identifier, igd::Selectable::load},
 	};
 }

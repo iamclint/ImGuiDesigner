@@ -45,7 +45,7 @@ ImGuiElement::ImGuiElement()
 	v_pos(ImVec2(0, 0)), is_dragging(false), ResizeDirection(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
-	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false)
+	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -591,9 +591,16 @@ std::string ImGuiElement::GetIDForVariable()
 {
 	std::vector<std::string> sp_id;
 	boost::split(sp_id, v_id, boost::is_any_of("##"));
-	std::string content_region_id = sp_id.front();
-	boost::replace_all(content_region_id, " ", "_");
-	return content_region_id + std::to_string(v_depth);
+	std::string var_str = sp_id.front();
+	boost::replace_all(var_str, " ", "_");
+	//add v_depth just as a scope indicator
+	return var_str + std::to_string(v_depth);
+}
+std::vector<std::string> ImGuiElement::GetSplitID()
+{
+	std::vector<std::string> sp_id;
+	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	return sp_id;
 }
 
 std::string ImGuiElement::GetContentRegionString()
@@ -618,6 +625,8 @@ bool ImGuiElement::ChildrenUseRelative()
 
 void ImGuiElement::AddCode(std::string code, int depth)
 {
+	if (code == "")
+		return;
 	std::vector<std::string> sp_data;
 	boost::split(sp_data, code, boost::is_any_of("\n"));
 	if (this->v_workspace)
@@ -663,6 +672,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	v_workspace = ws;
 	v_depth = current_depth;
 	ContentRegionAvail = _ContentRegionAvail;
+	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	if (ContentRegionString == "")
 		ContentRegionString = "ContentRegionAvail";
 	ImGuiContext& g = *GImGui;
@@ -729,7 +739,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		this->AddCode("ImGui::SameLine();");
 		ImGui::SameLine();
 	}
-	std::string RenderHead = this->RenderHead();
+	std::string RenderHead = this->RenderHead(script_only);
 	if (RenderHead !="")
 		this->AddCode(RenderHead);
 
@@ -752,15 +762,16 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 			child->Render(region_avail, current_depth+1, ws);
 			r++;
 		}
+		//this->AddCode(" ", current_depth);
+		this->AddCode(this->RenderInternal(script_only), current_depth+1);
 		this->AddCode("}");
 
 	}
-	std::string RenderInternal = this->RenderInternal();
-	std::string RenderFoot = this->RenderFoot();;
-	if (RenderInternal != "")
-		this->AddCode(RenderInternal);
-	if (RenderFoot != "")
-		this->AddCode(RenderFoot);
+	else
+	{
+		this->AddCode(this->RenderInternal(script_only));
+	}
+	this->AddCode(this->RenderFoot(script_only));
 	
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
 	{

@@ -169,7 +169,7 @@ namespace igd
 			
 		}
 
-		virtual std::string RenderHead() override
+		virtual std::string RenderHead(bool script_only) override
 		{
 			if (v_id == "")
 				return "";
@@ -178,26 +178,29 @@ namespace igd
 
 			if (v_size.type == Vec2Type::Absolute)
 			{
-				ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
+				if (!script_only)
+					ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
 				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}, " << v_border << ", " << this->buildFlagString() << ");";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{
-				ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
+				if (!script_only)
+					ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
 				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << " }, " << v_border << ", " << this->buildFlagString() << "); ";
 			}
 			return code_out.str();
 		}
-		virtual std::string RenderInternal() override
+		virtual std::string RenderInternal(bool script_only) override
 		{
 			//iterate all children handled by imguielement cpp
 			return "";
 		}
-		virtual std::string RenderFoot() override
+		virtual std::string RenderFoot(bool script_only) override
 		{
 			if (v_id == "")
 				return "";
-			ImGui::EndChild();
+			if (!script_only)
+				ImGui::EndChild();
 			return "ImGui::EndChild();";
 		}
 		virtual void FromJSON(nlohmann::json data) override

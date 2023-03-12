@@ -82,24 +82,25 @@ namespace igd
 
 		}
 
-		virtual std::string RenderHead() override
+		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
 			return "";
 		}
 
-		virtual std::string RenderInternal() override
+		virtual std::string RenderInternal(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
 			std::stringstream code;
 			if (v_id == "")
 				return "";
-			ImGui::Separator();
+			if (!script_only)
+				ImGui::Separator();
 			code << "ImGui::Separator();";
 			return code.str();
 		}
 
-		virtual std::string RenderFoot() override
+		virtual std::string RenderFoot(bool script_only) override
 		{
 			return "";
 		}

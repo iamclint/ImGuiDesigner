@@ -31,7 +31,8 @@ namespace igd
 			ss << val << "f";
 		return ss.str();
 	}
-
+	void push_designer_theme();
+	void pop_designer_theme();
 	extern Notifications* notifications;
 	extern WorkSpace* active_workspace;
 	extern std::vector<WorkSpace*> workspaces;

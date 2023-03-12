@@ -199,11 +199,11 @@ class ImGuiElement
 public:
 	virtual void RenderPropertiesInternal();
 	//return code string for this element
-	virtual std::string RenderHead() { return ""; };
+	virtual std::string RenderHead(bool script_only=false) { return ""; };
 	//return code string for this element
-	virtual std::string RenderInternal() { return ""; };
+	virtual std::string RenderInternal(bool script_only=false) { return ""; };
 	//return code string for this element
-	virtual std::string RenderFoot() { return ""; };
+	virtual std::string RenderFoot(bool script_only=false) { return ""; };
 	virtual ImGuiElement* Clone() { return nullptr; };
 	virtual void UndoLocal();
 	virtual void RedoLocal();
@@ -228,6 +228,7 @@ public:
 	void StylesColorsFromJson(nlohmann::json& j);
 	std::string buildFlagString();
 	std::string GetIDForVariable();
+	std::vector<std::string> GetSplitID();
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length=15);
 
@@ -248,6 +249,8 @@ public:
 	bool v_inherit_all_styles;
 	bool v_sameline;
 	int v_render_index;
+	bool v_requires_open;
+	bool v_is_open;
 	bool needs_resort;
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
@@ -299,6 +302,7 @@ public:
 		v_font = other.v_font;
 		v_sameline = other.v_sameline;
 		v_custom_flags = other.v_custom_flags;
+		v_requires_open = other.v_requires_open;
 	}
 		
 private:

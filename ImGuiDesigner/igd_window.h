@@ -179,7 +179,7 @@ namespace igd
 
 		}
 
-		virtual std::string RenderHead() override
+		virtual std::string RenderHead(bool script_only) override
 		{
 			if (v_id == "")
 				return "";
@@ -203,12 +203,12 @@ namespace igd
 			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << this->buildFlagString() << ");";
 			return code_out.str();
 		}
-		virtual std::string RenderInternal() override
+		virtual std::string RenderInternal(bool script_only) override
 		{
 			//iterate all children handled by imguielement cpp
 			return "";
 		}
-		virtual std::string RenderFoot() override
+		virtual std::string RenderFoot(bool script_only) override
 		{
 			if (v_id == "")
 				return "";

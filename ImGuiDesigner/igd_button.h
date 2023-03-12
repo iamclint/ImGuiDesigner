@@ -85,13 +85,13 @@ namespace igd
 
 		}
 
-		virtual std::string RenderHead() override
+		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
 			return "";
 		}
 
-		virtual std::string RenderInternal() override
+		virtual std::string RenderInternal(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
 			std::stringstream code;
@@ -99,21 +99,24 @@ namespace igd
 				return "";
 			if (v_size.type == Vec2Type::Absolute)
 			{
-				ImGui::Button(v_id.c_str(), v_size.value);
-				code << "ImGui::Button(\"" << v_id << "\"";
+				if (!script_only)
+					ImGui::Button(v_id.c_str(), v_size.value);
+				code << "if (ImGui::Button(\"" << v_id << "\"";
 				if (v_size.value.x != 0 || v_size.value.y != 0)
 					code << ", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}";
-				code << ");";
+				code << "))";
 			}
 			else if (v_size.type == Vec2Type::Relative)
 			{
-				ImGui::Button(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
-				code << "ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<< igd::fString(v_size.value.x / 100.f) <<", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100.f) << "}); ";
+				if (!script_only)
+					ImGui::Button(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
+				code << "if (ImGui::Button(\"" << v_id << "\",  { " << ContentRegionString << ".x * "<< igd::fString(v_size.value.x / 100.f) <<", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100.f) << "}))";
 			}
+			code << std::endl << "{" << std::endl << "}";
 			return code.str();
 		}
 
-		virtual std::string RenderFoot() override
+		virtual std::string RenderFoot(bool script_only) override
 		{
 			return "";
 		

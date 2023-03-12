@@ -255,24 +255,31 @@ void Properties::General()
 			igd::active_workspace->active_element->PushUndo();
 		}
 		ImGui::SameLine();
-		if (ImGui::BeginCombo(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		bool checked = igd::active_workspace->active_element->v_size.type == Vec2Type::Relative;
+		if (ImGui::Checkbox("%", &checked))
 		{
-			if (ImGui::Selectable("Absolute"))
+			if (!checked)
 				igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
-			if (ImGui::Selectable("Relative (%)"))
-			{
+			else
 				igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
-
-				if (igd::active_workspace->active_element->v_size.value.y == 0)
-					igd::active_workspace->active_element->v_size.value.y = 100;
-				if (igd::active_workspace->active_element->v_size.value.x == 0)
-					igd::active_workspace->active_element->v_size.value.x = 100;
-
-				igd::active_workspace->active_element->v_size.value.y = std::clamp(igd::active_workspace->active_element->v_size.value.y, 1.f, 100.f);
-				igd::active_workspace->active_element->v_size.value.x = std::clamp(igd::active_workspace->active_element->v_size.value.x, 1.f, 100.f);
-			}
-			ImGui::EndCombo();
 		}
+		//if (ImGui::BeginCombo(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		//{
+		//	if (ImGui::Selectable("Absolute"))
+		//		igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
+		//	if (ImGui::Selectable("Relative (%)"))
+		//	{
+		//		igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
+		//		if (igd::active_workspace->active_element->v_size.value.y == 0)
+		//			igd::active_workspace->active_element->v_size.value.y = 100;
+		//		if (igd::active_workspace->active_element->v_size.value.x == 0)
+		//			igd::active_workspace->active_element->v_size.value.x = 100;
+
+		//		igd::active_workspace->active_element->v_size.value.y = std::clamp(igd::active_workspace->active_element->v_size.value.y, 1.f, 100.f);
+		//		igd::active_workspace->active_element->v_size.value.x = std::clamp(igd::active_workspace->active_element->v_size.value.x, 1.f, 100.f);
+		//	}
+		//	ImGui::EndCombo();
+		//}
 
 	}
 
@@ -285,14 +292,22 @@ void Properties::General()
 			igd::active_workspace->active_element->PushUndo();
 		}
 		ImGui::SameLine();
-		if (ImGui::BeginCombo(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		bool checked = igd::active_workspace->active_element->v_pos.type == Vec2Type::Relative;
+		if (ImGui::Checkbox("%", &checked))
+		{
+			if (!checked)
+				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
+			else
+				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
+		}
+		/*if (ImGui::BeginCombo(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
 		{
 			if (ImGui::Selectable("Absolute"))
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
 			if (ImGui::Selectable("Relative (%)"))
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
 			ImGui::EndCombo();
-		}
+		}*/
 	}
 
 	if (!is_workspace)
@@ -410,6 +425,7 @@ void Properties::OnUIRender() {
 	strcpy_s(buf, 25, "Input");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
+	igd::push_designer_theme();
 	ImGui::Begin("Properties");
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
 	std::string title = STS() << "Element Tree (" << std::count_if(igd::active_workspace->basic_workspace_element->children.begin(), igd::active_workspace->basic_workspace_element->children.end(), [](ImGuiElement* e) { return !e->delete_me; }) << ")";
@@ -529,4 +545,5 @@ void Properties::OnUIRender() {
 
 	
 	ImGui::End();
+	igd::pop_designer_theme();
 }
