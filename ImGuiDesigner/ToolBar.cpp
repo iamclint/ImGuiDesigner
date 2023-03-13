@@ -3,10 +3,24 @@
 #include "imgui_internal.h"
 #include "Workspace.h"
 #include "Properties.h"
-#include "igd_elements.h"
 #include "ImGuiDesigner.h"
 #include "../json/single_include/nlohmann/json.hpp"
 #include <fstream>
+#include "igd_elements.h"
+
+template<typename T>
+bool ToolBar::Tool(std::string name, float width)
+{
+	T* new_element = new T;
+	if (!igd::active_workspace->active_element || !igd::active_workspace->active_element->v_element_filter || (igd::active_workspace->active_element->v_element_filter && (igd::active_workspace->active_element->v_element_filter & ((ImGuiElement*)new_element)->v_type_id)))
+		if (ImGui::Button(name.c_str(), { width, 0 }))
+		{
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new T()));
+			return true;
+		}
+	delete new_element;
+	return false;
+}
 
 void ToolBar::OnUIRender() {
 
@@ -49,87 +63,24 @@ void ToolBar::OnUIRender() {
 	ImGui::Separator();
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
 	
-
-	/*ImGui::PushItemWidth(140);
-	ImGui::InputText("##toolbar_input_text", buf, 25, ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputText()));
-	}
-	memset(buf, 0, 25);
-	strcpy_s(buf, 25, "1.67456");
-	ImGui::PushItemWidth(140);
-	ImGui::InputText("##toolbar_input_float", buf, 25, ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputFloat()));
-	}
-	memset(buf, 0, 25);
-	strcpy_s(buf, 25, "32");
-	ImGui::PushItemWidth(140);
-	ImGui::InputText("##toolbar_input_int", buf, 25, ImGuiInputTextFlags_ReadOnly);
-	if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputInt()));
-	}
-	ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, 1.0f);
-	ImGui::BeginDisabled();
-	static float slider_float = 13.426f;
-	ImGui::SliderFloat("##toolbar_input_slider_float", &slider_float, 0, 100);
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		std::cout << "wtf" << std::endl;
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderFloat()));
-	}
-	static int slider_int = 13;
-	ImGui::SliderInt("##toolbar_input_slider_int", &slider_int, 8.0, 72);
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderInt()));
-	}
-	static bool check_bool = true;
-	ImGui::Checkbox("##toolbar_input_checkbox", &check_bool);
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::CheckBox()));
-	}
-
-	ImGui::EndDisabled();
-	ImGui::Text("Basic text");
-	if (ImGui::IsItemHovered())
-	{
-		g.MouseCursor = ImGuiMouseCursor_Hand;
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
-	}
-	*/
+	
 	float width = 140;
-	if (ImGui::Button("Child Window", {width, 0}))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::ChildWindow()));
-	if (ImGui::Button("Button", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Button()));
-	if (ImGui::Button("Input Text", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputText()));
-	if (ImGui::Button("Input Int", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputInt()));
-	if (ImGui::Button("Slider Int", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderInt()));
-	if (ImGui::Button("Input Float", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputFloat()));
-	if (ImGui::Button("Slider Float", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderFloat()));
-	if (ImGui::Button("Checkbox", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::CheckBox()));
-	if (ImGui::Button("Text", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Text()));
-	if (ImGui::Button("Separator", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Separator()));
-	if (ImGui::Button("Combo", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Combo()));
-	if (ImGui::Button("Selectable", { width, 0 }))
-		igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Selectable()));
-
-
+	
+	this->Tool<igd::ChildWindow>("Child Window", width);
+	this->Tool<igd::Button>("Button", width);
+	this->Tool<igd::InputText>("Input Text", width);
+	this->Tool<igd::InputInt>("Input Int", width);
+	this->Tool<igd::SliderInt>("Slider Int", width);
+	this->Tool<igd::InputFloat>("Input Float", width);
+	this->Tool<igd::SliderFloat>("Slider Float", width);
+	this->Tool<igd::CheckBox>("Checkbox", width);
+	this->Tool<igd::Text>("Text", width);
+	this->Tool<igd::Separator>("Separator", width);
+	this->Tool<igd::Combo>("Combo", width);
+	this->Tool<igd::Selectable>("Selectable", width);
+	this->Tool<igd::TabBar>("TabBar", width);
+	this->Tool<igd::TabItem>("TabItem", width);
+	
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::Spacing();

@@ -19,6 +19,7 @@ namespace igd
 		static inline std::string json_identifier = "inputtext";
 		std::string input_data;
 		InputText() {
+			v_type_id = (int)element_type::inputtext;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiInputTextFlags_None;
 			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;

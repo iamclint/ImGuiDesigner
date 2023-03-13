@@ -22,6 +22,7 @@ namespace igd
 		float v_max;
 		std::string format;
 		SliderFloat() {
+			v_type_id = (int)element_type::sliderfloat;
 			input_data = 0;
 			format = "%.3f";
 			v_min = 0.f;

@@ -14,8 +14,11 @@
 #include "igd_checkbox.h"
 #include "igd_combo.h"
 #include "igd_selectable.h"
+#include "igd_tabbar.h"
+#include "igd_tabitem.h"
 namespace igd
 {
+	
 	static inline std::unordered_map<std::string, std::function<ImGuiElement*(ImGuiElement*, nlohmann::json)>> element_load_functions = {
 		{igd::Window::json_identifier, igd::Window::load },
 		{igd::Button::json_identifier, igd::Button::load },
@@ -30,5 +33,7 @@ namespace igd
 		{igd::CheckBox::json_identifier, igd::CheckBox::load},
 		{igd::Combo::json_identifier, igd::Combo::load},
 		{igd::Selectable::json_identifier, igd::Selectable::load},
+		{igd::TabBar::json_identifier, igd::TabBar::load},
+		{igd::TabItem::json_identifier, igd::TabItem::load},
 	};
 }

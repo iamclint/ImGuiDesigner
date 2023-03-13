@@ -13,6 +13,7 @@ namespace igd
 		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> redo_stack;
 		static inline std::string json_identifier = "child window";
 		ChildWindow() {
+			v_type_id = (int)element_type::childwindow;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border;

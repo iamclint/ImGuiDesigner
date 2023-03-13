@@ -18,6 +18,7 @@ namespace igd
 		static inline std::string json_identifier = "button";
 
 		Button() {
+			v_type_id = (int)element_type::button;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;
 			v_property_flags = property_flags::disabled | property_flags::pos;

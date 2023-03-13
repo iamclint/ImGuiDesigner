@@ -19,6 +19,7 @@ namespace igd
 		static inline std::string json_identifier = "separator";
 
 		Separator() {
+			v_type_id = (int)element_type::separator;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiSeparatorFlags_None;
 			v_property_flags = property_flags::pos | property_flags::no_id | property_flags::no_resize;

@@ -22,6 +22,7 @@ namespace igd
 		float step_fast;
 		std::string format;
 		InputFloat() {
+			v_type_id = (int)element_type::inputfloat;
 			input_data = 0;
 			format = "%.3f";
 			step = 0.f;

@@ -17,6 +17,7 @@ namespace igd
 		static inline std::unordered_map<Text*, std::vector<Text>> redo_stack;
 		static inline std::string json_identifier = "text";
 		Text() {
+			v_type_id = (int)element_type::text;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;
 			v_property_flags = property_flags::disabled | property_flags::pos | property_flags::label | property_flags::no_id | property_flags::no_resize;

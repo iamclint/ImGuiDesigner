@@ -290,8 +290,23 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 {
 	if (this->active_element && this->active_element->v_can_have_children && !force_base)
 	{
-		this->active_element->children.push_back(ele);
-		this->active_element->children.back()->v_parent = this->active_element;
+		if (!this->active_element->v_can_contain_own_type && this->active_element->v_type_id == ele->v_type_id)
+		{
+			if (this->active_element->v_parent)
+			{
+				this->active_element->v_parent->children.push_back(ele);
+				ele->v_parent = this->active_element->v_parent;
+			}
+			else
+			{
+				igd::notifications->GenericNotification("Error", "Cannot add this element to " + this->active_element->v_id + " as it is the base element");
+			}
+		}
+		else
+		{
+			this->active_element->children.push_back(ele);
+			this->active_element->children.back()->v_parent = this->active_element;
+		}
 	}
 	else if (this->active_element)
 	{

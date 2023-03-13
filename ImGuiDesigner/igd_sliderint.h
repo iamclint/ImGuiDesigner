@@ -22,6 +22,7 @@ namespace igd
 		int max;
 		std::string format;
 		SliderInt() {
+			v_type_id = (int)element_type::sliderint;
 			input_data = 0;
 			min = 1;
 			max = 100;

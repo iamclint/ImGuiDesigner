@@ -21,6 +21,7 @@ namespace igd
 		int step;
 		int step_fast;
 		InputInt() {
+			v_type_id = (int)element_type::inputint;
 			input_data = 0;
 			step = 1;
 			step_fast = 100;

@@ -141,10 +141,12 @@ void Notifications::textinput()
 		ImGui::Text(this->message.c_str());
 		if (ImGui::IsWindowAppearing())
 			ImGui::SetKeyboardFocusHere();
+
 		ImGui::InputText("##input_text_text", &this->input_text);
 		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::Spacing();
+		
 		if (ImGui::Button(input_buttons.first.c_str(), { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
 		{
 			igd::UnPressKey(ImGuiKey_Enter);

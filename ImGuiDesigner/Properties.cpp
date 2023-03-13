@@ -197,6 +197,7 @@ const char* getPropertyId(std::string name)
 }
 void Properties::General()
 {
+
 	ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
 	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_id))
 	{
@@ -265,7 +266,7 @@ void Properties::General()
 			else
 				igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
 		}
-		//if (ImGui::BeginCombo(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		//if (ImGui::BeginTabBar(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
 		//{
 		//	if (ImGui::Selectable("Absolute"))
 		//		igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
@@ -280,7 +281,7 @@ void Properties::General()
 		//		igd::active_workspace->active_element->v_size.value.y = std::clamp(igd::active_workspace->active_element->v_size.value.y, 1.f, 100.f);
 		//		igd::active_workspace->active_element->v_size.value.x = std::clamp(igd::active_workspace->active_element->v_size.value.x, 1.f, 100.f);
 		//	}
-		//	ImGui::EndCombo();
+		//	ImGui::EndTabBar();
 		//}
 
 	}
@@ -302,13 +303,13 @@ void Properties::General()
 			else
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
 		}
-		/*if (ImGui::BeginCombo(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		/*if (ImGui::BeginTabBar(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
 		{
 			if (ImGui::Selectable("Absolute"))
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
 			if (ImGui::Selectable("Relative (%)"))
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
-			ImGui::EndCombo();
+			ImGui::EndTabBar();
 		}*/
 	}
 

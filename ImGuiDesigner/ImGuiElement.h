@@ -15,11 +15,30 @@ enum class property_flags : int
 {
 	None = 0,
 	label = 1 << 0,
-	pos = 1 << 1,   // Disable scrollbars (window can still scroll with mouse or programmatically)
-	border = 1 << 2,   // Disable drawing background color (WindowBg, etc.) and outside border. Similar as using SetNextWindowBgAlpha(0.0f).
+	pos = 1 << 1,   
+	border = 1 << 2,
 	disabled = 1 << 3,
 	no_id = 1 << 4,
 	no_resize = 1 << 5
+};
+
+enum class element_type : int
+{
+	window = 0,
+	button = 1 << 0,
+	checkbox = 1 << 1,
+	childwindow = 1 << 2,
+	combo = 1 << 3,
+	inputfloat = 1 << 4,
+	inputint = 1 << 5,
+	inputtext = 1 << 6,
+	selectable = 1 << 7,
+	separator = 1 << 8,
+	sliderfloat = 1 << 9,
+	sliderint = 1 << 10,
+	tabbar = 1 << 11,
+	tabitem = 1 << 12,
+	text = 1 << 13,
 };
 
 static inline const char* ImGuiStyleVar_Strings[] = {
@@ -231,7 +250,6 @@ public:
 	std::vector<std::string> GetSplitID();
 	nlohmann::json GetJsonWithChildren();
 	static std::string RandomID(size_t length=15);
-
 //properties	
 public:
 	int v_flags;
@@ -253,6 +271,9 @@ public:
 	bool v_is_open;
 	bool needs_resort;
 	bool* v_window_bool;
+	int v_type_id;
+	int v_element_filter;
+	bool v_can_contain_own_type;
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
 	WorkSpace* v_workspace;
@@ -305,6 +326,9 @@ public:
 		v_custom_flags = other.v_custom_flags;
 		v_requires_open = other.v_requires_open;
 		v_window_bool = other.v_window_bool;
+		v_type_id = other.v_type_id;
+		v_can_contain_own_type = other.v_can_contain_own_type;
+		v_element_filter = other.v_element_filter;
 	}
 		
 private:
@@ -320,7 +344,6 @@ private:
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
-	
 	int color_pops;
 	int style_pops;
 	ImVec2 current_drag_delta;
