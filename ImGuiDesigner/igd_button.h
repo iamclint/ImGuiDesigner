@@ -31,6 +31,7 @@ namespace igd
 			v_colors[ImGuiCol_ButtonActive] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 			v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
 			v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
+			v_styles[ImGuiStyleVar_FrameBorderSize] = g.Style.FrameBorderSize;
 			v_styles[ImGuiStyleVar_ItemInnerSpacing] = g.Style.ItemInnerSpacing;
 			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;

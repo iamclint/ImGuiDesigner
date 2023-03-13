@@ -52,6 +52,7 @@ namespace igd
 			v_custom_flag_groups[ImGuiWindowFlags_NoNav] = true;
 			v_custom_flag_groups[ImGuiWindowFlags_NoInputs] = true;
 			v_custom_flag_groups[ImGuiWindowFlags_NoDecoration] = true;
+			
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			v_colors[ImGuiCol_Button] = ImGui::GetStyleColorVec4(ImGuiCol_Button);
 			v_colors[ImGuiCol_ButtonHovered] = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
@@ -99,6 +100,7 @@ namespace igd
 			v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
 			v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
 			v_colors[ImGuiCol_WindowBg] = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+
 			v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
 			v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
