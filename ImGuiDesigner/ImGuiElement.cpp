@@ -44,11 +44,47 @@ ImGuiElement::ImGuiElement()
 	v_parent(nullptr), v_border(0),
 	v_pos(ImVec2(0, 0)), is_dragging(false), ResizeDirection(resize_direction::none), current_drag_delta(0, 0), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
-	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(true), v_inherit_all_styles(true),
+	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
 	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0)
 {
 	v_property_flags = property_flags::disabled;
+}
+std::string ImGuiElement::GetSizeScript()
+{
+	std::stringstream c;
+	if (v_size.type == Vec2Type::Absolute)
+		c << "{" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}";
+	else if (v_size.type == Vec2Type::Relative)
+		c << "{ (" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ") - GImGui->Style.FramePadding.x, (" << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << ") - GImGui->Style.FramePadding.y }";
+	return c.str();
+}
+std::string ImGuiElement::GetWidthScript()
+{
+	std::stringstream c;
+	c << "ImGui::SetNextItemWidth(";
+	if (v_size.type == Vec2Type::Absolute)
+		c << igd::fString(v_size.value.x);
+	else if (v_size.type == Vec2Type::Relative)
+		c << "(" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ") - GImGui->Style.FramePadding.x";
+	c << ");";
+	return c.str();
+}
+
+void ImGuiElement::SetNextWidth()
+{
+	if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
+		ImGui::SetNextItemWidth(v_size.value.x);
+	else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
+		ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
+}
+ImVec2 ImGuiElement::GetSize()
+{
+	ImGuiContext& g = *GImGui;
+	if (v_size.type == Vec2Type::Absolute)
+		return v_size.value;
+	else if (v_size.type == Vec2Type::Relative)
+		return { (ContentRegionAvail.x * (v_size.value.x / 100)) - g.Style.FramePadding.x,(ContentRegionAvail.y * (v_size.value.y / 100)) - g.Style.FramePadding.y };
 }
 void ImGuiElement::RenderPropertiesInternal()
 {
@@ -567,12 +603,12 @@ void ImGuiElement::PopColorAndStyles(void* ws)
 	if (style_pops > 0)
 	{
 		ImGui::PopStyleVar(style_pops);
-		w->code << "ImGui::PopStyleVar(" << style_pops << ");" << std::endl;
+		AddCode(STS() << "ImGui::PopStyleVar(" << color_pops << ");");
 	}
 	if (color_pops > 0)
 	{
 		ImGui::PopStyleColor(color_pops);
-		w->code << "ImGui::PopStyleColor(" << color_pops << ");" << std::endl;
+		AddCode(STS() << "ImGui::PopStyleColor(" << color_pops << ");");
 	}
 	color_pops = 0;
 	style_pops = 0;

@@ -90,6 +90,21 @@ namespace igd
 
 		}
 
+		std::string ScriptHead() {
+			return "";
+		};
+		
+		std::string ScriptInternal() {
+			std::stringstream code;
+			code << this->GetWidthScript() << std::endl;
+			code << "if (ImGui::Selectable(\"" << v_id << "\", false, " << this->buildFlagString() << ", " << this->GetSizeScript() << "))" << std::endl;
+			code << "{" << std::endl << "\t//selectable clicked" << std::endl;
+			code << "\t" << this->v_parent->GetIDForVariable() << " = \"" << v_id << "\";" << std::endl << "}";
+			return code.str();
+		};
+
+		std::string ScriptFoot() { return ""; };
+
 		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
@@ -101,37 +116,17 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 			std::stringstream code;
 			bool did_select = false;
+			if (script_only)
+				return ScriptInternal();
 			if (v_id == "")
 				return "";
 			if (this->v_parent)
 				selected = this->v_parent->v_label == this->v_id;
 						
-			if (v_size.type == Vec2Type::Absolute)
-			{
-				if (!script_only)
-					did_select = ImGui::Selectable(v_id.c_str(), &selected, v_flags, v_size.value);
-				code << "if (ImGui::Selectable(\"" << v_id << "\", false, " << this->buildFlagString();
-				if (v_size.value.x != 0 || v_size.value.y != 0)
-				{
-					code << ", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}";
-				}
-				code << "))";
-			}
-			else if (v_size.type == Vec2Type::Relative)
-			{
-				if (!script_only)
-					did_select = ImGui::Selectable(v_id.c_str(), &selected, v_flags, { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) });
-				code << "if (ImGui::Selectable(\"" << v_id << "\", false, " << this->buildFlagString() << ", {" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100.f) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100.f) << "}))";
-			}
-			code << std::endl << "{" << std::endl;
-			if (this->v_parent)
-				code << "\t\t" << this->v_parent->GetIDForVariable() << " = \"" << v_id << "\";" << std::endl;
-			code << "}";
-
+			did_select = ImGui::Selectable(v_id.c_str(), &selected, v_flags, this->GetSize());
 			if (did_select && this->v_parent)
 				this->v_parent->v_label = this->v_id;
-
-			return code.str();
+			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

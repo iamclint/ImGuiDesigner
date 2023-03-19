@@ -126,35 +126,29 @@ namespace igd
 
 		}
 
+		std::string ScriptHead() {
+			std::stringstream code;
+			code << "if (ImGui::BeginTabItem(\"" << v_id << "\", " << this->buildFlagString() << "))";
+			return code.str();
+		};
+		std::string ScriptInternal() {
+			return "ImGui::EndTabItem();";
+		};
+
+		std::string ScriptFoot() { return ""; };
+		
 		virtual std::string RenderHead(bool script_only) override
 		{
 			
 			if (v_id == "")
 				return "";
-			std::stringstream code_out;
-			ImGuiContext& g = *GImGui;
-			//if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
-			//{
-			//	code_out << "ImGui::SetNextItemWidth(" << v_size.value.x << ");" << std::endl;
-			//	if (!script_only)
-			//		ImGui::SetNextItemWidth(v_size.value.x);
-			//}
-			//else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
-			//{
-			//	code_out << "ImGui::SetNextItemWidth(" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ");" << std::endl;
-			//	if (!script_only)
-			//		ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
-			//}
 			v_is_open = ImGui::BeginTabItem(v_id.c_str(), nullptr, v_flags);
-			code_out << "if (ImGui::BeginTabItem(\"" << v_id << "\", " << this->buildFlagString() << "))";
-			return code_out.str();
+			return ScriptHead();
 		}
 		virtual std::string RenderInternal(bool script_only) override
 		{
 			//iterate all children handled by imguielement cpp
-			std::stringstream code_out;
-			code_out << "ImGui::EndTabItem();";
-			return code_out.str();
+			return ScriptInternal();
 		}
 		virtual std::string RenderFoot(bool script_only) override
 		{

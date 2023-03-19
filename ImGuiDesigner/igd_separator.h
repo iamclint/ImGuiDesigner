@@ -83,6 +83,15 @@ namespace igd
 
 		}
 
+		std::string ScriptHead() {
+			return "";
+		};
+		std::string ScriptInternal() {
+			return "ImGui::Separator();";
+		};
+
+		std::string ScriptFoot() { return ""; };
+
 		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
@@ -91,14 +100,10 @@ namespace igd
 
 		virtual std::string RenderInternal(bool script_only) override
 		{
-			ImGuiContext& g = *GImGui;
-			std::stringstream code;
-			if (v_id == "")
-				return "";
-			if (!script_only)
-				ImGui::Separator();
-			code << "ImGui::Separator();";
-			return code.str();
+			if (script_only)
+				return ScriptInternal();
+			ImGui::Separator();
+			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

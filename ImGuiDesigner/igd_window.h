@@ -22,8 +22,8 @@ namespace igd
 			v_id = ("Workspace##" + RandomID()).c_str();
 			v_label = "";
 			v_can_have_children = true;
-			v_inherit_all_colors = true;
-			v_inherit_all_styles = true;
+			v_inherit_all_colors = false;
+			v_inherit_all_styles = false;
 			
 			v_custom_flags[ImGuiWindowFlags_NoTitleBar] = "ImGuiWindowFlags_NoTitleBar";
 			v_custom_flags[ImGuiWindowFlags_NoResize] = "ImGuiWindowFlags_NoResize";
@@ -181,7 +181,19 @@ namespace igd
 		{
 
 		}
+		std::string ScriptHead()
+		{
+			std::stringstream code_out;
+			code_out << "static bool igd_workspace=true;" << std::endl;
+			code_out << "ImGui::SetNextWindowSize({" << v_size.value.x << ", " << v_size.value.y << "}, ImGuiCond_Once);" << std::endl;
+			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << this->buildFlagString() << ");";
+			return code_out.str();
+		}
 
+		std::string ScriptFoot()
+		{
+			return "ImGui::End();";
+		}
 		virtual std::string RenderHead(bool script_only) override
 		{
 			if (v_id == "")
@@ -202,10 +214,7 @@ namespace igd
 						igd::active_workspace = ws;
 				std::cout << "Appearing" << std::endl;
 			}
-			code_out << "static bool igd_workspace=true;" << std::endl;
-			code_out << "ImGui::SetNextWindowSize({" << v_size.value.x << ", " << v_size.value.y << "}, ImGuiCond_Once);" << std::endl;
-			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << this->buildFlagString() << ");";
-			return code_out.str();
+			return ScriptHead();
 		}
 		virtual std::string RenderInternal(bool script_only) override
 		{
@@ -217,7 +226,7 @@ namespace igd
 			if (v_id == "")
 				return "";
 			ImGui::End();
-			return "ImGui::End();";
+			return ScriptFoot();
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{

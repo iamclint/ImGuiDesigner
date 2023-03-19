@@ -14,7 +14,7 @@ struct ColorPaletteColor
 class Properties : public Walnut::Layer
 {
 public:
-	Properties() : modified(false), is_workspace(false), active_color(nullptr), color_palette(""), color_palette_colors{} {}
+	Properties() : modified(false), is_workspace(false), active_color(nullptr), color_palette(""), color_palette_colors{}, ForcePicker(false) {}
 	virtual void OnUIRender() override;
 	virtual void OnUpdate(float f) override;
 	void PropertyLabel(const char* lbl);
@@ -31,6 +31,7 @@ private:
 	bool ColorSelector(ImVec4 color, std::string title);
 	void SavePalette();
 	void LoadPalette(std::filesystem::path palette_path);
+	bool ForcePicker;
 	std::filesystem::path color_palette;
 	std::vector<ColorPaletteColor> color_palette_colors;
 	bool modified;

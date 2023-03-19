@@ -91,16 +91,23 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 			return "";
 		}
-
-		virtual std::string RenderInternal(bool script_only) override
-		{
-			ImGuiContext& g = *GImGui;
+		std::string ScriptHead() { return ""; };
+		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "static bool " << this->GetIDForVariable() << ";" << std::endl;
-			if (!script_only)
-				ImGui::Checkbox((v_label + "##" + v_id).c_str(), &is_checked);
-			code << "ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ");";
+			code << "if (ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << "))" << std::endl;
+			code << "{" << std::endl << "//checkbox click event" << std::endl << "}";
 			return code.str();
+		};
+
+		std::string ScriptFoot() { return ""; };
+		virtual std::string RenderInternal(bool script_only) override
+		{
+			if (script_only)
+				return ScriptInternal();
+			ImGuiContext& g = *GImGui;
+			ImGui::Checkbox((v_label + "##" + v_id).c_str(), &is_checked);
+			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

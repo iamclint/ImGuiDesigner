@@ -167,29 +167,31 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-			
 		}
 
+		std::string ScriptHead()
+		{
+			std::stringstream code_out;
+			code_out << "ImGui::BeginChild(\"" << v_id << "\"," << this->GetSizeScript() << ", " << v_border << ", " << this->buildFlagString() << "); ";
+			return code_out.str();
+		}
+
+		std::string ScriptFoot() 
+		{
+			return "ImGui::EndChild();";
+		}
+		
 		virtual std::string RenderHead(bool script_only) override
 		{
 			if (v_id == "")
 				return "";
-			std::stringstream code_out;
+			if (script_only)
+				return ScriptHead();
 			ImGuiContext& g = *GImGui;
 
-			if (v_size.type == Vec2Type::Absolute)
-			{
-				if (!script_only)
-					ImGui::BeginChild(v_id.c_str(), v_size.value, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", {" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}, " << v_border << ", " << this->buildFlagString() << ");";
-			}
-			else if (v_size.type == Vec2Type::Relative)
-			{
-				if (!script_only)
-					ImGui::BeginChild(v_id.c_str(), { ContentRegionAvail.x * (v_size.value.x / 100),ContentRegionAvail.y * (v_size.value.y / 100) }, v_border, v_flags);
-				code_out << "ImGui::BeginChild(\"" << v_id << "\", { " << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ", " << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << " }, " << v_border << ", " << this->buildFlagString() << "); ";
-			}
-			return code_out.str();
+			ImGui::BeginChild(v_id.c_str(), this->GetSize(), v_border, v_flags);
+
+			return ScriptHead();
 		}
 		virtual std::string RenderInternal(bool script_only) override
 		{
@@ -202,7 +204,7 @@ namespace igd
 				return "";
 			if (!script_only)
 				ImGui::EndChild();
-			return "ImGui::EndChild();";
+			return ScriptFoot();
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{

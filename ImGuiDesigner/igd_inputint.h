@@ -111,6 +111,21 @@ namespace igd
 			ImGui::InputInt("##properties_step_fast", &step_fast);
 		}
 
+
+
+		std::string ScriptHead() {
+			return "";
+		};
+		std::string ScriptInternal() {
+			std::stringstream code;
+			code << "static int " << this->GetIDForVariable() << ";" << std::endl;
+			code << this->GetWidthScript() << std::endl;
+			code << "ImGui::InputInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::fString(step) << ", " << igd::fString(step_fast) << ", " << this->buildFlagString() << ");";
+			return code.str();
+		};
+
+		std::string ScriptFoot() { return ""; };
+		
 		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
@@ -119,25 +134,12 @@ namespace igd
 
 		virtual std::string RenderInternal(bool script_only) override
 		{
+			if (script_only)
+				return ScriptInternal();
 			ImGuiContext& g = *GImGui;
-			std::stringstream code;
-			code << "static float " << this->GetIDForVariable() << ";" << std::endl;
-			if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
-			{
-				if (!script_only)
-					ImGui::SetNextItemWidth(v_size.value.x);
-				code << "ImGui::SetNextItemWidth(" << igd::fString(v_size.value.x) << ");" << std::endl;
-			}
-			else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
-			{
-				if (!script_only)
-					ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
-				code << "ImGui::SetNextItemWidth(ContentRegionAvail.x * " << igd::fString(v_size.value.x / 100.f) << ");" << std::endl;
-			}
-			if (!script_only)
-				ImGui::InputInt((v_label + "##" + v_id).c_str(), &input_data, step, step_fast, v_flags);
-			code << "ImGui::InputInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::fString(step) << ", " << igd::fString(step_fast) << ", " << this->buildFlagString() << ");";
-			return code.str();
+			this->SetNextWidth();
+			ImGui::InputInt((v_label + "##" + v_id).c_str(), &input_data, step, step_fast, v_flags);
+			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

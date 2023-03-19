@@ -128,36 +128,35 @@ namespace igd
 
 		}
 
+		std::string ScriptHead() { 
+			std::stringstream code;
+			code << "static std::string " << this->GetIDForVariable() << " = \"\";" << std::endl;
+			code << this->GetWidthScript() << std::endl;
+			code << "if (ImGui::BeginCombo(\"" << v_id << "\"," << this->GetIDForVariable() << ".c_str(), " << this->buildFlagString() << "))";
+			return code.str(); 
+		};
+		std::string ScriptInternal() {
+			return "ImGui::EndCombo();";
+		};
+
+		std::string ScriptFoot() { return ""; };
+
 		virtual std::string RenderHead(bool script_only) override
 		{
+			if (script_only)
+				return ScriptHead();
+			
 			if (v_id == "")
 				return "";
-			std::stringstream code_out;
 			ImGuiContext& g = *GImGui;
-			code_out << "static std::string " << this->GetIDForVariable() << " = \"\";" << std::endl;
-			if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
-			{
-				code_out << "ImGui::SetNextItemWidth(" << v_size.value.x << ");" << std::endl;
-				if (!script_only)
-					ImGui::SetNextItemWidth(v_size.value.x);
-			}
-			else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
-			{
-				code_out << "ImGui::SetNextItemWidth(" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ");" << std::endl;
-				if (!script_only)
-					ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
-			}
-			if (!script_only)
-				v_is_open = ImGui::BeginCombo(v_id.c_str(), v_label.c_str(), v_flags);
-			code_out << "if (ImGui::BeginCombo(\"" << v_id << "\"," << this->GetIDForVariable() << ".c_str(), " << this->buildFlagString() << "))";
-			return code_out.str();
+			this->SetNextWidth();
+			v_is_open = ImGui::BeginCombo(v_id.c_str(), v_label.c_str(), v_flags);
+			return ScriptHead();
 		}
 		virtual std::string RenderInternal(bool script_only) override
 		{
 			//iterate all children handled by imguielement cpp
-			std::stringstream code_out;
-			code_out << "ImGui::EndCombo();";
-			return code_out.str();
+			return ScriptInternal();
 		}
 		virtual std::string RenderFoot(bool script_only) override
 		{

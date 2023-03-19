@@ -77,6 +77,17 @@ namespace igd
 
 		}
 
+		std::string ScriptHead() {
+			return "";
+		};
+		std::string ScriptInternal() {
+			std::stringstream code;
+			code << "ImGui::Text(\"" << v_label << "\");";
+			return code.str();
+		};
+
+		std::string ScriptFoot() { return ""; };
+		
 		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
@@ -85,14 +96,12 @@ namespace igd
 
 		virtual std::string RenderInternal(bool script_only) override
 		{
-			ImGuiContext& g = *GImGui;
-			std::stringstream code;
+			if (script_only)
+				return ScriptInternal();
 			if (v_id == "")
 				return "";
-			if (!script_only)
-				ImGui::Text(v_label.c_str());
-			code << "ImGui::Text(\"" << v_label << "\");";
-			return code.str();
+			ImGui::Text(v_label.c_str());
+			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

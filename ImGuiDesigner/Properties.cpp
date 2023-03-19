@@ -385,14 +385,42 @@ void Properties::Colors()
 		{
 			modified = true;
 		}
+		if (ForcePicker)
+		{
+			ImGui::OpenPopup("picker1");
+			std::cout << "Open picker popup" << std::endl;
+			ForcePicker = false;
+		}
+
+
 		if (ImGui::IsItemHovered() && ImGui::IsItemClicked())
 		{
 			std::cout << "changed active color" << std::endl;
 			active_color = (ImColor*)&c.second;
+			if (igd::active_workspace->active_element->v_inherit_all_colors || c.second.inherit)
+				igd::notifications->Confirmation("Warning", "This element is inheriting its color from its parent, would you like to override it?", "", [&c, this](bool override) {
+				if (override)
+				{
+					this->ForcePicker = true;
+					igd::active_workspace->active_element->v_inherit_all_colors = false;
+					c.second.inherit = false;
+				}
+			});
+			
+			
 		}
 		ImGui::SameLine();
 		if (ImGui::Checkbox(("Inherit##" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), &c.second.inherit))
 			modified = true;
+	}
+	float square_sz = ImGui::GetFrameHeight();
+	if (ImGui::BeginPopup("picker1"))
+	{
+		ImGuiColorEditFlags picker_flags_to_forward = ImGuiColorEditFlags_DataTypeMask_ | ImGuiColorEditFlags_PickerMask_ | ImGuiColorEditFlags_InputMask_ | ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_AlphaBar;
+		ImGuiColorEditFlags picker_flags = (ImGuiColorEditFlags_NoInputs & picker_flags_to_forward) | ImGuiColorEditFlags_DisplayMask_ | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaPreviewHalf;
+		ImGui::SetNextItemWidth(square_sz * 12.0f); // Use 256 + bar sizes?
+		ImGui::ColorPicker4("##picker1", (float*)active_color, picker_flags, &GImGui->ColorPickerRef.x);
+		ImGui::EndPopup();
 	}
 	ImGui::EndTable();
 }
@@ -569,6 +597,7 @@ void Properties::OnUIRender() {
 		if (ImGui::Button("Delete##property_delete"))
 			igd::active_workspace->active_element->Delete();
 	}
+	
 	ImGui::End();
 	
 	
@@ -683,7 +712,7 @@ void Properties::OnUIRender() {
 							this->color_palette_colors.erase(this->color_palette_colors.begin() + delete_index);
 							this->SavePalette();
 						}
-						if (ColorSelector(*active_color, "Add to Palette"))
+						if (this->color_palette.has_filename() && ColorSelector(*active_color, "Add to Palette"))
 						{
 							igd::notifications->InputText("Color Name", "Name for color", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
 								if (save)
@@ -706,7 +735,7 @@ void Properties::OnUIRender() {
 					}
 					ImGui::EndPopup();
 				}
-				
+
 				ImGui::End();
 				
 			}
@@ -744,7 +773,7 @@ void Properties::LoadPalette(std::filesystem::path palette_path)
 }
 void Properties::SavePalette()
 {
-	//save palette with json
+
 	std::ofstream file;
 	file.open(this->color_palette);
 	nlohmann::json obj = nlohmann::json::array();

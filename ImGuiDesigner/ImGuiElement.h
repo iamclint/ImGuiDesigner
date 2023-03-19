@@ -165,15 +165,15 @@ struct StyleVarValue
 	StyleVarValueU value;
 	bool inherit;
 	StyleVarValue() : type(StyleVarType::Float), value{}  {}
-	StyleVarValue(float f, bool inherit=false) : type(StyleVarType::Float), value{}, inherit(inherit) { value.Float = f; }
-	StyleVarValue(ImVec2 v, bool inherit=false) : type(StyleVarType::Vec2), value{}, inherit(inherit) { value.Vec2 = v; }
+	StyleVarValue(float f, bool inherit=true) : type(StyleVarType::Float), value{}, inherit(inherit) { value.Float = f; }
+	StyleVarValue(ImVec2 v, bool inherit=true) : type(StyleVarType::Vec2), value{}, inherit(inherit) { value.Vec2 = v; }
 };
 struct ColorValue
 {
 	ImVec4 value;
 	bool inherit;
-	ColorValue() : value{}, inherit(false) {}
-	ColorValue(ImVec4 v, bool inherit = false) : value(v), inherit(inherit) {}
+	ColorValue() : value{}, inherit(true) {}
+	ColorValue(ImVec4 v, bool inherit = true) : value(v), inherit(inherit) {}
 };
 
 enum class Vec2Type : int
@@ -245,6 +245,10 @@ public:
 	void PopColorAndStyles(void* ws = nullptr);
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
+	void SetNextWidth();
+	ImVec2 GetSize();
+	std::string GetSizeScript();
+	std::string GetWidthScript();
 	std::string buildFlagString();
 	std::string GetIDForVariable();
 	std::vector<std::string> GetSplitID();
@@ -274,6 +278,7 @@ public:
 	int v_type_id;
 	int v_element_filter;
 	bool v_can_contain_own_type;
+	
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
 	WorkSpace* v_workspace;
