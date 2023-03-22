@@ -14,6 +14,7 @@ struct ElementFont
 	int size;
 	ImGuiElement* element;
 	ImFont* font;
+	
 	ElementFont() : font(nullptr), element(nullptr), size(20), path(""), name(""), map_name("") {}
 	ElementFont(std::filesystem::path path, int size, ImGuiElement* element)
 	{
@@ -25,6 +26,22 @@ struct ElementFont
 	}
 };
 
+struct Font
+{
+	bool valid;
+	std::filesystem::path _path;
+	bool hasUnicodeEncoding(std::filesystem::path filePath);
+	Font(std::filesystem::path p) : _path(p) {
+		
+		if (std::filesystem::exists(p) && hasUnicodeEncoding(_path))
+			valid = true;
+		else
+			valid = false;
+	}
+	Font() { valid = false; };
+	
+};
+
 class FontManager : public Walnut::Layer
 {
 public:
@@ -34,9 +51,12 @@ public:
 	virtual void OnUIRender() override;
 	ElementFont* GetFont(std::string name, int size);
 	void LoadFont(std::filesystem::path path, int size, ImGuiElement* element);
+	void UpdateFonts();
 	std::filesystem::path FindFont(std::string name);
+	std::unordered_map<std::string, Font> AvailableFonts;
 	std::unordered_map<std::string, ElementFont> LoadedFonts;
 private:
+	void UpdateFontsPath(std::filesystem::path p);
 	std::vector<ElementFont> FontsToLoad;
 	bool fonts_need_loaded;
 };

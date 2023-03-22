@@ -195,6 +195,8 @@ const char* getPropertyId(std::string name)
 {
 	return ("##property_" + name + "_" + igd::active_workspace->active_element->v_id).c_str();
 }
+
+
 void Properties::General()
 {
 
@@ -219,30 +221,32 @@ void Properties::General()
 	PropertyLabel("Font:");
 	ImGui::PushItemWidth(item_width);
 	std::filesystem::path font_path = igd::active_workspace->active_element->v_font.path;
+	static bool do_update = false;
 	if (ImGui::BeginCombo(getPropertyId("font"), font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 	{
-		//create directory if doesn't exist
-		std::filesystem::path fonts_dir = igd::startup_path.string() + "/fonts";
-		if (!std::filesystem::exists(fonts_dir))
-			std::filesystem::create_directory(fonts_dir);
+		if (do_update)
+		{
+			igd::font_manager->UpdateFonts();
+			do_update = false;
+		}
+
 		if (ImGui::Selectable("Inherit"))
 		{
 			igd::active_workspace->active_element->v_font.name = "";
 			igd::active_workspace->active_element->v_font.font = nullptr;
 			igd::active_workspace->active_element->PushUndo();
 		}
-		for (auto& p : std::filesystem::directory_iterator(igd::font_manager->GetWindowsFontsDirectory()))
+		for (auto& [name, f] : igd::font_manager->AvailableFonts)
 		{
-			if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-				igd::font_manager->LoadFont(p.path(), igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
-		}
-		for (auto& p : std::filesystem::directory_iterator(fonts_dir))
-		{
-			if (p.path().extension() == ".ttf" && ImGui::Selectable(p.path().stem().string().c_str()))
-				igd::font_manager->LoadFont(p.path(), igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
+			if (!f.valid)
+				ImGui::Text("%s (invalid)", name.c_str());
+			else if (ImGui::Selectable(name.c_str()))
+				igd::font_manager->LoadFont(f._path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 		}
 		ImGui::EndCombo();
 	}
+	else
+		do_update = true;
 
 	PropertyLabel("Font Size:");
 	ImGui::PushItemWidth(item_width);
