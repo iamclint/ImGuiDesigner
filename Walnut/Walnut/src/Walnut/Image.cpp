@@ -46,13 +46,11 @@ namespace Walnut {
 		}
 
 	}
-
-	Image::Image(std::string_view path)
-		: m_Filepath(path)
+	void Image::FromPath(std::string_view path)
 	{
 		int width, height, channels;
 		uint8_t* data = nullptr;
-
+		m_Filepath = path;
 		if (stbi_is_hdr(m_Filepath.c_str()))
 		{
 			data = (uint8_t*)stbi_loadf(m_Filepath.c_str(), &width, &height, &channels, 4);
@@ -66,12 +64,22 @@ namespace Walnut {
 
 		m_Width = width;
 		m_Height = height;
-		
+
 		AllocateMemory(m_Width * m_Height * Utils::BytesPerPixel(m_Format));
 		SetData(data);
 		stbi_image_free(data);
 	}
+	Image::Image(std::string_view path)
+		: m_Filepath(path)
+	{
+		FromPath(path);
+	}
 
+	//Image::Image()
+	//	: m_Filepath("")
+	//{
+
+	//}
 	Image::Image(uint32_t width, uint32_t height, ImageFormat format, const void* data)
 		: m_Width(width), m_Height(height), m_Format(format)
 	{

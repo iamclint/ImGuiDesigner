@@ -39,6 +39,7 @@ enum class element_type : int
 	tabbar = 1 << 11,
 	tabitem = 1 << 12,
 	text = 1 << 13,
+	texture = 1 << 14
 };
 
 static inline const char* ImGuiStyleVar_Strings[] = {
@@ -280,6 +281,7 @@ public:
 	int v_element_filter;
 	bool v_can_contain_own_type;
 	bool v_auto_select;
+	std::string v_path;
 
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;

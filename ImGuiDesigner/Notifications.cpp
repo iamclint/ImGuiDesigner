@@ -53,9 +53,9 @@ void Notifications::SaveFile(std::function<void(std::string)> callback)
 	});
 	f.detach();
 }
-void Notifications::OpenFile(std::function<void(std::string)> callback)
+void Notifications::OpenFile(std::function<void(std::string)> callback, std::string filter)
 {
-	std::thread f = std::thread([callback]()
+	std::thread f = std::thread([callback, filter]()
 		{
 			OPENFILENAMEA ofn;
 	char szFileName[MAX_PATH] = "";
@@ -64,7 +64,7 @@ void Notifications::OpenFile(std::function<void(std::string)> callback)
 
 	ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
 	ofn.hwndOwner = NULL;
-	ofn.lpstrFilter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0";
+	ofn.lpstrFilter = filter.c_str();
 	ofn.lpstrFile = szFileName;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;

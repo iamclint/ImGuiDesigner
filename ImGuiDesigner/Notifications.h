@@ -10,7 +10,7 @@ public:
 	void Confirmation(std::string title, std::string message, std::string icon_path, std::function<void(bool)> callback);
 	void InputText(std::string title, std::string message, std::string icon_path, std::pair<std::string, std::string> buttons, std::function<void(bool, std::string)> callback);
 	void SaveFile(std::function<void(std::string)> callback);
-	void OpenFile(std::function<void(std::string)> callback);
+	void OpenFile(std::function<void(std::string)> callback, std::string filter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0");
 	bool IsShowing();
 	virtual void OnUIRender() override;
 private:

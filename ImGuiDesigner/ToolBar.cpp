@@ -13,15 +13,25 @@ bool ToolBar::Tool(std::string name, float width)
 {
 	T ref_element;
 	ImGuiElement* ref = (ImGuiElement*)&ref_element;
-	if (ref->v_parent_required_id && !igd::active_workspace->active_element)
+	ImGuiElement* active = igd::active_workspace->active_element;
+	if (ref->v_parent_required_id && !active)
 		return false;
-	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & igd::active_workspace->active_element->v_type_id))
+	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & active->v_type_id))
 		return false;
 
-	if (!igd::active_workspace->active_element || !igd::active_workspace->active_element->v_element_filter || (igd::active_workspace->active_element->v_element_filter && (igd::active_workspace->active_element->v_element_filter & ref->v_type_id)))
+	if (!active || !active->v_element_filter || (active->v_element_filter && (active->v_element_filter & ref->v_type_id)))
 		if (ImGui::Button(name.c_str(), { width, 0 }))
 		{
-			igd::active_workspace->AddNewElement((ImGuiElement*)(new T()), false, ref->v_auto_select);
+			if (ref->v_type_id == (int)element_type::texture)
+			{
+				igd::notifications->OpenFile([ref](std::string file) {
+					igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Texture(file)), false, ref->v_auto_select);
+				}, "*.png\0*.jpg\0All Files(*.*)\0 * .*\0");
+			}
+			else
+			{
+				igd::active_workspace->AddNewElement((ImGuiElement*)(new T()), false, ref->v_auto_select);
+			}
 			return true;
 		}
 	return false;
@@ -85,6 +95,7 @@ void ToolBar::OnUIRender() {
 	this->Tool<igd::Selectable>("Selectable", width);
 	this->Tool<igd::TabBar>("TabBar", width);
 	this->Tool<igd::TabItem>("TabItem", width);
+	this->Tool<igd::Texture>("Texture", width);
 	
 	ImGui::Spacing();
 	ImGui::Spacing();
