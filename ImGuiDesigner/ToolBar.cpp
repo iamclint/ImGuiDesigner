@@ -21,7 +21,7 @@ bool ToolBar::Tool(std::string name, float width)
 	if (!igd::active_workspace->active_element || !igd::active_workspace->active_element->v_element_filter || (igd::active_workspace->active_element->v_element_filter && (igd::active_workspace->active_element->v_element_filter & ref->v_type_id)))
 		if (ImGui::Button(name.c_str(), { width, 0 }))
 		{
-			igd::active_workspace->AddNewElement((ImGuiElement*)(new T()));
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new T()), false, ref->v_auto_select);
 			return true;
 		}
 	return false;

@@ -20,7 +20,7 @@ public:
 	ImGuiElement* copied_element;
 	ImGuiElement* active_element;
 	InteractionMode interaction_mode;
-	void AddNewElement(ImGuiElement* ele, bool force_base = false);
+	void AddNewElement(ImGuiElement* ele, bool force_base = false, bool force_selection = true);
 	ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent);
 	void load(std::filesystem::path path);
 	std::stringstream code;

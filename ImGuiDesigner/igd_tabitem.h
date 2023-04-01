@@ -26,7 +26,7 @@ namespace igd
 			v_requires_open = true;
 			v_is_open = false;
 			v_parent_required_id = (int)element_type::tabbar;
-
+			v_auto_select = false;
 			//available child window flags
 			v_custom_flags[ImGuiTabItemFlags_UnsavedDocument] = "ImGuiTabItemFlags_UnsavedDocument";
 			v_custom_flags[ImGuiTabItemFlags_SetSelected] = "ImGuiTabItemFlags_SetSelected";

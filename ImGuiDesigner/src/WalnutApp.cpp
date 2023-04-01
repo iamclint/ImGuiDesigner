@@ -5,7 +5,9 @@
 #include "..\Properties.h"
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
-
+#include "GLFW/glfw3.h"
+#include "..\icon.embed"
+#include "..\..\Walnut\vendor\stb_image\stb_image.h"
 #include <iostream>
 
 namespace igd
@@ -134,6 +136,10 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Width = 1600;
 	spec.Height = 800;
 	igd::app = new Walnut::Application(spec);
+	GLFWimage Images[1];
+	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
+	glfwSetWindowIcon(igd::app->GetWindowHandle(), 1, Images);
+	stbi_image_free(Images[0].pixels);
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Notifications> notifications = std::make_shared<Notifications>();

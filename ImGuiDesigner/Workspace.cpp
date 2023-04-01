@@ -286,7 +286,7 @@ void WorkSpace::OnUIRender() {
 	}
 }
 
-void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
+void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base, bool force_selection)
 {
 	if (this->active_element && this->active_element->v_can_have_children && !force_base)
 	{
@@ -326,7 +326,8 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base)
 		ele->v_parent = this->basic_workspace_element;
 		this->basic_workspace_element->children.push_back(ele);
 	}
-	this->active_element = ele;
+	if (force_selection)
+		this->active_element = ele;
 }
 
 void GetAllChildren(nlohmann::json j, ImGuiElement* parent)

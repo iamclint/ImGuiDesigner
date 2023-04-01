@@ -279,7 +279,8 @@ public:
 	int v_type_id;
 	int v_element_filter;
 	bool v_can_contain_own_type;
-	
+	bool v_auto_select;
+
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
 	WorkSpace* v_workspace;
@@ -348,7 +349,7 @@ private:
 	void ApplyPos(ImVec2 literal_pos);
 	bool ChildrenUseRelative();
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
-	void set_imgui_select();
+	void setImGuiSelect();
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
 	int color_pops;

@@ -46,7 +46,7 @@ ImGuiElement::ImGuiElement()
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
-	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0)
+	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -334,14 +334,14 @@ bool ImGuiElement::Drag()
 	ImVec2 Item_Location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x, g.LastItemData.Rect.Min.y - window->Pos.y);
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection==resize_direction::none)
 	{
-		set_imgui_select();
+		setImGuiSelect();
 		is_dragging = true;
 		ImVec2 mouse_location = get_mouse_location();
 		current_drag_delta = { mouse_location.x - Item_Location.x - ImGui::GetScrollX(),mouse_location.y - Item_Location.y - ImGui::GetScrollY() };
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_dragging)
 	{
-		set_imgui_select();
+		setImGuiSelect();
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		ImVec2 mouse_location = get_mouse_location();
@@ -438,7 +438,7 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 	}
 }
 
-void ImGuiElement::set_imgui_select()
+void ImGuiElement::setImGuiSelect()
 {
 	ImGuiContext& g = *GImGui;
 	const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
@@ -514,7 +514,7 @@ bool ImGuiElement::Resize()
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ResizeDirection!=resize_direction::none)
 	{
-		set_imgui_select();
+		setImGuiSelect();
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 		did_resize = true;
 		switch (ResizeDirection)
@@ -584,7 +584,7 @@ void ImGuiElement::Select()
 	ImGuiWindow* window = g.CurrentWindow;
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none && igd::active_workspace->active_element != this)
 	{
-		set_imgui_select();
+		setImGuiSelect();
 		igd::active_workspace->active_element = this;
 	}
 
