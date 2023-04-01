@@ -36,7 +36,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_FramePadding] = g.Style.FramePadding;
 			v_styles[ImGuiStyleVar_FrameRounding] = g.Style.FrameRounding;
 			v_can_have_children = false;
-			PushUndo();
 		}
 
 		virtual void UndoLocal() override

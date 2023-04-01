@@ -11,14 +11,19 @@
 template<typename T>
 bool ToolBar::Tool(std::string name, float width)
 {
-	T* new_element = new T;
-	if (!igd::active_workspace->active_element || !igd::active_workspace->active_element->v_element_filter || (igd::active_workspace->active_element->v_element_filter && (igd::active_workspace->active_element->v_element_filter & ((ImGuiElement*)new_element)->v_type_id)))
+	T ref_element;
+	ImGuiElement* ref = (ImGuiElement*)&ref_element;
+	if (ref->v_parent_required_id && !igd::active_workspace->active_element)
+		return false;
+	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & igd::active_workspace->active_element->v_type_id))
+		return false;
+
+	if (!igd::active_workspace->active_element || !igd::active_workspace->active_element->v_element_filter || (igd::active_workspace->active_element->v_element_filter && (igd::active_workspace->active_element->v_element_filter & ref->v_type_id)))
 		if (ImGui::Button(name.c_str(), { width, 0 }))
 		{
 			igd::active_workspace->AddNewElement((ImGuiElement*)(new T()));
 			return true;
 		}
-	delete new_element;
 	return false;
 }
 

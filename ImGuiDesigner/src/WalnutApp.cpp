@@ -149,6 +149,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	igd::app->PushLayer(notifications);
 	igd::app->PushLayer(font_manager);
 	igd::app->SetUpdateLayerStackCallback(update_layer_stack);
+	igd::font_manager->UpdateFonts();
 	igd::app->SetMenubarCallback([]()
 	{			
 		if (ImGui::BeginMenu("File"))

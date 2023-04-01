@@ -6,6 +6,7 @@
 #include <fstream>
 #include <bit>
 #include <cstdint>
+#include <iterator>
 
 struct cmap_subtable_header {
 	uint16_t platform_id;
@@ -85,6 +86,38 @@ struct ttf_table
 		tag[4] = 0;
 	}
 };
+
+Font::Font(std::filesystem::path p) : _path(p), sample_font(nullptr) {
+	if (std::filesystem::exists(p) && hasUnicodeEncoding(_path))
+		valid = true;
+	else
+		valid = false;
+	//if (valid)
+	//	igd::font_manager->LoadFont(_path, 20, nullptr);
+}
+
+bool Font::hasSample()
+{
+	if (!sample_font)
+	{
+		ElementFont* font = igd::font_manager->GetFont(_path.filename().string(), 20);
+		if (font)
+			sample_font = font->font;
+	}
+	return (this->sample_font != nullptr);
+}
+
+void Font::draw_sample()
+{
+	//check if font exists in font manager loaded fonts
+	ElementFont* font = igd::font_manager->GetFont(_path.filename().string(), 20);
+	if (font)
+	{
+		ImGui::PushFont(font->font);
+		ImGui::Text("The quick brown fox jumps over the lazy dog");
+		ImGui::PopFont();
+	}
+}
 //function to check if ttf contains an unicode index map
 bool Font::hasUnicodeEncoding(std::filesystem::path filePath)
 {
@@ -183,23 +216,43 @@ std::filesystem::path FontManager::FindFont(std::string name)
 
 ElementFont* FontManager::GetFont(std::string name, int size)
 {
-	return &this->LoadedFonts[name + ":" + std::to_string(size)];
+	if (this->LoadedFonts.find(name + ":" + std::to_string(size)) == this->LoadedFonts.end())
+		return nullptr;
+	else
+		return &this->LoadedFonts[name + ":" + std::to_string(size)];
 }
 void FontManager::LoadFont(std::filesystem::path path, int size, ImGuiElement* element)
 {
+	//check if font exists in loadedfonts map
+	if (auto f = this->GetFont(path.filename().stem().string(), size))
+	{
+		element->v_font.name = f->name;
+		element->v_font.path = f->path;
+		element->v_font.size = f->size;
+		element->v_font.font = f->font;
+		return;
+	}
+	for (auto& font : this->FontsToLoad)
+	{
+		if (font.path == path && font.size == size && font.element == element)
+			return;
+	}
 	this->FontsToLoad.push_back({ path, size, element });
 	this->fonts_need_loaded = true;
 }
 
 void FontManager::OnUpdate(float ssa)
 {
+	const int fonts_per_frame = 3;
 	if (this->fonts_need_loaded)
 	{
-		for (auto& f : this->FontsToLoad)
+		for (int i = 0; auto & f : this->FontsToLoad)
 		{
-			std::cout << "Loading font: " << f.name << " " << f.path << std::endl;
 			if (!this->LoadedFonts[f.map_name].font)
+			{
+				std::cout << "Loading font: " << f.name << " " << f.path << std::endl;
 				LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), (float)f.size);
+			}
 
 			if (f.element)
 			{
@@ -207,12 +260,22 @@ void FontManager::OnUpdate(float ssa)
 				f.element->v_font.path = f.path;
 				f.element->v_font.size = f.size;
 				f.element->v_font.font = LoadedFonts[f.map_name].font;
-				f.element->PushUndo();
 			}
-			this->fonts_need_loaded = false;
-			ImGui::GetIO().Fonts->Build();
+			i++;
+			if (i == fonts_per_frame)
+				break;
 		}
-		this->FontsToLoad.clear();
+
+
+		if (this->FontsToLoad.size() >= fonts_per_frame)
+		{
+			this->FontsToLoad.erase(this->FontsToLoad.begin(), this->FontsToLoad.begin()+fonts_per_frame);// std::next(this->FontsToLoad.begin(), 10));
+		}
+		else
+		{
+			this->fonts_need_loaded = false;
+			this->FontsToLoad.clear();
+		}
 		igd::app->UpdateFonts();
 	}
 }

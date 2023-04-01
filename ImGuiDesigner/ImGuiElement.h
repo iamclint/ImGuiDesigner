@@ -275,6 +275,7 @@ public:
 	bool v_is_open;
 	bool needs_resort;
 	bool* v_window_bool;
+	int v_parent_required_id;
 	int v_type_id;
 	int v_element_filter;
 	bool v_can_contain_own_type;
@@ -300,7 +301,7 @@ public:
 public:
 	ImGuiElement();
 	
-	ImGuiElement(const ImGuiElement& other)
+	/*ImGuiElement(const ImGuiElement& other)
 	{
 		v_flags = other.v_flags;
 		v_size = other.v_size;
@@ -334,7 +335,7 @@ public:
 		v_type_id = other.v_type_id;
 		v_can_contain_own_type = other.v_can_contain_own_type;
 		v_element_filter = other.v_element_filter;
-	}
+	}*/
 		
 private:
 	bool Drag();
@@ -347,6 +348,7 @@ private:
 	void ApplyPos(ImVec2 literal_pos);
 	bool ChildrenUseRelative();
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
+	void set_imgui_select();
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
 	int color_pops;

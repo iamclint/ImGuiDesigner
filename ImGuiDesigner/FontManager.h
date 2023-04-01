@@ -26,18 +26,17 @@ struct ElementFont
 	}
 };
 
-struct Font
+class Font
 {
+private:
+	ImFont* sample_font;
+public:
 	bool valid;
+	bool hasSample();
 	std::filesystem::path _path;
+	void draw_sample();
 	bool hasUnicodeEncoding(std::filesystem::path filePath);
-	Font(std::filesystem::path p) : _path(p) {
-		
-		if (std::filesystem::exists(p) && hasUnicodeEncoding(_path))
-			valid = true;
-		else
-			valid = false;
-	}
+	Font(std::filesystem::path p);
 	Font() { valid = false; };
 	
 };

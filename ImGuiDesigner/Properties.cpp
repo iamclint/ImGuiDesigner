@@ -199,6 +199,8 @@ const char* getPropertyId(std::string name)
 
 void Properties::General()
 {
+	//static Walnut::Image img = Walnut::Image("D:\\3xp.png");
+	//ImGui::Image(img.GetDescriptorSet(), { (float)img.GetWidth(), (float)img.GetHeight() });
 
 	ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
 	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_id))
@@ -240,8 +242,22 @@ void Properties::General()
 		{
 			if (!f.valid)
 				ImGui::Text("%s (invalid)", name.c_str());
-			else if (ImGui::Selectable(name.c_str()))
-				igd::font_manager->LoadFont(f._path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
+			else
+			{
+				bool clicked = ImGui::Selectable(name.c_str());
+				if (f.hasSample())
+				{
+					ImGui::SameLine();
+					f.draw_sample();
+				}
+				else if (ImGui::IsItemVisible())
+					igd::font_manager->LoadFont(f._path, 20, nullptr);
+				
+				if (clicked)
+				{
+					igd::font_manager->LoadFont(f._path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
+				}
+			}
 		}
 		ImGui::EndCombo();
 	}

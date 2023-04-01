@@ -25,7 +25,7 @@ namespace igd
 			v_can_have_children = true;
 			v_requires_open = true;
 			v_is_open = false;
-
+			v_parent_required_id = (int)element_type::tabbar;
 
 			//available child window flags
 			v_custom_flags[ImGuiTabItemFlags_UnsavedDocument] = "ImGuiTabItemFlags_UnsavedDocument";

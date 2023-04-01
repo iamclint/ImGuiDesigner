@@ -36,7 +36,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
 			v_can_have_children = false;
-			PushUndo();
 		}
 
 		virtual void UndoLocal() override

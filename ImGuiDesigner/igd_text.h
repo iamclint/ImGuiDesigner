@@ -26,7 +26,6 @@ namespace igd
 			v_label = "Some text value";
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			v_can_have_children = false;
-			PushUndo();
 		}
 
 		virtual void UndoLocal() override
