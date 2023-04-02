@@ -152,16 +152,17 @@ bool Font::hasUnicodeEncoding(std::filesystem::path filePath)
 	return false;
 }
 
+
+
 void FontManager::UpdateFontsPath(std::filesystem::path in_path)
 {
 	for (auto& p : std::filesystem::directory_iterator(in_path))
 	{
 		if (p.path().extension() == ".ttf")
 		{
-			if (AvailableFonts.find(p.path().filename().stem().string()) == AvailableFonts.end())
-			{
-				AvailableFonts[p.path().filename().stem().string()] = Font(p.path());
-			}
+			bool found = (std::find_if(AvailableFonts.begin(), AvailableFonts.end(), [p](const std::pair<std::string, Font>& f) { return f.first == p.path().filename().stem().string(); }) != AvailableFonts.end());
+			if (!found)
+				AvailableFonts.push_back({ p.path().filename().stem().string(), Font(p.path()) });
 		}
 	}
 }
@@ -243,6 +244,7 @@ void FontManager::LoadFont(std::filesystem::path path, int size, ImGuiElement* e
 
 void FontManager::OnUpdate(float ssa)
 {
+	igd::onUpdate();
 	const int fonts_per_frame = 3;
 	if (this->fonts_need_loaded)
 	{

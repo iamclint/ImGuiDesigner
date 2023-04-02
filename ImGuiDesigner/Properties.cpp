@@ -195,8 +195,6 @@ const char* getPropertyId(std::string name)
 {
 	return ("##property_" + name + "_" + igd::active_workspace->active_element->v_id).c_str();
 }
-
-
 void Properties::General()
 {
 	//static Walnut::Image img = Walnut::Image("D:\\3xp.png");
@@ -238,6 +236,13 @@ void Properties::General()
 			igd::active_workspace->active_element->v_font.font = nullptr;
 			igd::active_workspace->active_element->PushUndo();
 		}
+		//std::vector<std::pair<std::string, Font>> A;
+		//for (auto& f : igd::font_manager->AvailableFonts)
+		//{
+		//	A.push_back(f);
+		//}
+		//std::sort(A.begin(), A.end());
+		std::sort(igd::font_manager->AvailableFonts.begin(), igd::font_manager->AvailableFonts.end());
 		for (auto& [name, f] : igd::font_manager->AvailableFonts)
 		{
 			if (!f.valid)
@@ -245,13 +250,13 @@ void Properties::General()
 			else
 			{
 				bool clicked = ImGui::Selectable(name.c_str());
-				if (f.hasSample())
+			/*	if (f.hasSample())
 				{
 					ImGui::SameLine();
 					f.draw_sample();
-				}
-				else if (ImGui::IsItemVisible())
-					igd::font_manager->LoadFont(f._path, 20, nullptr);
+				}*/
+				//else if (ImGui::IsItemVisible())
+				//	igd::font_manager->LoadFont(f._path, 20, nullptr);
 				
 				if (clicked)
 				{
@@ -266,7 +271,7 @@ void Properties::General()
 
 	PropertyLabel("Font Size:");
 	ImGui::PushItemWidth(item_width);
-	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
+	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size, 0, 0) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
 		igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
 
 	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_resize))
@@ -279,31 +284,13 @@ void Properties::General()
 		}
 		ImGui::SameLine();
 		bool checked = igd::active_workspace->active_element->v_size.type == Vec2Type::Relative;
-		if (ImGui::Checkbox("%", &checked))
+		if (ImGui::Checkbox("%##size_pct", &checked))
 		{
 			if (!checked)
 				igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
 			else
 				igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
 		}
-		//if (ImGui::BeginTabBar(getPropertyId("size_type"), igd::active_workspace->active_element->v_size.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
-		//{
-		//	if (ImGui::Selectable("Absolute"))
-		//		igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
-		//	if (ImGui::Selectable("Relative (%)"))
-		//	{
-		//		igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
-		//		if (igd::active_workspace->active_element->v_size.value.y == 0)
-		//			igd::active_workspace->active_element->v_size.value.y = 100;
-		//		if (igd::active_workspace->active_element->v_size.value.x == 0)
-		//			igd::active_workspace->active_element->v_size.value.x = 100;
-
-		//		igd::active_workspace->active_element->v_size.value.y = std::clamp(igd::active_workspace->active_element->v_size.value.y, 1.f, 100.f);
-		//		igd::active_workspace->active_element->v_size.value.x = std::clamp(igd::active_workspace->active_element->v_size.value.x, 1.f, 100.f);
-		//	}
-		//	ImGui::EndTabBar();
-		//}
-
 	}
 
 	if (igd::active_workspace->active_element->v_property_flags & property_flags::pos)
@@ -316,7 +303,7 @@ void Properties::General()
 		}
 		ImGui::SameLine();
 		bool checked = igd::active_workspace->active_element->v_pos.type == Vec2Type::Relative;
-		if (ImGui::Checkbox("%", &checked))
+		if (ImGui::Checkbox("%##pos_pct", &checked))
 		{
 			if (!checked)
 				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
@@ -354,9 +341,6 @@ void Properties::General()
 		}
 	}
 
-	ImGui::PushItemWidth(item_width);
-	igd::active_workspace->active_element->RenderPropertiesInternal();
-
 	if (igd::active_workspace->active_element->v_can_have_children && igd::active_workspace->active_element->children.size() > 0)
 	{
 		PropertyLabel("Widget:");
@@ -372,7 +356,6 @@ void Properties::General()
 	
 	ImGui::EndTable();
 }
-
 bool Properties::ColorSelector(ImVec4 color, std::string title)
 {
 	ImGui::TableNextColumn();
@@ -578,56 +561,66 @@ void Properties::OnUIRender() {
 
 	igd::push_designer_theme();
 	ImGui::Begin("Properties");
+	
 	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-
-	Tree();
-	
-	if (igd::active_workspace->active_element)
+	if (ImGui::BeginTabBar("Properties_Tabs"))
 	{
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		if (ImGui::TreeNode("General"))
+		if (ImGui::BeginTabItem("Element Tree"))
 		{
-			General();
-			ImGui::TreePop();
+			Tree();
+			ImGui::EndTabItem();
 		}
-		if (ImGui::TreeNode("Element Specific"))
+		if (ImGui::BeginTabItem("Properties"))
 		{
-			ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
-			
-			igd::active_workspace->active_element->RenderPropertiesInternal();
-			ImGui::EndTable();
-			ImGui::TreePop();
-		}
-		if (igd::active_workspace->active_element->v_colors.size() > 0)
+		if (igd::active_workspace->active_element)
 		{
-			if (ImGui::TreeNode("Colors"))
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			if (ImGui::TreeNode("General"))
 			{
-				Colors();
+				General();
 				ImGui::TreePop();
 			}
-		}
-		if (igd::active_workspace->active_element->v_styles.size() > 0)
-		{
-			if (ImGui::TreeNode("Styles"))
+			if (ImGui::TreeNode("Element Specific"))
 			{
-				Styles();
+				ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
+
+				igd::active_workspace->active_element->RenderPropertiesInternal();
+				ImGui::EndTable();
 				ImGui::TreePop();
 			}
-		}
-		if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
-		{
-			if (ImGui::TreeNode("Flags"))
+			if (igd::active_workspace->active_element->v_colors.size() > 0)
 			{
-				Flags();
-				ImGui::TreePop();
+				if (ImGui::TreeNode("Colors"))
+				{
+					Colors();
+					ImGui::TreePop();
+				}
 			}
+			if (igd::active_workspace->active_element->v_styles.size() > 0)
+			{
+				if (ImGui::TreeNode("Styles"))
+				{
+					Styles();
+					ImGui::TreePop();
+				}
+			}
+			if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
+			{
+				if (ImGui::TreeNode("Flags"))
+				{
+					Flags();
+					ImGui::TreePop();
+				}
+			}
+			if (ImGui::Button("Delete##property_delete"))
+				igd::active_workspace->active_element->Delete();
+			}
+			ImGui::EndTabItem();
 		}
-		if (ImGui::Button("Delete##property_delete"))
-			igd::active_workspace->active_element->Delete();
+		ImGui::EndTabBar();
 	}
-	
-	ImGui::End();
-	
+		ImGui::End();
+
 	
 	
 	//some trickery to expand the color picker popup

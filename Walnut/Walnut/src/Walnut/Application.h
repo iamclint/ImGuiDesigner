@@ -21,6 +21,9 @@ namespace Walnut {
 		std::string Name = "Walnut App";
 		uint32_t Width = 1600;
 		uint32_t Height = 900;
+		void* Font = nullptr;
+		int FontDataSize = 0;
+		float FontSize = 18.0f;
 	};
 
 	class Application

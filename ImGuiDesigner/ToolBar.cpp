@@ -59,6 +59,7 @@ void ToolBar::OnUIRender() {
 	ImGui::Begin("ToolBar");
 	ImGui::Text("Interaction Mode");
 	ImGui::Separator();
+	ImGui::PushItemWidth(140);
 	if (ImGui::BeginCombo("##", igd::active_workspace->interaction_mode == InteractionMode::designer ? "Designer" : "User"))
 	{
 		if (ImGui::Selectable("Designer"))

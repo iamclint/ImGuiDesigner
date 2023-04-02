@@ -5,6 +5,7 @@
 #include "Notifications.h"
 #include "FontManager.h"
 #include <filesystem>
+#include "Walnut/Image.h"
 namespace igd
 {
 	template <typename t> void VecMove(std::vector<t>& v, size_t oldIndex, size_t newIndex)
@@ -36,4 +37,6 @@ namespace igd
 	extern FontManager* font_manager;
 	extern std::filesystem::path startup_path;
 	extern std::string open_file;
+	extern ImFont* designer_font;
+	void onUpdate();
 }

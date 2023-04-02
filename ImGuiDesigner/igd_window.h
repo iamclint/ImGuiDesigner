@@ -154,7 +154,7 @@ namespace igd
 		{
 			std::stringstream code_out;
 			code_out << "static bool igd_workspace=true;" << std::endl;
-			code_out << "ImGui::SetNextWindowSize({" << v_size.value.x << ", " << v_size.value.y << "}, ImGuiCond_Once);" << std::endl;
+			code_out << "ImGui::SetNextWindowSize(" << igd::script::GetVec2String(v_size.value) << ", ImGuiCond_Once); " << std::endl;
 			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << igd::script::BuildFlagString(this) << ");";
 			return code_out.str();
 		}
@@ -171,10 +171,10 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 
 			ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
-			ImGui::SetNextWindowSize(v_size.value, ImGuiCond_Once);
-			igd::push_designer_theme();
+			ImGui::SetNextWindowSize(v_size.value, ImGuiCond_Always);
+			//igd::push_designer_theme();
 			ImGui::Begin(v_id.c_str(), v_window_bool, v_flags);
-			igd::pop_designer_theme(); //only around begin so the title bar matches designers theme
+			//igd::pop_designer_theme(); //only around begin so the title bar matches designers theme
 			if (ImGui::IsWindowAppearing())
 			{
 				igd::active_workspace->active_element = nullptr;

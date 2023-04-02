@@ -38,6 +38,10 @@ public:
 	bool hasUnicodeEncoding(std::filesystem::path filePath);
 	Font(std::filesystem::path p);
 	Font() { valid = false; };
+	bool operator < (const Font& str) const
+	{
+		return (str._path.stem().string() < str._path.stem().string());
+	}
 	
 };
 
@@ -52,7 +56,7 @@ public:
 	void LoadFont(std::filesystem::path path, int size, ImGuiElement* element);
 	void UpdateFonts();
 	std::filesystem::path FindFont(std::string name);
-	std::unordered_map<std::string, Font> AvailableFonts;
+	std::vector<std::pair<std::string, Font>> AvailableFonts;
 	std::unordered_map<std::string, ElementFont> LoadedFonts;
 private:
 	void UpdateFontsPath(std::filesystem::path p);

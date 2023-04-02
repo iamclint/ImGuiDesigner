@@ -1,13 +1,14 @@
 #include "Walnut/Application.h"
 #include "Walnut/EntryPoint.h"
-#include "Walnut/Image.h"
 #include "..\ToolBar.h"
 #include "..\Properties.h"
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
 #include "GLFW/glfw3.h"
 #include "..\icon.embed"
+#include "..\logo.embed"
 #include "..\..\Walnut\vendor\stb_image\stb_image.h"
+#include "..\arial.embed"
 #include <iostream>
 
 namespace igd
@@ -23,6 +24,17 @@ namespace igd
 	std::vector<ImGuiElement> undo_vector;
 	FontManager* font_manager;
 	std::filesystem::path startup_path;
+	ImFont* designer_font;
+
+	void onUpdate()
+	{
+		//if (!designer_font)
+		//{
+		//	designer_font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)embedded::arial, 17, 17);
+		//	igd::app->UpdateFonts();
+		//}
+	}
+	
 	void UnPressKey(ImGuiKey key)
 	{
 		ImGuiKeyData* key_data = ImGui::GetKeyData(key);
@@ -40,17 +52,24 @@ namespace igd
 		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.199288, 0.199288, 0.199288, 1));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.199288, 0.199288, 0.199288, 1));
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.316602, 0.316602, 0.316602, 1));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(31, 31, 31, 255).Value);
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.281853, 0.281853, 0.281853, 1));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.316602, 0.316602, 0.316602, 1));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(4, 4));
+		//if (designer_font)
+		//	ImGui::PushFont(designer_font);
+		
+	//	ImGui::PushFont();
 	}
 	void pop_designer_theme()
 	{
 		ImGui::PopStyleVar(4);
-		ImGui::PopStyleColor(10);
+		ImGui::PopStyleColor(11);
+	/*	if (designer_font)
+			ImGui::PopFont();*/
 	}
 }
 
@@ -135,11 +154,17 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "ImGui Designer";
 	spec.Width = 1600;
 	spec.Height = 800;
+	spec.Font = (void*)embedded::arial;
+	spec.FontDataSize = sizeof(embedded::arial);
+	spec.FontSize = 17;
 	igd::app = new Walnut::Application(spec);
+	
+
 	GLFWimage Images[1];
 	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
 	glfwSetWindowIcon(igd::app->GetWindowHandle(), 1, Images);
 	stbi_image_free(Images[0].pixels);
+	
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Notifications> notifications = std::make_shared<Notifications>();
@@ -170,7 +195,6 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			if (ImGui::MenuItem("Save"))
 			{
 				igd::notifications->SaveFile([](std::string file) {
-					//check if file exists
 					if (std::filesystem::exists(file))
 					igd::notifications->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
 						if (result)
