@@ -13,10 +13,7 @@ namespace igd
 	class Button : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<Button*, std::vector<Button>> undo_stack;
-		static inline std::unordered_map<Button*, std::vector<Button>> redo_stack;
 		static inline std::string json_identifier = "button";
-
 		Button() {
 			v_type_id = (int)element_type::button;
 			ImGuiContext& g = *GImGui;
@@ -36,42 +33,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_ItemSpacing] = g.Style.ItemSpacing;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;
 			v_can_have_children = false;
-		}
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-				
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				redo_stack[this].pop_back();
-			}
-		}
-		
-		virtual void PushUndoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				undo_stack[this].push_back(redo_stack[this].back());
-				redo_stack[this].push_back(*this);
-			}
-			else
-			{
-				undo_stack[this].push_back(*this);
-				redo_stack[this].push_back(*this);
-			}
-			//keep an undo stack locally for this type
-			//undo_stack[this].push_back(*this);
 		}
 
 		virtual ImGuiElement* Clone() override
@@ -97,8 +58,6 @@ namespace igd
 
 		virtual std::string RenderHead(bool script_only) override
 		{
-			if (this->undo_stack.size() == 0)
-				PushUndo();
 			ImGuiContext& g = *GImGui;
 			return "";
 		}
@@ -106,7 +65,7 @@ namespace igd
 		std::string ScriptHead() { return ""; };
 		std::string ScriptInternal() { 
 			std::stringstream code;
-			code << "if (ImGui::Button(\"" << v_id << "\", " << this->GetSizeScript() << "))" << std::endl;
+			code << "if (ImGui::Button(\"" << v_id << "\", " << igd::script::GetSizeScript(this) << "))" << std::endl;
 			code << "{" << std::endl << "}";
 			return code.str();
 		};

@@ -10,8 +10,6 @@ namespace igd
 	class Window : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<Window*, std::vector<Window>> undo_stack;
-		static inline std::unordered_map<Window*, std::vector<Window>> redo_stack;
 		static inline std::string json_identifier = "window";
 		Window() {
 			v_type_id = (int)element_type::window;
@@ -123,35 +121,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_Alpha] = g.Style.Alpha;
 			v_styles[ImGuiStyleVar_WindowMinSize] = g.Style.WindowMinSize;
 		}
-
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			Window* new_element = new Window();
@@ -186,7 +155,7 @@ namespace igd
 			std::stringstream code_out;
 			code_out << "static bool igd_workspace=true;" << std::endl;
 			code_out << "ImGui::SetNextWindowSize({" << v_size.value.x << ", " << v_size.value.y << "}, ImGuiCond_Once);" << std::endl;
-			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << this->buildFlagString() << ");";
+			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << igd::script::BuildFlagString(this) << ");";
 			return code_out.str();
 		}
 

@@ -9,8 +9,6 @@ namespace igd
 	class TabItem : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<TabItem*, std::vector<TabItem>> undo_stack;
-		static inline std::unordered_map<TabItem*, std::vector<TabItem>> redo_stack;
 		static inline std::string json_identifier = "TabItem";
 		TabItem() {
 			v_type_id = (int)element_type::tabitem;
@@ -67,35 +65,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_SelectableTextAlign] = g.Style.SelectableTextAlign;
 			v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
 		}
-
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			TabItem* new_element = new TabItem();
@@ -128,7 +97,7 @@ namespace igd
 
 		std::string ScriptHead() {
 			std::stringstream code;
-			code << "if (ImGui::BeginTabItem(\"" << v_id << "\", " << this->buildFlagString() << "))";
+			code << "if (ImGui::BeginTabItem(\"" << v_id << "\", " << igd::script::BuildFlagString(this) << "))";
 			return code.str();
 		};
 		std::string ScriptInternal() {
@@ -142,6 +111,10 @@ namespace igd
 			
 			if (v_id == "")
 				return "";
+			
+			if (script_only)
+				return ScriptHead();
+			
 			v_is_open = ImGui::BeginTabItem(v_id.c_str(), nullptr, v_flags);
 			return ScriptHead();
 		}
@@ -155,7 +128,14 @@ namespace igd
 			if (v_id == "")
 				return "";
 			if (v_is_open && !script_only)
+			{
+
+				////a little bug fix for imgui hover when in tabs
+				//ImVec2 cp = ImGui::GetCursorPos();
+				//ImGui::Dummy({ 50,50 });
+				//ImGui::SetCursorPos(cp);
 				ImGui::EndTabItem();
+			}
 			return "";
 		}
 		virtual void FromJSON(nlohmann::json data) override

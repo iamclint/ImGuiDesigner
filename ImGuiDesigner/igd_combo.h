@@ -9,8 +9,6 @@ namespace igd
 	class Combo : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<Combo*, std::vector<Combo>> undo_stack;
-		static inline std::unordered_map<Combo*, std::vector<Combo>> redo_stack;
 		static inline std::string json_identifier = "combo";
 		Combo() {
 			v_type_id = (int)element_type::combo;
@@ -70,34 +68,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
 		}
 
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			Combo* new_element = new Combo();
@@ -131,8 +101,8 @@ namespace igd
 		std::string ScriptHead() { 
 			std::stringstream code;
 			code << "static std::string " << this->GetIDForVariable() << " = \"\";" << std::endl;
-			code << this->GetWidthScript() << std::endl;
-			code << "if (ImGui::BeginCombo(\"" << v_id << "\"," << this->GetIDForVariable() << ".c_str(), " << this->buildFlagString() << "))";
+			code << igd::script::GetWidthScript(this)  << std::endl;
+			code << "if (ImGui::BeginCombo(\"" << v_id << "\"," << this->GetIDForVariable() << ".c_str(), " << igd::script::BuildFlagString(this) << "))";
 			return code.str(); 
 		};
 		std::string ScriptInternal() {

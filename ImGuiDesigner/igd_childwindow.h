@@ -9,8 +9,6 @@ namespace igd
 	class ChildWindow : ImGuiElement
 	{
 	public:
-		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> undo_stack;
-		static inline std::unordered_map<ChildWindow*, std::vector<ChildWindow>> redo_stack;
 		static inline std::string json_identifier = "child window";
 		ChildWindow() {
 			v_type_id = (int)element_type::childwindow;
@@ -112,34 +110,6 @@ namespace igd
 			v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
 		}
 
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			ChildWindow* new_element = new ChildWindow();
@@ -172,7 +142,7 @@ namespace igd
 		std::string ScriptHead()
 		{
 			std::stringstream code_out;
-			code_out << "ImGui::BeginChild(\"" << v_id << "\"," << this->GetSizeScript() << ", " << v_border << ", " << this->buildFlagString() << "); ";
+			code_out << "ImGui::BeginChild(\"" << v_id << "\"," << igd::script::GetSizeScript(this) << ", " << v_border << ", " << igd::script::BuildFlagString(this) << "); ";
 			return code_out.str();
 		}
 

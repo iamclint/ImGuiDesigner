@@ -17,7 +17,7 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements_buffer{}, undo_stack{}, redo_stack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}, interaction_mode(InteractionMode::designer)
+	: code{}, elements_buffer{}, undoStack{}, redoStack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}, interaction_mode(InteractionMode::designer)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
@@ -69,13 +69,13 @@ void WorkSpace::Save(std::string file_path)
 
 void WorkSpace::KeyBinds()
 {
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)) && ImGui::GetIO().KeyCtrl)
+	if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::GetIO().KeyCtrl)
 	{
 		std::cout << "Copied element: " << igd::active_workspace->active_element->v_id << std::endl;
 		igd::active_workspace->copied_element = igd::active_workspace->active_element;
 	}
 
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)) && ImGui::GetIO().KeyCtrl)
+	if (ImGui::IsKeyPressed(ImGuiKey_V) && ImGui::GetIO().KeyCtrl)
 	{
 		if (igd::active_workspace->copied_element)
 		{
@@ -89,34 +89,35 @@ void WorkSpace::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Z) && ImGui::GetIO().KeyCtrl)
 	{
-		if (undo_stack.size() > 1)
+		if (undoStack.size() > 0)
 		{
-			redo_stack.push_back(undo_stack.back());
-			if (undo_stack.back()->delete_me)
-				undo_stack.back()->delete_me = false;
+			redoStack.push_back(undoStack.back());
+			if (undoStack.back()->delete_me)
+				undoStack.back()->delete_me = false;
 			else
-				undo_stack.back()->Undo();
-			undo_stack.pop_back();
+				undoStack.back()->Undo();
+			undoStack.pop_back();
 		}
-		std::cout << "Undo stack size: " << undo_stack.size() << std::endl;
+		std::cout << "Undo stack size: " << undoStack.size() << std::endl;
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Y)) && ImGui::GetIO().KeyCtrl)
+	if (ImGui::IsKeyPressed(ImGuiKey_Y) && ImGui::GetIO().KeyCtrl)
 	{
-		if (redo_stack.size() > 0)
+		if (redoStack.size() > 0)
 		{
-			if (redo_stack.back()->delete_me)
-				redo_stack.back()->delete_me = false;
+			if (redoStack.back()->delete_me)
+				redoStack.back()->delete_me = false;
 			else
-				redo_stack.back()->Redo();
-			redo_stack.pop_back();
+				redoStack.back()->Redo();
+			redoStack.pop_back();
 		}
-		std::cout << "Redo stack size: " << redo_stack.size() << std::endl;
+		std::cout << "Redo stack size: " << redoStack.size() << std::endl;
 	}
 }
 
 void WorkSpace::PushUndo(ImGuiElement* ele)
 {
-	if (redo_stack.size() > 0)
+	undoStack.push_back(ele);
+	/*if (redo_stack.size() > 0)
 	{
 		undo_stack.push_back(redo_stack.back());
 		redo_stack.push_back(ele);
@@ -125,7 +126,7 @@ void WorkSpace::PushUndo(ImGuiElement* ele)
 	{
 		undo_stack.push_back(ele);
 		redo_stack.push_back(ele);
-	}
+	}*/
 }
 
 void WorkSpace::Colors()
@@ -276,7 +277,11 @@ void WorkSpace::OnUIRender() {
 		return;
 	}
 	
-	KeyBinds();
+	if (igd::active_workspace == this)
+	{
+		igd::active_workspace->KeyBinds();
+	}
+
 	if (!igd::active_workspace->active_element)
 		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
 
@@ -338,6 +343,8 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base, bool force_sel
 	}
 	if (force_selection)
 		this->active_element = ele;
+
+	ele->InitState();
 }
 
 void GetAllChildren(nlohmann::json j, ImGuiElement* parent)

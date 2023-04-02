@@ -590,6 +590,14 @@ void Properties::OnUIRender() {
 			General();
 			ImGui::TreePop();
 		}
+		if (ImGui::TreeNode("Element Specific"))
+		{
+			ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
+			
+			igd::active_workspace->active_element->RenderPropertiesInternal();
+			ImGui::EndTable();
+			ImGui::TreePop();
+		}
 		if (igd::active_workspace->active_element->v_colors.size() > 0)
 		{
 			if (ImGui::TreeNode("Colors"))

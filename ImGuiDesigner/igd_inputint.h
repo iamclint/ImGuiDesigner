@@ -13,9 +13,6 @@ namespace igd
 	class InputInt : ImGuiElement
 	{
 	public:
-
-		static inline std::unordered_map<InputInt*, std::vector<InputInt>> undo_stack;
-		static inline std::unordered_map<InputInt*, std::vector<InputInt>> redo_stack;
 		static inline std::string json_identifier = "inputint";
 		int input_data;
 		int step;
@@ -57,33 +54,6 @@ namespace igd
 			v_can_have_children = false;
 		}
 
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			InputInt* new_element = new InputInt();
@@ -118,8 +88,8 @@ namespace igd
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "static int " << this->GetIDForVariable() << ";" << std::endl;
-			code << this->GetWidthScript() << std::endl;
-			code << "ImGui::InputInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::fString(step) << ", " << igd::fString(step_fast) << ", " << this->buildFlagString() << ");";
+			code << igd::script::GetWidthScript(this)  << std::endl;
+			code << "ImGui::InputInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::script::GetFloatString (step) << ", " << igd::script::GetFloatString (step_fast) << ", " << igd::script::BuildFlagString(this) << ");";
 			return code.str();
 		};
 

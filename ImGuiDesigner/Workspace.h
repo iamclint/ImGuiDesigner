@@ -8,14 +8,15 @@ enum class InteractionMode : int
 	user
 };
 
+
 class WorkSpace : public Walnut::Layer
 {
 public:
 	
 	//std::vector<ImGuiElement*> elements;
 	std::vector<ImGuiElement*> elements_buffer;
-	std::vector<ImGuiElement*> undo_stack;
-	std::vector<ImGuiElement*> redo_stack;
+	std::vector<ImGuiElement*> undoStack;
+	std::vector<ImGuiElement*> redoStack;
 	std::vector<ImGuiElement*> sort_buffer;
 	ImGuiElement* copied_element;
 	ImGuiElement* active_element;
@@ -46,3 +47,10 @@ private:
 
 };
 
+//store the states of the elements for each workspace
+//need to also store a stack for the workspace above to know in which order to undo/redo
+template<typename T>
+std::unordered_map<WorkSpace*, std::unordered_map<T*, std::vector<T>>> undoMap;
+
+template<typename T>
+std::unordered_map<WorkSpace*, std::unordered_map<T*, std::vector<T>>> redoMap;

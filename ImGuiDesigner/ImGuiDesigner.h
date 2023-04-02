@@ -22,15 +22,7 @@ namespace igd
 			}
 		}
 	}
-	inline std::string fString(float val)
-	{
-		std::stringstream ss;
-		if (val == (int)val)
-			ss << val << ".f";
-		else
-			ss << val << "f";
-		return ss.str();
-	}
+
 	void UnPressKey(ImGuiKey key);
 	void push_designer_theme();
 	void pop_designer_theme();

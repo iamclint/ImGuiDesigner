@@ -7,16 +7,17 @@
 #include <iostream>
 #include <map>
 #include "Walnut/Image.h"
-
+#include <filesystem>
 namespace igd
 {
 	class Texture : ImGuiElement
 	{
 	public:
-
-		static inline std::unordered_map<Texture*, std::vector<Texture>> undo_stack;
-		static inline std::unordered_map<Texture*, std::vector<Texture>> redo_stack;
 		static inline std::string json_identifier = "Texture";
+		ImVec2 uv0;
+		ImVec2 uv1;
+		ImVec4 tint_col;
+		ImVec4 border_col;
 		Walnut::Image* img;
 		Texture() {
 			v_type_id = (int)element_type::texture;
@@ -24,12 +25,18 @@ namespace igd
 			this->v_size.value = { 128, 128 };
 		}
 		Texture(std::string path) {
+			uv0 = ImVec2(0, 0);
+			uv1 = ImVec2(1, 1);
+			tint_col = ImVec4(1, 1, 1, 1);
+			border_col = ImVec4(0, 0, 0, 0);
+			
 			v_type_id = (int)element_type::texture;
 			std::cout << "Adding new texture: " << path << std::endl;
 			img = new Walnut::Image(path);
 			v_path = path;
 			this->v_size.type = Vec2Type::Absolute;
 			this->v_size.value = { (float)img->GetWidth(), (float)img->GetHeight() };
+			v_aspect_ratio = (float)img->GetHeight() / (float)img->GetWidth();
 			if (this->v_size.value.x == 0 || this->v_size.value.y == 0)
 				this->v_size.value = { 128, 128 };
 			
@@ -41,34 +48,6 @@ namespace igd
 ;
 			v_can_have_children = false;
 		}
-
-		virtual void UndoLocal() override
-		{
-			if (undo_stack[this].size() > 1)
-			{
-				redo_stack[this].push_back(*this);
-				if (undo_stack[this].size() > 1)
-					undo_stack[this].pop_back();
-
-				*this = undo_stack[this].back();
-			}
-		}
-		virtual void RedoLocal() override
-		{
-			if (redo_stack[this].size() > 0)
-			{
-				*this = redo_stack[this].back();
-				PushUndo();
-				redo_stack[this].pop_back();
-			}
-		}
-
-		virtual void PushUndoLocal() override
-		{
-			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
-		}
-
 		virtual ImGuiElement* Clone() override
 		{
 			Texture* new_element = new Texture(this->v_path);
@@ -87,7 +66,15 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-
+			igd::properties->PropertyLabel("UV0");
+			ImGui::PushItemWidth(120);
+			ImGui::InputFloat2("##UV0", (float*)&uv0);
+			igd::properties->PropertyLabel("UV1");
+			ImGui::InputFloat2("##UV1", (float*)&uv1);
+			igd::properties->PropertyLabel("Tint");
+			ImGui::ColorEdit4("##texture_tint", (float*)&tint_col, ImGuiColorEditFlags_NoInputs);
+			igd::properties->PropertyLabel("Border");
+			ImGui::ColorEdit4("##texture_border", (float*)&border_col, ImGuiColorEditFlags_NoInputs);
 		}
 
 		std::string ScriptHead() {
@@ -96,7 +83,7 @@ namespace igd
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "//You must supply the loaded img data" << std::endl;
-			code << "ImGui::Image(\"" << this->v_path << "\", " << this->GetSizeScript() << "))" << std::endl;
+			code << "ImGui::Image(\"" << this->v_path << "\", " << igd::script::GetSizeScript(this) << ", " << igd::script::GetVec2String(uv0) << ", " << igd::script::GetVec2String(uv1) << ", " << igd::script::GetVec4String(tint_col) << ", " << igd::script::GetVec4String(border_col) << ")" << std::endl;
 			return code.str();
 		};
 
@@ -115,7 +102,9 @@ namespace igd
 			if (!img->GetDescriptorSet())
 				ImGui::Dummy(this->v_size.value);
 			else
-				ImGui::Image(img->GetDescriptorSet(), this->v_size.value);
+			{
+				ImGui::Image(img->GetDescriptorSet(), this->GetSize(), uv0, uv1, tint_col, border_col);
+			}
 			return ScriptInternal();
 		}
 
@@ -132,17 +121,31 @@ namespace igd
 		{
 			nlohmann::json j;
 			j["path"] = v_path;
+			j["uv0"] = { { "x", uv0.x }, {"y", uv0.y} };
+			j["uv1"] = { { "x", uv1.x }, {"y", uv1.y} };
+			j["tint_col"] = ColorToJson(tint_col);
+			j["border_col"] = ColorToJson(border_col);
 			GenerateStylesColorsJson(j, json_identifier);
 			return j;
 		}
 
 		static ImGuiElement* load(ImGuiElement* parent, nlohmann::json data)
 		{
-			std::cout << "Adding a Texture" << std::endl;
+			//check if file exists using filesystem
+			if (!std::filesystem::exists(data["path"]))
+			{
+				igd::notifications->GenericNotification("Error loading texture", "The texture file " + std::string(data["path"]) + " does not exist");
+				return nullptr;
+			}
 			igd::Texture* b = new igd::Texture(data["path"]);
 			ImGuiElement* f = (ImGuiElement*)b;
 			f->v_parent = parent;
 			b->FromJSON(data);
+
+			b->uv0 = { data["uv0"]["x"],data["uv0"]["y"] };
+			b->uv1 = { data["uv1"]["x"],data["uv1"]["y"] };
+			b->tint_col = b->JsonToColor(data["tint_col"]);
+			b->tint_col = b->JsonToColor(data["border_col"]);
 			if (!parent)
 				igd::active_workspace->AddNewElement((ImGuiElement*)b, true);
 			else

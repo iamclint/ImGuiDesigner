@@ -9,6 +9,7 @@
 #include "FontManager.h"
 #include "imgui_internal.h"
 #include "Workspace.h"
+#include "ScriptHelpers.h"
 struct ElementFont;
 class WorkSpace;
 enum class property_flags : int
@@ -225,15 +226,14 @@ public:
 	//return code string for this element
 	virtual std::string RenderFoot(bool script_only=false) { return ""; };
 	virtual ImGuiElement* Clone() { return nullptr; };
-	virtual void UndoLocal();
-	virtual void RedoLocal();
-	virtual void PushUndoLocal();
+	void InitState();
 	virtual nlohmann::json GetJson();
 	virtual void FromJSON(nlohmann::json data);
 	virtual ~ImGuiElement() {};
 
 //methods
 public:
+	
 	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace);
 	void Delete();
 	void Redo();
@@ -247,10 +247,10 @@ public:
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
 	void SetNextWidth();
+	nlohmann::json ColorToJson(ImVec4 col);
+	nlohmann::json ColorToJson(ImColor col);
+	ImColor JsonToColor(nlohmann::json col);
 	ImVec2 GetSize();
-	std::string GetSizeScript();
-	std::string GetWidthScript();
-	std::string buildFlagString();
 	std::string GetIDForVariable();
 	std::vector<std::string> GetSplitID();
 	nlohmann::json GetJsonWithChildren();
@@ -281,6 +281,7 @@ public:
 	int v_element_filter;
 	bool v_can_contain_own_type;
 	bool v_auto_select;
+	float v_aspect_ratio;
 	std::string v_path;
 
 	std::unordered_map<int, std::string> v_custom_flags;
@@ -304,44 +305,8 @@ public:
 public:
 	ImGuiElement();
 	
-	/*ImGuiElement(const ImGuiElement& other)
-	{
-		v_flags = other.v_flags;
-		v_size = other.v_size;
-		v_pos = other.v_pos;
-		v_id = other.v_id;
-		v_label = other.v_label;
-		v_styles = other.v_styles;
-		v_colors = other.v_colors;
-		v_border = other.v_border;
-		v_can_have_children = other.v_can_have_children;
-		v_disabled = other.v_disabled;
-		v_parent = other.v_parent;
-		v_property_flags = other.v_property_flags;
-		is_dragging = other.is_dragging;
-		ResizeDirection = other.ResizeDirection;
-		current_drag_delta = other.current_drag_delta;
-		last_size = other.last_size;
-		delete_me = other.delete_me;
-		change_parent = other.change_parent;
-		did_resize = other.did_resize;
-		did_move = other.did_move;
-		color_pops = other.color_pops;
-		style_pops = other.style_pops;
-		v_inherit_all_colors = other.v_inherit_all_colors;
-		v_inherit_all_styles = other.v_inherit_all_styles;
-		v_font = other.v_font;
-		v_sameline = other.v_sameline;
-		v_custom_flags = other.v_custom_flags;
-		v_requires_open = other.v_requires_open;
-		v_window_bool = other.v_window_bool;
-		v_type_id = other.v_type_id;
-		v_can_contain_own_type = other.v_can_contain_own_type;
-		v_element_filter = other.v_element_filter;
-	}*/
-		
 private:
-	bool was_resizing;
+	void ResetInteraction();
 	bool Drag();
 	bool Resize();
 	void DrawSelection();
@@ -352,11 +317,12 @@ private:
 	void ApplyPos(ImVec2 literal_pos);
 	bool ChildrenUseRelative();
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
-	void setImGuiSelect();
+	void Interact();
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
 	int color_pops;
 	int style_pops;
+	int undoStackIndex;
 	ImVec2 current_drag_delta;
 	bool is_dragging;
 	resize_direction ResizeDirection;

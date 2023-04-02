@@ -11,32 +11,49 @@
 #include "Notifications.h"
 #include <boost/algorithm/string.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
-//get mouse location delta of item
-static inline std::unordered_map<ImGuiElement*, std::vector<ImGuiElement>> undo_stack;
-static inline std::unordered_map<ImGuiElement*, std::vector<ImGuiElement>> redo_stack;
-void ImGuiElement::UndoLocal() {
-	if (undo_stack[this].size() > 1)
-	{
-		redo_stack[this].push_back(*this);
-		if (undo_stack[this].size() > 1)
-			undo_stack[this].pop_back();
 
-		*this = undo_stack[this].back();
-	}
-}
-void ImGuiElement::RedoLocal()
+void ImGuiElement::ResetInteraction()
 {
-	if (redo_stack[this].size() > 0)
+	did_move = false;
+	did_resize = false;
+}
+
+void ImGuiElement::Undo()
+{
+	if (undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].size() > 1)
 	{
-		*this = redo_stack[this].back();
-		redo_stack[this].pop_back();
+		redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].push_back(*this);
+		undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].pop_back();
+		*this = undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].back();
+		ResetInteraction();
 	}
 }
 
-void ImGuiElement::PushUndoLocal()
+void ImGuiElement::Redo()
 {
-	//keep an undo stack locally for this type
-	undo_stack[this].push_back(*this);
+	if (redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].size() > 0)
+	{
+		*this = redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].back();
+		undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].push_back(*this);
+		redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].pop_back();
+		igd::active_workspace->PushUndo(this);
+		ResetInteraction();
+	}
+}
+
+void ImGuiElement::InitState()
+{
+	undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].push_back(*this);
+}
+
+void ImGuiElement::PushUndo()
+{
+	std::cout << "using generic push undo" << std::endl;
+	igd::active_workspace->PushUndo(this);
+	undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].push_back(*this);
+
+	//if you make an edit you lose your redo stack
+	redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].clear();
 }
 ImGuiElement::ImGuiElement()
 	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID()), v_label("new element"),
@@ -45,29 +62,10 @@ ImGuiElement::ImGuiElement()
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
-	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""), was_resizing(false)
+	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""),
+	v_aspect_ratio(1.0f)
 {
 	v_property_flags = property_flags::disabled;
-}
-std::string ImGuiElement::GetSizeScript()
-{
-	std::stringstream c;
-	if (v_size.type == Vec2Type::Absolute)
-		c << "{" << igd::fString(v_size.value.x) << "," << igd::fString(v_size.value.y) << "}";
-	else if (v_size.type == Vec2Type::Relative)
-		c << "{ (" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ") - GImGui->Style.FramePadding.x, (" << ContentRegionString << ".y * " << igd::fString(v_size.value.y / 100) << ") - GImGui->Style.FramePadding.y }";
-	return c.str();
-}
-std::string ImGuiElement::GetWidthScript()
-{
-	std::stringstream c;
-	c << "ImGui::SetNextItemWidth(";
-	if (v_size.type == Vec2Type::Absolute)
-		c << igd::fString(v_size.value.x);
-	else if (v_size.type == Vec2Type::Relative)
-		c << "(" << ContentRegionString << ".x * " << igd::fString(v_size.value.x / 100) << ") - GImGui->Style.FramePadding.x";
-	c << ");";
-	return c.str();
 }
 
 void ImGuiElement::SetNextWidth()
@@ -202,6 +200,18 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 		igd::notifications->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
 	}
 }
+nlohmann::json ImGuiElement::ColorToJson(ImVec4 col)
+{
+	return { { "x", col.x }, { "y", col.y }, { "z", col.z }, { "w", col.w } };
+}
+nlohmann::json ImGuiElement::ColorToJson(ImColor col)
+{
+	return ColorToJson(col.Value);
+}
+ImColor ImGuiElement::JsonToColor(nlohmann::json col)
+{
+	return ImColor((float)col["x"], (float)col["y"], (float)col["z"], (float)col["w"]);
+}
 
 void ImGuiElement::GenerateStylesColorsJson(nlohmann::json& j, std::string type_name)
 {
@@ -295,30 +305,6 @@ void ImGuiElement::SaveAsWidget(std::string name)
 	file.close();
 	std::cout << "Saved to widgets/" + name +".igd" << std::endl;
 }
-
-
-void ImGuiElement::Undo()
-{
-	UndoLocal();
-	did_move = false;
-	did_resize = false;
-	was_resizing = false;
-}
-void ImGuiElement::Redo()
-{
-	RedoLocal();
-	did_move = false;
-	did_resize = false;
-
-}
-
-void ImGuiElement::PushUndo()
-{
-	//add an undo layer to the undo stack for the workspace itself
-	igd::active_workspace->PushUndo(this);
-	PushUndoLocal();
-}
-
 ImVec2 get_mouse_location()
 {
 	ImVec2 mouse_pos = ImGui::GetMousePos();
@@ -403,7 +389,7 @@ void ImGuiElement::KeyBinds()
 
 void ImGuiElement::Delete()
 {
-	igd::active_workspace->undo_stack.push_back(this);
+	igd::active_workspace->undoStack.push_back(this);
 	this->delete_me = true;
 	if (igd::active_workspace->copied_element == this)
 		igd::active_workspace->copied_element = nullptr;
@@ -412,13 +398,16 @@ void ImGuiElement::Delete()
 
 void ImGuiElement::ApplyResize(ImVec2 literal_size)
 {
+	if (literal_size.x < 0)
+		literal_size.x = 0;
+	if (literal_size.y < 0)
+		literal_size.y = 0;
 	if (v_size.type == Vec2Type::Absolute)
 	{
 		if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
 		{
-			float ratio = v_size.value.y / v_size.value.x;
 			v_size.value.x = literal_size.x;
-			v_size.value.y = literal_size.x * ratio;
+			v_size.value.y = literal_size.x * v_aspect_ratio;
 		}
 		else
 		{
@@ -444,14 +433,6 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 		v_pos.value.x = (literal_pos.x / ContentRegionAvail.x)*100;
 		v_pos.value.y = (literal_pos.y / ContentRegionAvail.y)*100;
 	}
-}
-
-void ImGuiElement::setImGuiSelect()
-{
-	ImGuiContext& g = *GImGui;
-	//const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
-	//ImGui::SetActiveID(id, g.CurrentWindow);
-	//g.ActiveIdMouseButton = ImGuiMouseButton_Left;
 }
 
 bool ImGuiElement::Resize()
@@ -522,10 +503,8 @@ bool ImGuiElement::Resize()
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ResizeDirection!=resize_direction::none)
 	{
-		setImGuiSelect();
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 		did_resize = true;
-		was_resizing = true;
 		switch (ResizeDirection)
 		{
 			case resize_direction::top_right:
@@ -583,11 +562,6 @@ bool ImGuiElement::Resize()
 			}
 		}
 	}
-	if (was_resizing && ResizeDirection == resize_direction::none)
-	{
-		was_resizing = false;
-		igd::active_workspace->active_element->PushUndo();
-	}
 	return ResizeDirection != resize_direction::none;
 }
 
@@ -598,12 +572,7 @@ void ImGuiElement::Select()
 	ImGuiWindow* window = g.CurrentWindow;
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none && igd::active_workspace->active_element != this)
 	{
-		if (this->v_can_have_children)
-		{
-			std::cout << this->v_id << " hovered id: " << ImGui::GetHoveredID() << std::endl;
-		}
-
-		setImGuiSelect();
+		std::cout << "Selected item" << std::endl;
 		igd::active_workspace->active_element = this;
 	}
 
@@ -695,36 +664,43 @@ void ImGuiElement::AddCode(std::string code, int depth)
 	}
 }
 
-bool ImGuiElement::IsFlagGroup(std::pair<int, std::string> current_flag)
+void ImGuiElement::Interact()
 {
-	for (auto& [flag, str] : v_custom_flags)
+	ImGuiContext& g = *GImGui;
+	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
 	{
-		bool any_on = (flag & current_flag.first) != 0;
-		bool all_on = (this->v_flags & flag) == flag;
-		if (flag == current_flag.first)
-			continue;
-		if (any_on && all_on)
-			return true;
+		if (igd::active_workspace->active_element == this)
+		{
+			if (Resize() || Drag())
+				igd::active_workspace->is_interacting = true;
+			else
+				igd::active_workspace->is_interacting = false;
+			KeyMove();
+			DrawSelection();
+			KeyBinds();
+
+		}
+		if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput)
+			Select();
+
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			if (did_resize)
+			{
+				PushUndo();
+				did_resize = false;
+			}
+			ResizeDirection = resize_direction::none;
+			if (did_move)
+			{
+				PushUndo();
+				did_move = false;
+			}
+			is_dragging = false;
+		}
 	}
-	return false;
 }
 
-std::string ImGuiElement::buildFlagString()
-{
-	std::stringstream ss;
-	for (auto& [flag, str] : v_custom_flags)
-	{
-		bool any_on = (flag & this->v_flags) != 0;
-		bool all_on = (this->v_flags & flag) == flag;
-		bool is_group_on = (v_custom_flag_groups[flag] && all_on);
-		if ((flag & v_flags) && (!IsFlagGroup({ flag,str }) || is_group_on))
-			ss << str << " | ";
-	}
-	if (ss.str().length() > 0)
-		return ss.str().substr(0, ss.str().length() - 3);
-	else
-		return "0";
-}
 void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws)
 {
 //v_generate_code = generate_code;
@@ -739,12 +715,12 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	{
 		if (v_pos.type == Vec2Type::Absolute)
 		{
-			this->AddCode(STS() << "ImGui::SetCursorPos({" << igd::fString(v_pos.value.x) << ", " << igd::fString(v_pos.value.y) << "});");
+			this->AddCode(STS() << "ImGui::SetCursorPos(" << igd::script::GetVec2String(v_pos.value) << ");");
 			ImGui::SetCursorPos(v_pos.value);
 		}
 		else
 		{
-			this->AddCode(STS() << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << igd::fString(v_pos.value.x / 100.0f) << ", " << ContentRegionString << ".y * " << igd::fString(v_pos.value.y / 100.0f) << "});");
+			this->AddCode(STS() << "ImGui::SetCursorPos({" << ContentRegionString << ".x * " << igd::script::GetFloatString(v_pos.value.x / 100.0f) << ", " << ContentRegionString << ".y * " << igd::script::GetFloatString(v_pos.value.y / 100.0f) << "});");
 			ImGui::SetCursorPos({ ContentRegionAvail.x * (v_pos.value.x / 100), ContentRegionAvail.y * (v_pos.value.y / 100) });
 		}
 	}
@@ -801,6 +777,10 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	std::string RenderHead = this->RenderHead(script_only);
 	if (RenderHead !="")
 		this->AddCode(RenderHead);
+	
+	//irritating that we have to do this but imgui uses tab items sort of like buttons
+	if (this->v_type_id == (int)element_type::tabitem)
+		Interact();
 
 	if (this->children.size() > 0)
 	{
@@ -843,52 +823,9 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		this->AddCode("ImGui::PopFont();");
 	}
 	PopColorAndStyles();
+	if (this->v_type_id != (int)element_type::tabitem)
+	Interact();
 
-	////reset imgui cursorpos so you don't interrupt the flow of other elements when you drag this one
-	//if (v_pos.value.x != 0 || v_pos.value.y != 0)
-	//{
-	//	ImGui::SetCursorPos(last_known_cursor);
-
-	//}
-	//else
-	//	last_known_cursor = ImGui::GetCursorPos();
-	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
-	{
-		if (igd::active_workspace->active_element == this)
-		{
-			if (Resize() || Drag())
-				igd::active_workspace->is_interacting = true;
-			else
-				igd::active_workspace->is_interacting = false;
-			KeyMove();
-			DrawSelection();
-			KeyBinds();
-
-		}
-		if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput)
-			Select();
-
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
-			if (did_resize)
-			{
-				PushUndo();
-				did_resize = false;
-			}
-			ResizeDirection = resize_direction::none;
-			if (did_move)
-			{
-				PushUndo();
-				did_move = false;
-			}
-			is_dragging = false;
-		}
-	}
-
-	//a little bug fix for imgui hover when in tabs
-	ImVec2 cp = ImGui::GetCursorPos();
-	ImGui::Dummy({ 0,0 });
-	ImGui::SetCursorPos(cp);
 }
 
 //random number generator
