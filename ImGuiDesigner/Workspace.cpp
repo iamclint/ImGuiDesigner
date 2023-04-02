@@ -87,9 +87,9 @@ void WorkSpace::KeyBinds()
 		}
 
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)) && ImGui::GetIO().KeyCtrl)
+	if (ImGui::IsKeyPressed(ImGuiKey_Z) && ImGui::GetIO().KeyCtrl)
 	{
-		if (undo_stack.size() > 0)
+		if (undo_stack.size() > 1)
 		{
 			redo_stack.push_back(undo_stack.back());
 			if (undo_stack.back()->delete_me)
@@ -115,8 +115,17 @@ void WorkSpace::KeyBinds()
 }
 
 void WorkSpace::PushUndo(ImGuiElement* ele)
-{ 
-	undo_stack.push_back(ele);
+{
+	if (redo_stack.size() > 0)
+	{
+		undo_stack.push_back(redo_stack.back());
+		redo_stack.push_back(ele);
+	}
+	else
+	{
+		undo_stack.push_back(ele);
+		redo_stack.push_back(ele);
+	}
 }
 
 void WorkSpace::Colors()
@@ -267,6 +276,7 @@ void WorkSpace::OnUIRender() {
 		return;
 	}
 	
+	KeyBinds();
 	if (!igd::active_workspace->active_element)
 		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
 

@@ -54,15 +54,24 @@ namespace igd
 			if (redo_stack[this].size() > 0)
 			{
 				*this = redo_stack[this].back();
-				PushUndo();
 				redo_stack[this].pop_back();
 			}
 		}
 		
 		virtual void PushUndoLocal() override
 		{
+			if (redo_stack[this].size() > 0)
+			{
+				undo_stack[this].push_back(redo_stack[this].back());
+				redo_stack[this].push_back(*this);
+			}
+			else
+			{
+				undo_stack[this].push_back(*this);
+				redo_stack[this].push_back(*this);
+			}
 			//keep an undo stack locally for this type
-			undo_stack[this].push_back(*this);
+			//undo_stack[this].push_back(*this);
 		}
 
 		virtual ImGuiElement* Clone() override
@@ -88,6 +97,8 @@ namespace igd
 
 		virtual std::string RenderHead(bool script_only) override
 		{
+			if (this->undo_stack.size() == 0)
+				PushUndo();
 			ImGuiContext& g = *GImGui;
 			return "";
 		}

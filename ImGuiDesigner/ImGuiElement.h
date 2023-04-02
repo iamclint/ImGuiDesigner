@@ -341,6 +341,7 @@ public:
 	}*/
 		
 private:
+	bool was_resizing;
 	bool Drag();
 	bool Resize();
 	void DrawSelection();

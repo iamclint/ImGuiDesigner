@@ -29,7 +29,6 @@ void ImGuiElement::RedoLocal()
 	if (redo_stack[this].size() > 0)
 	{
 		*this = redo_stack[this].back();
-		PushUndo();
 		redo_stack[this].pop_back();
 	}
 }
@@ -46,7 +45,7 @@ ImGuiElement::ImGuiElement()
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
-	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path("")
+	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""), was_resizing(false)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -303,7 +302,7 @@ void ImGuiElement::Undo()
 	UndoLocal();
 	did_move = false;
 	did_resize = false;
-
+	was_resizing = false;
 }
 void ImGuiElement::Redo()
 {
@@ -334,14 +333,12 @@ bool ImGuiElement::Drag()
 	ImVec2 Item_Location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x, g.LastItemData.Rect.Min.y - window->Pos.y);
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection==resize_direction::none)
 	{
-		setImGuiSelect();
 		is_dragging = true;
 		ImVec2 mouse_location = get_mouse_location();
 		current_drag_delta = { mouse_location.x - Item_Location.x - ImGui::GetScrollX(),mouse_location.y - Item_Location.y - ImGui::GetScrollY() };
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_dragging)
 	{
-		setImGuiSelect();
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		ImVec2 mouse_location = get_mouse_location();
@@ -358,22 +355,22 @@ void ImGuiElement::KeyMove()
 	ImGuiIO& io = g.IO;
 	ImVec2 item_location = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());
 	float delta_dist = 1.f;
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
+	if (ImGui::IsKeyPressed(ImGuiKey_UpArrow))
 	{
 		v_pos.value.y = item_location.y - delta_dist;
 		v_pos.value.x = item_location.x;
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+	if (ImGui::IsKeyPressed(ImGuiKey_DownArrow))
 	{
 		v_pos.value.y = item_location.y + delta_dist;
 		v_pos.value.x = item_location.x;
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
+	if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
 	{
 		v_pos.value.x = item_location.x - delta_dist;
 		v_pos.value.y = item_location.y;
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
+	if (ImGui::IsKeyPressed(ImGuiKey_RightArrow))
 	{
 		v_pos.value.x = item_location.x + delta_dist;
 		v_pos.value.y = item_location.y;
@@ -417,13 +414,24 @@ void ImGuiElement::ApplyResize(ImVec2 literal_size)
 {
 	if (v_size.type == Vec2Type::Absolute)
 	{
-		v_size.value = literal_size;
+		if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
+		{
+			float ratio = v_size.value.y / v_size.value.x;
+			v_size.value.x = literal_size.x;
+			v_size.value.y = literal_size.x * ratio;
+		}
+		else
+		{
+			v_size.value = literal_size;
+		}
+		
 	}
 	else if (v_size.type == Vec2Type::Relative)
 	{
 		v_size.value.x = (literal_size.x / ContentRegionAvail.x)*100;
 		v_size.value.y = (literal_size.y / ContentRegionAvail.y)*100;
 	}
+	
 }
 void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 {
@@ -441,9 +449,9 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 void ImGuiElement::setImGuiSelect()
 {
 	ImGuiContext& g = *GImGui;
-	const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
-	ImGui::SetActiveID(id, g.CurrentWindow);
-	g.ActiveIdMouseButton = ImGuiMouseButton_Left;
+	//const ImGuiID id = g.CurrentWindow->GetID(v_label.c_str()); //just something
+	//ImGui::SetActiveID(id, g.CurrentWindow);
+	//g.ActiveIdMouseButton = ImGuiMouseButton_Left;
 }
 
 bool ImGuiElement::Resize()
@@ -517,6 +525,7 @@ bool ImGuiElement::Resize()
 		setImGuiSelect();
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 		did_resize = true;
+		was_resizing = true;
 		switch (ResizeDirection)
 		{
 			case resize_direction::top_right:
@@ -574,6 +583,11 @@ bool ImGuiElement::Resize()
 			}
 		}
 	}
+	if (was_resizing && ResizeDirection == resize_direction::none)
+	{
+		was_resizing = false;
+		igd::active_workspace->active_element->PushUndo();
+	}
 	return ResizeDirection != resize_direction::none;
 }
 
@@ -584,6 +598,11 @@ void ImGuiElement::Select()
 	ImGuiWindow* window = g.CurrentWindow;
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !is_dragging && ResizeDirection == resize_direction::none && igd::active_workspace->active_element != this)
 	{
+		if (this->v_can_have_children)
+		{
+			std::cout << this->v_id << " hovered id: " << ImGui::GetHoveredID() << std::endl;
+		}
+
 		setImGuiSelect();
 		igd::active_workspace->active_element = this;
 	}
@@ -708,7 +727,7 @@ std::string ImGuiElement::buildFlagString()
 }
 void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws)
 {
-	//v_generate_code = generate_code;
+//v_generate_code = generate_code;
 	v_workspace = ws;
 	v_depth = current_depth;
 	ContentRegionAvail = _ContentRegionAvail;
@@ -865,6 +884,11 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 			is_dragging = false;
 		}
 	}
+
+	//a little bug fix for imgui hover when in tabs
+	ImVec2 cp = ImGui::GetCursorPos();
+	ImGui::Dummy({ 0,0 });
+	ImGui::SetCursorPos(cp);
 }
 
 //random number generator
