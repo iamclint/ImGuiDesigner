@@ -26,3 +26,7 @@ Overall, the ability to create custom components in ImGuiDesigner is a valuable 
 
 Conclusion:
 In summary, ImGuiDesigner is an easy-to-use interface builder that simplifies the process of building UIs in C++ applications. Its interactive controls, C++ pseudo code generation, and multi-platform support make it a useful tool for developers. Furthermore, being open-source allows developers to contribute to the project and make it even better.
+
+
+It's worth noting that ImGuiDesigner utilizes Walnut, a C++ framework for building user interfaces developed by TheCherno. The framework has been modified to better suit the needs of ImGuiDesigner and provide a seamless experience for users.
+https://github.com/TheCherno/Walnut
