@@ -282,8 +282,8 @@ nlohmann::json ImGuiElement::GetJsonWithChildren()
 
 void ImGuiElement::SaveAsWidget(std::string name)
 {
-	if (children.size() == 0)
-		return;
+	//if (children.size() == 0)
+	//	return;
 	//check if folder exists
 	if (!std::filesystem::exists("widgets"))
 		std::filesystem::create_directory("widgets");

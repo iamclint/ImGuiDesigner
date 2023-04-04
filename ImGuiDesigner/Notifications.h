@@ -8,6 +8,16 @@ public:
 	Notifications() : show_generic(false), title(""), message(""), icon_path(""), button_text(""), show_confirm(false), show_inputtext(false) {}
 	void GenericNotification(std::string title, std::string message, std::string icon_path="", std::string button_text="Ok", std::function<void()> callback=[](){});
 	void Confirmation(std::string title, std::string message, std::string icon_path, std::function<void(bool)> callback);
+	
+
+	/// <summary>
+	/// Input text popup
+	/// </summary>
+	/// <param name="title">title</param>
+	/// <param name="message">message</param>
+	/// <param name="icon_path">unused currently</param>
+	/// <param name="buttons">Pair of buttons first button returns true, second false</param>
+	/// <param name="callback">callback function on button press</param>
 	void InputText(std::string title, std::string message, std::string icon_path, std::pair<std::string, std::string> buttons, std::function<void(bool, std::string)> callback);
 	void SaveFile(std::function<void(std::string)> callback);
 	void OpenFile(std::function<void(std::string)> callback, std::string filter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0");

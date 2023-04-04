@@ -152,8 +152,6 @@ bool Font::hasUnicodeEncoding(std::filesystem::path filePath)
 	return false;
 }
 
-
-
 void FontManager::UpdateFontsPath(std::filesystem::path in_path)
 {
 	for (auto& p : std::filesystem::directory_iterator(in_path))

@@ -36,52 +36,12 @@ bool ToolBar::Tool(std::string name, float width)
 		}
 	return false;
 }
+void ToolBar::RenderElements()
+{
 
-void ToolBar::OnUIRender() {
 
-
-	if (igd::active_workspace)
-	{
-		igd::active_workspace->RenderCode();
-		igd::active_workspace->RenderAdd();
-	}
-	else
-		return;
-	
-	static char* buf =new char[25];
-	memset(buf, 0, 25);
-	strcpy_s(buf, 25, "Input Text");
-	ImGuiContext& g = *GImGui;
-	ImGuiIO& io = g.IO;
-
-	igd::push_designer_theme();
-	
-	ImGui::Begin("ToolBar");
-	ImGui::Text("Interaction Mode");
-	ImGui::Separator();
-	ImGui::PushItemWidth(140);
-	if (ImGui::BeginCombo("##", igd::active_workspace->interaction_mode == InteractionMode::designer ? "Designer" : "User"))
-	{
-		if (ImGui::Selectable("Designer"))
-		{
-			igd::active_workspace->interaction_mode = InteractionMode::designer;
-		}
-		if (ImGui::Selectable("User"))
-		{
-			igd::active_workspace->interaction_mode = InteractionMode::user;
-		}
-		ImGui::EndCombo();
-	}
-	ImGui::Spacing(); ImGui::Spacing();
-	ImGui::Spacing(); ImGui::Spacing();
-
-	ImGui::Text("Elements");
-	ImGui::Separator();
-	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
-	
-	
 	float width = 140;
-	
+
 	this->Tool<igd::ChildWindow>("Child Window", width);
 	this->Tool<igd::Button>("Button", width);
 	this->Tool<igd::InputText>("Input Text", width);
@@ -97,20 +57,16 @@ void ToolBar::OnUIRender() {
 	this->Tool<igd::TabBar>("TabBar", width);
 	this->Tool<igd::TabItem>("TabItem", width);
 	this->Tool<igd::Texture>("Texture", width);
-	
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::Text("Custom Widgets");
-	ImGui::Separator();
+}
+void ToolBar::RenderCustomWidgets()
+{
 
-	
 	//iterate all files in widgets folder
 	for (auto& p : std::filesystem::directory_iterator(igd::startup_path.string() + "/widgets"))
 	{
 		if (p.path().extension() == ".wgd")
 		{
-			if (ImGui::Button(p.path().filename().stem().string().c_str(), {140, 0}))
+			if (ImGui::Button(p.path().filename().stem().string().c_str(), { 140, 0 }))
 			{
 				//load the file
 				igd::active_workspace->load(p.path());
@@ -135,12 +91,62 @@ void ToolBar::OnUIRender() {
 		}
 
 	}
+}
+void ToolBar::OnUIRender() {
+
+
+	if (igd::active_workspace)
+	{
+		igd::active_workspace->RenderCode();
+		igd::active_workspace->RenderAdd();
+	}
+	else
+		return;
+	
+	static char* buf =new char[25];
+	memset(buf, 0, 25);
+	strcpy_s(buf, 25, "Input Text");
+	ImGuiContext& g = *GImGui;
+	ImGuiIO& io = g.IO;
+
+	igd::push_designer_theme();
+	
+	ImGui::Begin("ToolBar");
+	ImGui::GetCurrentWindow()->DockNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+	ImGui::Text("Interaction Mode");
+	ImGui::Separator();
+	ImGui::PushItemWidth(140);
+	if (ImGui::BeginCombo("##", igd::active_workspace->interaction_mode == InteractionMode::designer ? "Designer" : "User"))
+	{
+		if (ImGui::Selectable("Designer"))
+		{
+			igd::active_workspace->interaction_mode = InteractionMode::designer;
+		}
+		if (ImGui::Selectable("User"))
+		{
+			igd::active_workspace->interaction_mode = InteractionMode::user;
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::Spacing(); ImGui::Spacing();
+	ImGui::Spacing(); ImGui::Spacing();
+	ImGui::BeginTabBar("##Toolbar_Tabs");
+	if (ImGui::BeginTabItem("Elements"))
+	{
+		this->RenderElements();
+		ImGui::EndTabItem();
+	}
+	if (ImGui::BeginTabItem("Custom Widgets"))
+	{
+		this->RenderCustomWidgets();
+		ImGui::EndTabItem();
+	}
 	
 	if (ImGui::IsAnyItemHovered())
 	{
 		g.MouseCursor = ImGuiMouseCursor_Hand;
 	}
-	
+	ImGui::EndTabBar();
 	ImGui::End();
 	igd::pop_designer_theme();
 }

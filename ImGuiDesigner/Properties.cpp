@@ -341,12 +341,9 @@ void Properties::General()
 		}
 	}
 
-	if (igd::active_workspace->active_element->v_can_have_children && igd::active_workspace->active_element->children.size() > 0)
-	{
-		PropertyLabel("Widget:");
-		if (ImGui::Button("Save##Json_Save"))
-			igd::active_workspace->active_element->SaveAsWidget(igd::active_workspace->active_element->v_id);
-	}
+//	if (igd::active_workspace->active_element->v_can_have_children && igd::active_workspace->active_element->children.size() > 0)
+//	{
+//	}
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
@@ -612,7 +609,22 @@ void Properties::OnUIRender() {
 					ImGui::TreePop();
 				}
 			}
-			if (ImGui::Button("Delete##property_delete"))
+
+			ImGui::Separator();
+			ImVec2 b_size = ImGui::GetContentRegionAvail();
+			float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+			if (ImGui::Button("Save as Widget##Json_Save", { width, 45 }))
+			{
+				igd::notifications->InputText("Widget Name", "Enter a name for this widget", "", { "Save", "Cancel" }, [](bool do_save, std::string val)
+				{
+					if (do_save)
+						igd::active_workspace->active_element->SaveAsWidget(val);
+				});
+				
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Delete##property_delete", { width, 45}))
 				igd::active_workspace->active_element->Delete();
 			}
 			ImGui::EndTabItem();
