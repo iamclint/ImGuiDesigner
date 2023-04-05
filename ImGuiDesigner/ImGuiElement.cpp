@@ -280,7 +280,7 @@ nlohmann::json ImGuiElement::GetJsonWithChildren()
 	return main_obj;
 }
 
-void ImGuiElement::SaveAsWidget(std::string name)
+void ImGuiElement::SaveAsWidget(std::string name, std::string desc)
 {
 	//if (children.size() == 0)
 	//	return;
@@ -301,6 +301,8 @@ void ImGuiElement::SaveAsWidget(std::string name)
 	std::ofstream file;
 	file.open("widgets/" + name + ".wgd");
 	nlohmann::json main_obj = GetJsonWithChildren();
+	main_obj["obj"]["desc"] = desc;
+	main_obj["obj"]["name"] = name;
 	file << main_obj.dump() << std::endl;
 	file.close();
 	std::cout << "Saved to widgets/" + name +".igd" << std::endl;

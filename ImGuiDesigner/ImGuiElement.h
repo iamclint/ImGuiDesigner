@@ -239,7 +239,7 @@ public:
 	void Redo();
 	void Undo();
 	void PushUndo();
-	void SaveAsWidget(std::string name);
+	void SaveAsWidget(std::string name, std::string desc);
 	void PushStyleColor(ImGuiCol idx, const ImVec4& col, void* ws = nullptr);
 	void PushStyleVar(ImGuiStyleVar idx, float val, void* ws = nullptr);
 	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val, void* ws = nullptr);

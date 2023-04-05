@@ -569,68 +569,85 @@ void Properties::OnUIRender() {
 		}
 		if (ImGui::BeginTabItem("Properties"))
 		{
-		if (igd::active_workspace->active_element)
-		{
-			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (ImGui::TreeNode("General"))
+			if (igd::active_workspace->active_element)
 			{
-				General();
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Element Specific"))
-			{
-				ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
-
-				igd::active_workspace->active_element->RenderPropertiesInternal();
-				ImGui::EndTable();
-				ImGui::TreePop();
-			}
-			if (igd::active_workspace->active_element->v_colors.size() > 0)
-			{
-				if (ImGui::TreeNode("Colors"))
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+				if (ImGui::TreeNode("General"))
 				{
-					Colors();
+					General();
 					ImGui::TreePop();
 				}
-			}
-			if (igd::active_workspace->active_element->v_styles.size() > 0)
-			{
-				if (ImGui::TreeNode("Styles"))
+				if (ImGui::TreeNode("Element Specific"))
 				{
-					Styles();
+					ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
+
+					igd::active_workspace->active_element->RenderPropertiesInternal();
+					ImGui::EndTable();
 					ImGui::TreePop();
 				}
-			}
-			if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
-			{
-				if (ImGui::TreeNode("Flags"))
+				if (igd::active_workspace->active_element->v_colors.size() > 0)
 				{
-					Flags();
-					ImGui::TreePop();
+					if (ImGui::TreeNode("Colors"))
+					{
+						Colors();
+						ImGui::TreePop();
+					}
 				}
-			}
-
-			ImGui::Separator();
-			ImVec2 b_size = ImGui::GetContentRegionAvail();
-			float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
-			if (ImGui::Button("Save as Widget##Json_Save", { width, 45 }))
-			{
-				igd::notifications->InputText("Widget Name", "Enter a name for this widget", "", { "Save", "Cancel" }, [](bool do_save, std::string val)
+				if (igd::active_workspace->active_element->v_styles.size() > 0)
 				{
-					if (do_save)
-						igd::active_workspace->active_element->SaveAsWidget(val);
-				});
-				
-			}
+					if (ImGui::TreeNode("Styles"))
+					{
+						Styles();
+						ImGui::TreePop();
+					}
+				}
+				if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
+				{
+					if (ImGui::TreeNode("Flags"))
+					{
+						Flags();
+						ImGui::TreePop();
+					}
+				}
 
-			ImGui::SameLine();
-			if (ImGui::Button("Delete##property_delete", { width, 45}))
-				igd::active_workspace->active_element->Delete();
 			}
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
 	}
+
+		float button_height = 45;
+		ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetContentRegionMax().y - GImGui->Style.FramePadding.y - button_height });
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+		if (ImGui::Button("Save as Widget##Json_Save", { width, button_height }))
+		{
+			igd::notifications->InputText("Widget Name", "Enter a name for this widget", "", { "Continue", "Cancel" }, [](bool do_save, std::string name)
+				{
+					if (do_save)
+					{
+						igd::notifications->InputText("Widget Description", "Short Description", "", { "Save", "Cancel" }, [name](bool do_save, std::string desc)
+							{
+								igd::active_workspace->active_element->SaveAsWidget(name, desc);
+							});
+
+					}
+
+				});
+
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("When you save as a widget it will save all of its children as well");
+			ImGui::EndTooltip();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete##property_delete", { width, button_height }))
+			igd::active_workspace->active_element->Delete();
+	
+
 		ImGui::End();
 
 	

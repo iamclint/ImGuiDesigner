@@ -8,6 +8,13 @@
 #include <fstream>
 #include "igd_elements.h"
 
+
+
+ToolBar::ToolBar()
+{
+
+}
+
 template<typename T>
 bool ToolBar::Tool(std::string name, float width)
 {
@@ -58,38 +65,81 @@ void ToolBar::RenderElements()
 	this->Tool<igd::TabItem>("TabItem", width);
 	this->Tool<igd::Texture>("Texture", width);
 }
-void ToolBar::RenderCustomWidgets()
-{
 
-	//iterate all files in widgets folder
+void ToolBar::UpdateWidgets()
+{
 	for (auto& p : std::filesystem::directory_iterator(igd::startup_path.string() + "/widgets"))
 	{
 		if (p.path().extension() == ".wgd")
 		{
-			if (ImGui::Button(p.path().filename().stem().string().c_str(), { 140, 0 }))
+			//if path doesn't exist in widgets map, load it
+			if (widgets.find(p.path()) == widgets.end())
 			{
-				//load the file
-				igd::active_workspace->load(p.path());
-			}
-			if (ImGui::BeginPopupContextItem(p.path().filename().string().c_str()))
-			{
-				if (ImGui::MenuItem("Add"))
+				std::ifstream i(p.path().string());
+				nlohmann::json j;
+				i >> j;
+				try
 				{
-					igd::active_workspace->load(p.path());
+					widgets[p.path()] = widget(p.path(), j["obj"]["name"], j["obj"]["desc"], nullptr);
 				}
-				if (ImGui::MenuItem("Delete"))
+				catch (nlohmann::json::exception& ex)
 				{
-					igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + p.path().filename().string(), "", [p](bool conf) {
-						if (conf)
-						{
-							std::filesystem::remove(p.path());
-						}
-						});
+					widgets[p.path()] = widget(p.path(), "", "", nullptr);
+					igd::notifications->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					std::cerr << "parse error at byte " << ex.what() << std::endl;
 				}
-				ImGui::EndPopup();
+				catch (nlohmann::json::parse_error& ex)
+				{
+					widgets[p.path()] = widget(p.path(), "", "", nullptr);
+					igd::notifications->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+				}
 			}
 		}
+	}
+}
 
+
+void ToolBar::RenderCustomWidgets()
+{
+	UpdateWidgets();
+	//iterate all files in widgets folder
+	for (int i = 0;auto& [path, w] : widgets)
+	{
+		std::string name= w.file.filename().stem().string();
+		if (w.name != "")
+			name = w.name + "##" + w.name + std::to_string(i);
+		if (ImGui::Button(name.c_str(), { 140, 0 }))
+		{
+			igd::active_workspace->load(w.file);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text(w.desc.c_str());
+			ImGui::EndTooltip();
+		}
+
+		if (ImGui::BeginPopupContextItem(name.c_str()))
+		{
+			if (ImGui::MenuItem("Add"))
+			{
+				igd::active_workspace->load(w.file);
+			}
+			if (ImGui::MenuItem("Delete"))
+			{
+				igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + w.file.filename().string(), "", [w, this](bool conf) {
+					if (conf)
+					{
+						std::filesystem::remove(w.file);
+						//remove from map
+						widgets.erase(w.file);
+					}
+					});
+			}
+			ImGui::EndPopup();
+		}
+		i++;
 	}
 }
 void ToolBar::OnUIRender() {
