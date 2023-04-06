@@ -32,14 +32,14 @@ ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement
 			return igd::element_load_functions[obj["type"]](parent, obj);
 		else
 		{
-			igd::notifications->GenericNotification("Error", "Unknown element type: " + obj["type"].get<std::string>());
+			igd::dialogs->GenericNotification("Error", "Unknown element type: " + obj["type"].get<std::string>());
 			return nullptr;
 		}
 	}
 	catch (nlohmann::json::exception ex)
 	{
 		std::cout << "Error parsing json: " << ex.what() << std::endl;
-		igd::notifications->GenericNotification("Error parsing json", ex.what());
+		igd::dialogs->GenericNotification("Error parsing json", ex.what());
 	}
 	return nullptr;
 }
@@ -314,7 +314,7 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base, bool force_sel
 			}
 			else
 			{
-				igd::notifications->GenericNotification("Error", "Cannot add this element to " + this->active_element->v_id + " as it is the base element");
+				igd::dialogs->GenericNotification("Error", "Cannot add this element to " + this->active_element->v_id + " as it is the base element");
 			}
 		}
 		else
@@ -365,7 +365,7 @@ void GetAllChildren(nlohmann::json j, ImGuiElement* parent)
 	}
 	catch (nlohmann::json::exception& ex)
 	{
-		igd::notifications->GenericNotification("Error parsing json", ex.what());
+		igd::dialogs->GenericNotification("Error parsing json", ex.what());
 	}
 }
 
@@ -374,7 +374,7 @@ void WorkSpace::load(std::filesystem::path path)
 
 	if (!igd::active_workspace)
 	{
-		igd::notifications->GenericNotification("Load Error", "No active workspace");
+		igd::dialogs->GenericNotification("Load Error", "No active workspace");
 		return;
 	}
 	std::ifstream i(path.string());
@@ -404,12 +404,12 @@ void WorkSpace::load(std::filesystem::path path)
 	}
 	catch (nlohmann::json::exception& ex)
 	{
-		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.what() << std::endl;
 	}
 	catch (nlohmann::json::parse_error& ex)
 	{
-		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 	}
 }

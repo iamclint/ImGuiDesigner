@@ -2,7 +2,7 @@
 #include "Workspace.h"
 #include "Properties.h"
 #include "ToolBar.h"
-#include "Notifications.h"
+#include "Dialogs.h"
 #include "FontManager.h"
 #include <filesystem>
 #include "Walnut/Image.h"
@@ -27,7 +27,7 @@ namespace igd
 	void UnPressKey(ImGuiKey key);
 	void push_designer_theme();
 	void pop_designer_theme();
-	extern Notifications* notifications;
+	extern Dialogs* dialogs;
 	extern WorkSpace* active_workspace;
 	extern std::vector<WorkSpace*> workspaces;
 	extern Properties* properties;
@@ -38,5 +38,6 @@ namespace igd
 	extern std::filesystem::path startup_path;
 	extern std::string open_file;
 	extern ImFont* designer_font;
+	extern std::unordered_map<const char*, ImFont*>* designer_fonts;
 	void onUpdate();
 }

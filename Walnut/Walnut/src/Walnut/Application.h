@@ -33,7 +33,7 @@ namespace Walnut {
 		~Application();
 
 		static Application& Get();
-
+		
 		void Run();
 		void SetMenubarCallback(const std::function<void()>& menubarCallback) { m_MenubarCallback = menubarCallback; }
 		void SetUpdateLayerStackCallback(const std::function<void()>& updateLayerstackCallback) { m_UpdateLayerStackCallback = updateLayerstackCallback; }

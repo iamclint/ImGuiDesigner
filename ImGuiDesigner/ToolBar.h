@@ -16,7 +16,7 @@ class ToolBar : public Walnut::Layer
 {
 public:
 	template<typename T>
-	bool Tool(std::string name, float width);
+	bool Tool(std::string name, ImVec2 size);
 	void RenderElements();
 	void UpdateWidgets();
 	void RenderCustomWidgets();

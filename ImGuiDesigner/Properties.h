@@ -37,6 +37,6 @@ private:
 	bool modified;
 	
 	ImColor* active_color;
-	const float item_width = 160;
+	const float item_width = 140;
 	bool is_workspace;
 };

@@ -398,7 +398,7 @@ void Properties::Colors()
 			std::cout << "changed active color" << std::endl;
 			active_color = (ImColor*)&c.second;
 			if (igd::active_workspace->active_element->v_inherit_all_colors || c.second.inherit)
-				igd::notifications->Confirmation("Warning", "This element is inheriting its color from its parent, would you like to override it?", "", [&c, this](bool override) {
+				igd::dialogs->Confirmation("Warning", "This element is inheriting its color from its parent, would you like to override it?", "", [&c, this](bool override) {
 				if (override)
 				{
 					this->ForcePicker = true;
@@ -443,13 +443,19 @@ void Properties::Styles()
 		if (c.second.type == StyleVarType::Float)
 		{
 			if (ImGui::InputFloat(getPropertyId("style_" + std::string(ImGuiStyleVar_Strings[c.first])), (float*)&c.second.value.Float))
+			{
 				modified = true;
+				c.second.inherit = false;
+			}
 
 		}
 		else if (c.second.type == StyleVarType::Vec2)
 		{
 			if (ImGui::InputFloat2(getPropertyId("style_" + std::string(ImGuiStyleVar_Strings[c.first])), (float*)&c.second.value.Vec2))
+			{
 				modified = true;
+				c.second.inherit = false;
+			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Checkbox(("Inherit##" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
@@ -615,26 +621,18 @@ void Properties::OnUIRender() {
 		}
 		ImGui::EndTabBar();
 	}
-
-		float button_height = 45;
-		ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetContentRegionMax().y - GImGui->Style.FramePadding.y - button_height });
+	float button_height = 45;
+	ImGui::Dummy({ 0, ImGui::GetContentRegionAvail().y-button_height- GImGui->Style.FramePadding.y });
+		//ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetContentRegionMax().y - GImGui->Style.FramePadding.y - button_height });
 		ImVec2 b_size = ImGui::GetContentRegionAvail();
 		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
 		if (ImGui::Button("Save as Widget##Json_Save", { width, button_height }))
 		{
-			igd::notifications->InputText("Widget Name", "Enter a name for this widget", "", { "Continue", "Cancel" }, [](bool do_save, std::string name)
+			igd::dialogs->InputTextVec("Save as widget", { "name", "short description" }, "", { "Continue", "Cancel" }, [](bool do_save, std::vector<std::string> rval)
 				{
 					if (do_save)
-					{
-						igd::notifications->InputText("Widget Description", "Short Description", "", { "Save", "Cancel" }, [name](bool do_save, std::string desc)
-							{
-								igd::active_workspace->active_element->SaveAsWidget(name, desc);
-							});
-
-					}
-
+						igd::active_workspace->active_element->SaveAsWidget(rval[0], rval[1]);
 				});
-
 		}
 
 		if (ImGui::IsItemHovered())
@@ -701,7 +699,7 @@ void Properties::OnUIRender() {
 						}
 						if (delete_path.has_filename())
 						{
-							igd::notifications->Confirmation("Delete Palette", "Delete Palette " + delete_path.stem().string() + "?", "", [delete_path, this](bool rval) {
+							igd::dialogs->Confirmation("Delete Palette", "Delete Palette " + delete_path.stem().string() + "?", "", [delete_path, this](bool rval) {
 								if (rval)
 								{
 									std::filesystem::remove(delete_path);
@@ -715,13 +713,13 @@ void Properties::OnUIRender() {
 						}
 						if (ImGui::Selectable("New Palette"))
 						{
-							igd::notifications->InputText("New Palette", "Name your new palette", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
+							igd::dialogs->InputText("New Palette", "Name your new palette", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
 								if (save)
 								{
 									std::cout << "Saving palette " << name << std::endl;
 									std::filesystem::path path = "palettes/" + name + ".igp";
 									if (std::filesystem::exists(path))
-										igd::notifications->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + path.string(), "", [path, this](bool result) {
+										igd::dialogs->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + path.string(), "", [path, this](bool result) {
 											if (result)
 											{
 												this->color_palette_colors.clear();
@@ -764,7 +762,7 @@ void Properties::OnUIRender() {
 						}
 						if (this->color_palette.has_filename() && ColorSelector(*active_color, "Add to Palette"))
 						{
-							igd::notifications->InputText("Color Name", "Name for color", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
+							igd::dialogs->InputText("Color Name", "Name for color", "", { "Save", "Cancel" }, [this](bool save, std::string name) {
 								if (save)
 								{
 									this->color_palette_colors.push_back({ name, *this->active_color });
@@ -775,7 +773,7 @@ void Properties::OnUIRender() {
 	
 						ImGui::EndTable();
 					}
-					igd::notifications->OnUIRender();
+					igd::dialogs->OnUIRender();
 					if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 					{
 						igd::UnPressKey(ImGuiKey_Enter);
@@ -812,12 +810,12 @@ void Properties::LoadPalette(std::filesystem::path palette_path)
 	}
 	catch (nlohmann::json::exception& ex)
 	{
-		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.what() << std::endl;
 	}
 	catch (nlohmann::json::parse_error& ex)
 	{
-		igd::notifications->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
+		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 	}
 }

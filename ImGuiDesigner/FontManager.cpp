@@ -220,6 +220,11 @@ ElementFont* FontManager::GetFont(std::string name, int size)
 	else
 		return &this->LoadedFonts[name + ":" + std::to_string(size)];
 }
+void FontManager::LoadFont(void* font_data, int font_data_size, std::string name, int size, ImGuiElement* element)
+{
+	this->FontsToLoad.push_back({ font_data, font_data_size, name, size, element });
+	this->fonts_need_loaded = true;
+}
 void FontManager::LoadFont(std::filesystem::path path, int size, ImGuiElement* element)
 {
 	//check if font exists in loadedfonts map
@@ -248,12 +253,17 @@ void FontManager::OnUpdate(float ssa)
 	{
 		for (int i = 0; auto & f : this->FontsToLoad)
 		{
+			
 			if (!this->LoadedFonts[f.map_name].font)
 			{
 				std::cout << "Loading font: " << f.name << " " << f.path << std::endl;
-				LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), (float)f.size);
+				ImFontConfig config;
+				config.FontDataOwnedByAtlas = false;
+				if (f.font_data_size != 0)
+					LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(f.font_data, f.font_data_size, (float)f.size, &config);
+				else
+					LoadedFonts[f.map_name].font = ImGui::GetIO().Fonts->AddFontFromFileTTF(f.path.string().c_str(), (float)f.size, &config);
 			}
-
 			if (f.element)
 			{
 				f.element->v_font.name = f.name;

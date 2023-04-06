@@ -8,7 +8,7 @@
 #include <fstream>
 #include <filesystem>
 #include <random>
-#include "Notifications.h"
+#include "Dialogs.h"
 #include <boost/algorithm/string.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
 
@@ -111,7 +111,7 @@ void GetAllChildren(ImGuiElement* parent,nlohmann::json& pjson)
 		catch (nlohmann::json::exception& e)
 		{
 			std::cout << "exception: " << e.what() << std::endl;
-			igd::notifications->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
+			igd::dialogs->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
 		}
 		if (e->v_can_have_children)
 		{
@@ -186,7 +186,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 			{
 				std::filesystem::path font_path = igd::font_manager->FindFont(v_font.name);
 				if (font_path.string() == "") //unable to locate font in filesystem
-					igd::notifications->GenericNotification("Error", "Unable to locate font [" + v_font.name + "] in filesystem. Please check your font manager.");
+					igd::dialogs->GenericNotification("Error", "Unable to locate font [" + v_font.name + "] in filesystem. Please check your font manager.");
 				else
 				{
 					igd::font_manager->LoadFont(font_path, v_font.size, this);
@@ -197,7 +197,7 @@ void ImGuiElement::StylesColorsFromJson(nlohmann::json& j)
 	}
 	catch (nlohmann::json::exception& e)
 	{
-		igd::notifications->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
+		igd::dialogs->GenericNotification("Json Error", e.what(), "", "Ok", []() {});
 	}
 }
 nlohmann::json ImGuiElement::ColorToJson(ImVec4 col)
@@ -295,7 +295,7 @@ void ImGuiElement::SaveAsWidget(std::string name, std::string desc)
 	if (std::filesystem::exists("widgets/" + name + ".wgd"))
 	{
 		//if it does, do something
-		igd::notifications->GenericNotification("File already exists", "Please choose a new id for this widget", "", "Ok", []() { std::cout << "Yay" << std::endl; });
+		igd::dialogs->GenericNotification("File already exists", "Please choose a new id for this widget", "", "Ok", []() { std::cout << "Yay" << std::endl; });
 		return;
 	}
 	std::ofstream file;
@@ -369,9 +369,9 @@ void ImGuiElement::KeyMove()
 void ImGuiElement::KeyBinds()
 {
 
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive() && !igd::notifications->IsShowing())
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
 	{
-		igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + this->v_id, "", [this](bool conf) {
+		igd::dialogs->Confirmation("Delete", "Are you sure you wish to delete " + this->v_id, "", [this](bool conf) {
 			if (!conf)
 				return;
 			if (this->children.size() > 0)
@@ -382,7 +382,7 @@ void ImGuiElement::KeyBinds()
 			this->Delete();
 		});
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::notifications->IsShowing())
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
 		{
 		igd::active_workspace->active_element = nullptr;
 	}

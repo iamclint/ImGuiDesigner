@@ -16,7 +16,7 @@ ToolBar::ToolBar()
 }
 
 template<typename T>
-bool ToolBar::Tool(std::string name, float width)
+bool ToolBar::Tool(std::string name, ImVec2 size)
 {
 	T ref_element;
 	ImGuiElement* ref = (ImGuiElement*)&ref_element;
@@ -27,11 +27,11 @@ bool ToolBar::Tool(std::string name, float width)
 		return false;
 
 	if (!active || !active->v_element_filter || (active->v_element_filter && (active->v_element_filter & ref->v_type_id)))
-		if (ImGui::Button(name.c_str(), { width, 0 }))
+		if (ImGui::Button(name.c_str(), size))
 		{
 			if (ref->v_type_id == (int)element_type::texture)
 			{
-				igd::notifications->OpenFile([ref](std::string file) {
+				igd::dialogs->OpenFile([ref](std::string file) {
 					igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Texture(file)), false, ref->v_auto_select);
 				}, "*.png\0*.jpg\0All Files(*.*)\0 * .*\0");
 			}
@@ -47,23 +47,23 @@ void ToolBar::RenderElements()
 {
 
 
-	float width = 140;
+	ImVec2 size = { 140, 30 };
 
-	this->Tool<igd::ChildWindow>("Child Window", width);
-	this->Tool<igd::Button>("Button", width);
-	this->Tool<igd::InputText>("Input Text", width);
-	this->Tool<igd::InputInt>("Input Int", width);
-	this->Tool<igd::SliderInt>("Slider Int", width);
-	this->Tool<igd::InputFloat>("Input Float", width);
-	this->Tool<igd::SliderFloat>("Slider Float", width);
-	this->Tool<igd::CheckBox>("Checkbox", width);
-	this->Tool<igd::Text>("Text", width);
-	this->Tool<igd::Separator>("Separator", width);
-	this->Tool<igd::Combo>("Combo", width);
-	this->Tool<igd::Selectable>("Selectable", width);
-	this->Tool<igd::TabBar>("TabBar", width);
-	this->Tool<igd::TabItem>("TabItem", width);
-	this->Tool<igd::Texture>("Texture", width);
+	this->Tool<igd::ChildWindow>("Child Window", size);
+	this->Tool<igd::Button>("Button", size);
+	this->Tool<igd::InputText>("Input Text", size);
+	this->Tool<igd::InputInt>("Input Int", size);
+	this->Tool<igd::SliderInt>("Slider Int", size);
+	this->Tool<igd::InputFloat>("Input Float", size);
+	this->Tool<igd::SliderFloat>("Slider Float", size);
+	this->Tool<igd::CheckBox>("Checkbox", size);
+	this->Tool<igd::Text>("Text", size);
+	this->Tool<igd::Separator>("Separator", size);
+	this->Tool<igd::Combo>("Combo", size);
+	this->Tool<igd::Selectable>("Selectable", size);
+	this->Tool<igd::TabBar>("TabBar", size);
+	this->Tool<igd::TabItem>("TabItem", size);
+	this->Tool<igd::Texture>("Texture", size);
 }
 
 void ToolBar::UpdateWidgets()
@@ -85,13 +85,13 @@ void ToolBar::UpdateWidgets()
 				catch (nlohmann::json::exception& ex)
 				{
 					widgets[p.path()] = widget(p.path(), "", "", nullptr);
-					igd::notifications->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.what() << std::endl;
 				}
 				catch (nlohmann::json::parse_error& ex)
 				{
 					widgets[p.path()] = widget(p.path(), "", "", nullptr);
-					igd::notifications->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 				}
 			}
@@ -128,7 +128,7 @@ void ToolBar::RenderCustomWidgets()
 			}
 			if (ImGui::MenuItem("Delete"))
 			{
-				igd::notifications->Confirmation("Delete", "Are you sure you wish to delete " + w.file.filename().string(), "", [w, this](bool conf) {
+				igd::dialogs->Confirmation("Delete", "Are you sure you wish to delete " + w.file.filename().string(), "", [w, this](bool conf) {
 					if (conf)
 					{
 						std::filesystem::remove(w.file);
@@ -153,9 +153,6 @@ void ToolBar::OnUIRender() {
 	else
 		return;
 	
-	static char* buf =new char[25];
-	memset(buf, 0, 25);
-	strcpy_s(buf, 25, "Input Text");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 
@@ -186,7 +183,7 @@ void ToolBar::OnUIRender() {
 		this->RenderElements();
 		ImGui::EndTabItem();
 	}
-	if (ImGui::BeginTabItem("Custom Widgets"))
+	if (ImGui::BeginTabItem("Widgets"))
 	{
 		this->RenderCustomWidgets();
 		ImGui::EndTabItem();

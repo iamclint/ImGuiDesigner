@@ -134,7 +134,7 @@ namespace igd
 			//check if file exists using filesystem
 			if (!std::filesystem::exists(data["path"]))
 			{
-				igd::notifications->GenericNotification("Error loading texture", "The texture file " + std::string(data["path"]) + " does not exist");
+				igd::dialogs->GenericNotification("Error loading texture", "The texture file " + std::string(data["path"]) + " does not exist");
 				return nullptr;
 			}
 			igd::Texture* b = new igd::Texture(data["path"]);

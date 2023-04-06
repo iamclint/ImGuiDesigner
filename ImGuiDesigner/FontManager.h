@@ -8,6 +8,8 @@ class ImGuiElement;
 
 struct ElementFont
 {
+	void* font_data;
+	int font_data_size;
 	std::string name;
 	std::string map_name;
 	std::filesystem::path path;
@@ -15,7 +17,17 @@ struct ElementFont
 	ImGuiElement* element;
 	ImFont* font;
 	
-	ElementFont() : font(nullptr), element(nullptr), size(20), path(""), name(""), map_name("") {}
+	ElementFont() : font(nullptr), element(nullptr), size(20), path(""), name(""), map_name(""), font_data(nullptr), font_data_size(0) {}
+	ElementFont(void* font_data, int font_data_size, std::string name, int size, ImGuiElement* element)
+	{
+		this->name = name;
+		this->map_name = name + ":" + std::to_string(size);
+		this->path = "";
+		this->font_data = font_data;
+		this->font_data_size = font_data_size;
+		this->size = size;
+		this->element = element;
+	}
 	ElementFont(std::filesystem::path path, int size, ImGuiElement* element)
 	{
 		this->name = path.filename().string();
@@ -23,6 +35,8 @@ struct ElementFont
 		this->path = path;
 		this->size = size;
 		this->element = element;
+		this->font_data = nullptr;
+		this->font_data_size = 0;
 	}
 };
 
@@ -54,6 +68,7 @@ public:
 	virtual void OnUIRender() override;
 	ElementFont* GetFont(std::string name, int size);
 	void LoadFont(std::filesystem::path path, int size, ImGuiElement* element);
+	void LoadFont(void* font_data, int font_data_size, std::string name, int size, ImGuiElement* element);
 	void UpdateFonts();
 	std::filesystem::path FindFont(std::string name);
 	std::vector<std::pair<std::string, Font>> AvailableFonts;

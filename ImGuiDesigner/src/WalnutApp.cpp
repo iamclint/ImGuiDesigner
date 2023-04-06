@@ -9,6 +9,7 @@
 #include "..\logo.embed"
 #include "..\..\Walnut\vendor\stb_image\stb_image.h"
 #include "..\arial.embed"
+#include "..\corbel.embed"
 #include <iostream>
 
 namespace igd
@@ -16,7 +17,7 @@ namespace igd
 	WorkSpace* active_workspace;
 	std::vector<WorkSpace*> workspaces;
 	Properties* properties;
-	Notifications* notifications;
+	Dialogs* dialogs;
 	Walnut::Application* app;
 	bool add_workspace = false;
 	std::string open_file="";
@@ -25,6 +26,7 @@ namespace igd
 	FontManager* font_manager;
 	std::filesystem::path startup_path;
 	ImFont* designer_font;
+	std::unordered_map<const char*, ImFont*>* designer_fonts;
 
 	void onUpdate()
 	{
@@ -154,9 +156,9 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "ImGui Designer";
 	spec.Width = 1600;
 	spec.Height = 800;
-	spec.Font = (void*)embedded::arial;
-	spec.FontDataSize = sizeof(embedded::arial);
-	spec.FontSize = 17;
+	spec.Font = (void*)embedded::corbel;
+	spec.FontDataSize = sizeof(embedded::corbel);
+	spec.FontSize = 16;
 	igd::app = new Walnut::Application(spec);
 	
 
@@ -167,17 +169,19 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
-	std::shared_ptr<Notifications> notifications = std::make_shared<Notifications>();
+	std::shared_ptr<Dialogs> dialogs = std::make_shared<Dialogs>();
 	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
+	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 20, nullptr);
+	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 24, nullptr);
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();
-	igd::notifications = notifications.get();
+	igd::dialogs = dialogs.get();
 	igd::font_manager = font_manager.get();
 	igd::app->PushLayer<ToolBar>();
 	igd::app->PushLayer(work);
 	igd::app->PushLayer(properties);
-	igd::app->PushLayer(notifications);
+	igd::app->PushLayer(dialogs);
 	igd::app->PushLayer(font_manager);
 	igd::app->SetUpdateLayerStackCallback(update_layer_stack);
 	igd::font_manager->UpdateFonts();
@@ -187,16 +191,16 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 		{
 			if (ImGui::MenuItem("Open"))
 			{
-				igd::notifications->OpenFile([](std::string file) {
+				igd::dialogs->OpenFile([](std::string file) {
 					igd::open_file = file;
 					igd::add_workspace = true;
 				});
 			}
 			if (ImGui::MenuItem("Save"))
 			{
-				igd::notifications->SaveFile([](std::string file) {
+				igd::dialogs->SaveFile([](std::string file) {
 					if (std::filesystem::exists(file))
-					igd::notifications->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
+					igd::dialogs->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
 						if (result)
 							igd::active_workspace->Save(file);
 					});
