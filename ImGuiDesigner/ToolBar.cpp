@@ -20,7 +20,7 @@ bool ToolBar::Tool(std::string name, ImVec2 size)
 {
 	T ref_element;
 	ImGuiElement* ref = (ImGuiElement*)&ref_element;
-	ImGuiElement* active = igd::active_workspace->active_element;
+	ImGuiElement* active = igd::active_workspace->GetSingleSelection();
 	if (ref->v_parent_required_id && !active)
 		return false;
 	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & active->v_type_id))

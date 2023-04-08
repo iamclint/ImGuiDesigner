@@ -129,10 +129,10 @@ namespace igd
 			if (new_id.find("##") != std::string::npos)
 				new_id = new_id.substr(0, new_id.find("##") + 2);
 
-			if (active_workspace->active_element->v_can_have_children)
-				new_element->v_parent = active_workspace->active_element;
+			if (igd::active_workspace->GetSingleSelection()->v_can_have_children)
+				new_element->v_parent = igd::active_workspace->GetSingleSelection();
 			else
-				new_element->v_parent = active_workspace->active_element->v_parent;
+				new_element->v_parent = igd::active_workspace->GetSingleSelection()->v_parent;
 
 			new_element->v_id = new_id + RandomID();
 			new_element->children.clear();
@@ -177,7 +177,8 @@ namespace igd
 			//igd::pop_designer_theme(); //only around begin so the title bar matches designers theme
 			if (ImGui::IsWindowAppearing())
 			{
-				igd::active_workspace->active_element = nullptr;
+
+				igd::active_workspace->selected_elements.clear();
 				for (auto& ws : igd::workspaces)
 					if (ws->basic_workspace_element==this)
 						igd::active_workspace = ws;

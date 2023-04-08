@@ -30,14 +30,14 @@ void Properties::getChildParents(ImGuiElement* parent)
 {
 	for (auto& element : parent->children)
 	{
-		if (element == igd::active_workspace->active_element || !element->v_can_have_children || element->delete_me)
+		if (element == igd::active_workspace->GetSingleSelection() || !element->v_can_have_children || element->delete_me)
 			continue;
 		if (element->children.size() > 0)
 			getChildParents(element);
 		if (ImGui::Selectable(element->v_id.c_str()))
 		{
-			igd::active_workspace->active_element->PushUndo();
-			igd::active_workspace->active_element->v_parent = element;
+			igd::active_workspace->GetSingleSelection()->PushUndo();
+			igd::active_workspace->GetSingleSelection()->v_parent = element;
 		}
 	}
 }
@@ -45,12 +45,12 @@ void Properties::getAllChildren(ImGuiElement* parent)
 {
 	for (auto& element : parent->children)
 	{
-		if (element == igd::active_workspace->active_element || element->delete_me)
+		if (element == igd::active_workspace->GetSingleSelection() || element->delete_me)
 			continue;
 		if (element->children.size() > 0)
 			getAllChildren(element);
 		if (ImGui::Selectable(element->v_id.c_str()))
-			igd::active_workspace->active_element = element;
+			igd::active_workspace->SetSingleSelection(element);
 	}
 }
 std::vector<std::string> GetIDSplit(std::string id)
@@ -86,7 +86,7 @@ void Properties::buildTree(ImGuiElement* current_element)
 	int flags = 0;
 	if (current_element->children.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
-	if (igd::active_workspace->active_element == current_element)
+	if (igd::active_workspace->GetSingleSelection() == current_element)
 		flags |= ImGuiTreeNodeFlags_Selected;
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	
@@ -103,7 +103,7 @@ void Properties::buildTree(ImGuiElement* current_element)
 	bool IsOpen = ImGui::TreeNodeEx(ss.str().c_str(), flags);
 	{
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			igd::active_workspace->active_element = current_element;
+			igd::active_workspace->SetSingleSelection(current_element);
 		if (ImGui::BeginDragDropTarget()) {
 
 			ImGuiElement* source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);
@@ -193,7 +193,7 @@ void Properties::OnUpdate(float f)
 }
 const char* getPropertyId(std::string name)
 {
-	return ("##property_" + name + "_" + igd::active_workspace->active_element->v_id).c_str();
+	return ("##property_" + name + "_" + igd::active_workspace->GetSingleSelection()->v_id).c_str();
 }
 void Properties::General()
 {
@@ -201,26 +201,26 @@ void Properties::General()
 	//ImGui::Image(img.GetDescriptorSet(), { (float)img.GetWidth(), (float)img.GetHeight() });
 
 	ImGui::BeginTable("PropertiesTable", 2, ImGuiTableFlags_SizingFixedFit);
-	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_id))
+	if (!(igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::no_id))
 	{
 		PropertyLabel("ID:");
 		ImGui::PushItemWidth(item_width);
-		ImGui::InputText("##property_id", &igd::active_workspace->active_element->v_id);
+		ImGui::InputText("##property_id", &igd::active_workspace->GetSingleSelection()->v_id);
 	}
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::label)
+	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::label)
 	{
 		PropertyLabel("Label:");
 		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputText(getPropertyId("label"), &igd::active_workspace->active_element->v_label))
+		if (ImGui::InputText(getPropertyId("label"), &igd::active_workspace->GetSingleSelection()->v_label))
 		{
-			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
 	}
 
 
 	PropertyLabel("Font:");
 	ImGui::PushItemWidth(item_width);
-	std::filesystem::path font_path = igd::active_workspace->active_element->v_font.path;
+	std::filesystem::path font_path = igd::active_workspace->GetSingleSelection()->v_font.path;
 	static bool do_update = false;
 	if (ImGui::BeginCombo(getPropertyId("font"), font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
 	{
@@ -232,9 +232,9 @@ void Properties::General()
 
 		if (ImGui::Selectable("Inherit"))
 		{
-			igd::active_workspace->active_element->v_font.name = "";
-			igd::active_workspace->active_element->v_font.font = nullptr;
-			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->GetSingleSelection()->v_font.name = "";
+			igd::active_workspace->GetSingleSelection()->v_font.font = nullptr;
+			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
 		//std::vector<std::pair<std::string, Font>> A;
 		//for (auto& f : igd::font_manager->AvailableFonts)
@@ -260,7 +260,7 @@ void Properties::General()
 				
 				if (clicked)
 				{
-					igd::font_manager->LoadFont(f._path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
+					igd::font_manager->LoadFont(f._path, igd::active_workspace->GetSingleSelection()->v_font.size, igd::active_workspace->GetSingleSelection());
 				}
 			}
 		}
@@ -271,51 +271,51 @@ void Properties::General()
 
 	PropertyLabel("Font Size:");
 	ImGui::PushItemWidth(item_width);
-	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->active_element->v_font.size, 0, 0) && igd::active_workspace->active_element->v_font.size > 0 && igd::active_workspace->active_element->v_font.font)
-		igd::font_manager->LoadFont(igd::active_workspace->active_element->v_font.path, igd::active_workspace->active_element->v_font.size, igd::active_workspace->active_element);
+	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->GetSingleSelection()->v_font.size, 0, 0) && igd::active_workspace->GetSingleSelection()->v_font.size > 0 && igd::active_workspace->GetSingleSelection()->v_font.font)
+		igd::font_manager->LoadFont(igd::active_workspace->GetSingleSelection()->v_font.path, igd::active_workspace->GetSingleSelection()->v_font.size, igd::active_workspace->GetSingleSelection());
 
-	if (!(igd::active_workspace->active_element->v_property_flags & property_flags::no_resize))
+	if (!(igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::no_resize))
 	{
 		PropertyLabel("Size:");
 		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputFloat2(getPropertyId("size"), (float*)&igd::active_workspace->active_element->v_size.value))
+		if (ImGui::InputFloat2(getPropertyId("size"), (float*)&igd::active_workspace->GetSingleSelection()->v_size.value))
 		{
-			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
 		ImGui::SameLine();
-		bool checked = igd::active_workspace->active_element->v_size.type == Vec2Type::Relative;
+		bool checked = igd::active_workspace->GetSingleSelection()->v_size.type == Vec2Type::Relative;
 		if (ImGui::Checkbox("%##size_pct", &checked))
 		{
 			if (!checked)
-				igd::active_workspace->active_element->v_size.type = Vec2Type::Absolute;
+				igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Absolute;
 			else
-				igd::active_workspace->active_element->v_size.type = Vec2Type::Relative;
+				igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Relative;
 		}
 	}
 
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::pos)
+	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::pos)
 	{
 		PropertyLabel("Position:");
 		ImGui::PushItemWidth(item_width);
-		if (ImGui::InputFloat2(getPropertyId("pos"), (float*)&igd::active_workspace->active_element->v_pos.value))
+		if (ImGui::InputFloat2(getPropertyId("pos"), (float*)&igd::active_workspace->GetSingleSelection()->v_pos.value))
 		{
-			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
 		ImGui::SameLine();
-		bool checked = igd::active_workspace->active_element->v_pos.type == Vec2Type::Relative;
+		bool checked = igd::active_workspace->GetSingleSelection()->v_pos.type == Vec2Type::Relative;
 		if (ImGui::Checkbox("%##pos_pct", &checked))
 		{
 			if (!checked)
-				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
+				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Absolute;
 			else
-				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
+				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Relative;
 		}
-		/*if (ImGui::BeginTabBar(getPropertyId("pos_type"), igd::active_workspace->active_element->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
+		/*if (ImGui::BeginTabBar(getPropertyId("pos_type"), igd::active_workspace->GetSingleSelection()->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
 		{
 			if (ImGui::Selectable("Absolute"))
-				igd::active_workspace->active_element->v_pos.type = Vec2Type::Absolute;
+				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Absolute;
 			if (ImGui::Selectable("Relative (%)"))
-				igd::active_workspace->active_element->v_pos.type = Vec2Type::Relative;
+				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Relative;
 			ImGui::EndTabBar();
 		}*/
 	}
@@ -323,25 +323,25 @@ void Properties::General()
 	if (!is_workspace)
 	{
 		PropertyLabel("Sameline:");
-		ImGui::Checkbox("##property_sameline", &igd::active_workspace->active_element->v_sameline);
+		ImGui::Checkbox("##property_sameline", &igd::active_workspace->GetSingleSelection()->v_sameline);
 	}
 
 	
 	if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
 	{
 		modified = false;
-		igd::active_workspace->active_element->PushUndo();
+		igd::active_workspace->GetSingleSelection()->PushUndo();
 	}
-	if (igd::active_workspace->active_element->v_property_flags & property_flags::disabled && !is_workspace)
+	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::disabled && !is_workspace)
 	{
 		PropertyLabel("Disabled:");
-		if (ImGui::Checkbox("##property_disabled", &igd::active_workspace->active_element->v_disabled))
+		if (ImGui::Checkbox("##property_disabled", &igd::active_workspace->GetSingleSelection()->v_disabled))
 		{
-			igd::active_workspace->active_element->PushUndo();
+			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
 	}
 
-//	if (igd::active_workspace->active_element->v_can_have_children && igd::active_workspace->active_element->children.size() > 0)
+//	if (igd::active_workspace->GetSingleSelection()->v_can_have_children && igd::active_workspace->GetSingleSelection()->children.size() > 0)
 //	{
 //	}
 	if (ImGui::IsItemHovered())
@@ -370,14 +370,14 @@ bool Properties::ColorSelector(ImVec4 color, std::string title)
 void Properties::Colors()
 {
 	ImGui::BeginTable("PropertiesTableColors", 2, ImGuiTableFlags_SizingFixedFit);
-	if (igd::active_workspace->active_element->v_colors.size() > 0)
+	if (igd::active_workspace->GetSingleSelection()->v_colors.size() > 0)
 	{
 		ImGui::TableNextColumn();
-		if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &igd::active_workspace->active_element->v_inherit_all_colors))
+		if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &igd::active_workspace->GetSingleSelection()->v_inherit_all_colors))
 			modified = true;
 		ImGui::TableNextColumn();
 	}
-	for (auto& c : igd::active_workspace->active_element->v_colors)
+	for (auto& c : igd::active_workspace->GetSingleSelection()->v_colors)
 	{
 		PropertyLabel(ImGui::GetStyleColorName(c.first));
 		ImGui::PushItemWidth(item_width);
@@ -397,12 +397,12 @@ void Properties::Colors()
 		{
 			std::cout << "changed active color" << std::endl;
 			active_color = (ImColor*)&c.second;
-			if (igd::active_workspace->active_element->v_inherit_all_colors || c.second.inherit)
+			if (igd::active_workspace->GetSingleSelection()->v_inherit_all_colors || c.second.inherit)
 				igd::dialogs->Confirmation("Warning", "This element is inheriting its color from its parent, would you like to override it?", "", [&c, this](bool override) {
 				if (override)
 				{
 					this->ForcePicker = true;
-					igd::active_workspace->active_element->v_inherit_all_colors = false;
+					igd::active_workspace->GetSingleSelection()->v_inherit_all_colors = false;
 					c.second.inherit = false;
 				}
 			});
@@ -427,16 +427,16 @@ void Properties::Colors()
 void Properties::Styles()
 {
 	ImGui::BeginTable("PropertiesTableStyles", 2, ImGuiTableFlags_SizingFixedFit);
-	if (igd::active_workspace->active_element->v_styles.size() > 0)
+	if (igd::active_workspace->GetSingleSelection()->v_styles.size() > 0)
 	{
 		PropertySeparator();
 		ImGui::TableNextColumn();
-		if (ImGui::Checkbox("Inherit all styles##inherit_styles", &igd::active_workspace->active_element->v_inherit_all_styles))
+		if (ImGui::Checkbox("Inherit all styles##inherit_styles", &igd::active_workspace->GetSingleSelection()->v_inherit_all_styles))
 			modified = true;
 		ImGui::TableNextColumn();
 	}
 
-	for (auto& c : igd::active_workspace->active_element->v_styles)
+	for (auto& c : igd::active_workspace->GetSingleSelection()->v_styles)
 	{
 		PropertyLabel(GetFlagName(ImGuiStyleVar_Strings[c.first]).c_str());
 		ImGui::PushItemWidth(item_width);
@@ -466,11 +466,11 @@ void Properties::Styles()
 void Properties::Flags()
 {
 	ImGui::BeginTable("PropertiesTableFlags", 2, ImGuiTableFlags_SizingFixedFit);
-	for (auto& [flag, str] : igd::active_workspace->active_element->v_custom_flags)
+	for (auto& [flag, str] : igd::active_workspace->GetSingleSelection()->v_custom_flags)
 	{
 		PropertyLabel(GetFlagName(str).c_str());
 		ImGui::PushItemWidth(item_width);
-		ImGui::CheckboxFlags(("##" + str).c_str(), &igd::active_workspace->active_element->v_flags, flag);
+		ImGui::CheckboxFlags(("##" + str).c_str(), &igd::active_workspace->GetSingleSelection()->v_flags, flag);
 	}
 	ImGui::EndTable();
 }
@@ -557,9 +557,9 @@ void Properties::OnUIRender() {
 	strcpy_s(buf, 25, "Input");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
-	if (!igd::active_workspace->active_element)
-		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
-	is_workspace = igd::active_workspace->active_element == igd::active_workspace->basic_workspace_element;
+	if (!igd::active_workspace->GetSingleSelection())
+		igd::active_workspace->SetSingleSelection(igd::active_workspace->basic_workspace_element);
+	is_workspace = igd::active_workspace->GetSingleSelection() == igd::active_workspace->basic_workspace_element;
 	
 
 	igd::push_designer_theme();
@@ -575,7 +575,7 @@ void Properties::OnUIRender() {
 		}
 		if (ImGui::BeginTabItem("Properties"))
 		{
-			if (igd::active_workspace->active_element)
+			if (igd::active_workspace->GetSingleSelection())
 			{
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 				if (ImGui::TreeNode("General"))
@@ -587,11 +587,11 @@ void Properties::OnUIRender() {
 				{
 					ImGui::BeginTable("PropertiesElementSpecific", 2, ImGuiTableFlags_SizingFixedFit);
 
-					igd::active_workspace->active_element->RenderPropertiesInternal();
+					igd::active_workspace->GetSingleSelection()->RenderPropertiesInternal();
 					ImGui::EndTable();
 					ImGui::TreePop();
 				}
-				if (igd::active_workspace->active_element->v_colors.size() > 0)
+				if (igd::active_workspace->GetSingleSelection()->v_colors.size() > 0)
 				{
 					if (ImGui::TreeNode("Colors"))
 					{
@@ -599,7 +599,7 @@ void Properties::OnUIRender() {
 						ImGui::TreePop();
 					}
 				}
-				if (igd::active_workspace->active_element->v_styles.size() > 0)
+				if (igd::active_workspace->GetSingleSelection()->v_styles.size() > 0)
 				{
 					if (ImGui::TreeNode("Styles"))
 					{
@@ -607,7 +607,7 @@ void Properties::OnUIRender() {
 						ImGui::TreePop();
 					}
 				}
-				if (igd::active_workspace->active_element->v_custom_flags.size() > 0)
+				if (igd::active_workspace->GetSingleSelection()->v_custom_flags.size() > 0)
 				{
 					if (ImGui::TreeNode("Flags"))
 					{
@@ -631,7 +631,7 @@ void Properties::OnUIRender() {
 			igd::dialogs->InputTextVec("Save as widget", { "name", "short description" }, "", { "Continue", "Cancel" }, [](bool do_save, std::vector<std::string> rval)
 				{
 					if (do_save)
-						igd::active_workspace->active_element->SaveAsWidget(rval[0], rval[1]);
+						igd::active_workspace->GetSingleSelection()->SaveAsWidget(rval[0], rval[1]);
 				});
 		}
 
@@ -643,7 +643,7 @@ void Properties::OnUIRender() {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Delete##property_delete", { width, button_height }))
-			igd::active_workspace->active_element->Delete();
+			igd::active_workspace->GetSingleSelection()->Delete();
 	
 
 		ImGui::End();

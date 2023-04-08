@@ -17,7 +17,9 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements_buffer{}, undoStack{}, redoStack{}, active_element(nullptr), copied_element(nullptr), loading_workspace(false), is_interacting(false), sort_buffer{}, interaction_mode(InteractionMode::designer)
+	: code{}, elements_buffer{}, undoStack{}, redoStack{}, selected_elements{}, 
+	copied_elements{}, loading_workspace(false), is_interacting(false), sort_buffer{},
+	interaction_mode(InteractionMode::designer), is_dragging(false)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
@@ -67,23 +69,40 @@ void WorkSpace::Save(std::string file_path)
 	//SaveAsWidget(igd::active_workspace->active_element->v_id);
 }
 
+void WorkSpace::SetSingleSelection(ImGuiElement* ele)
+{
+	this->selected_elements.clear();
+	this->selected_elements.push_back(ele);
+}
+ImGuiElement* WorkSpace::GetSingleSelection()
+{
+	if (!this->selected_elements.size())
+		return nullptr;
+	return this->selected_elements[0];
+}
 void WorkSpace::KeyBinds()
 {
 	if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::GetIO().KeyCtrl)
 	{
-		std::cout << "Copied element: " << igd::active_workspace->active_element->v_id << std::endl;
-		igd::active_workspace->copied_element = igd::active_workspace->active_element;
+		for (auto& e : igd::active_workspace->selected_elements)
+			std::cout << "Copied element: " << e->v_id << std::endl;
+		igd::active_workspace->copied_elements.clear();
+		igd::active_workspace->copied_elements.insert(igd::active_workspace->copied_elements.begin(), igd::active_workspace->selected_elements.begin(), igd::active_workspace->selected_elements.end());
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_V) && ImGui::GetIO().KeyCtrl)
 	{
-		if (igd::active_workspace->copied_element)
+		if (igd::active_workspace->copied_elements.size()>0)
 		{
-			std::cout << "Pasting element: " << igd::active_workspace->copied_element->v_id << std::endl;
-			if (igd::active_workspace->active_element->v_can_have_children)
-				igd::active_workspace->active_element->children.push_back(igd::active_workspace->copied_element->Clone());
-			else
-				igd::active_workspace->elements_buffer.push_back(igd::active_workspace->copied_element->Clone());
+			for (auto& e : igd::active_workspace->copied_elements)
+			{
+				std::cout << "Pasting element: " << e->v_id << std::endl;
+
+				if (e->v_can_have_children)
+					e->children.push_back(e->Clone());
+				else
+					igd::active_workspace->elements_buffer.push_back(e->Clone());
+			}
 		}
 
 	}
@@ -192,7 +211,7 @@ void WorkSpace::RenderAdd()
 		{
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
-				igd::active_workspace->active_element = nullptr;
+				igd::active_workspace->selected_elements.clear();
 				igd::add_workspace = true;
 			}
 		}
@@ -282,12 +301,11 @@ void WorkSpace::OnUIRender() {
 		igd::active_workspace->KeyBinds();
 	}
 
-	if (!igd::active_workspace->active_element)
-		igd::active_workspace->active_element = igd::active_workspace->basic_workspace_element;
+	if (!igd::active_workspace->selected_elements.size())
+		igd::active_workspace->selected_elements.push_back(igd::active_workspace->basic_workspace_element);
 
 	this->FixParentChildRelationships(nullptr);
 	
-
 	
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
 	basic_workspace_element->Render(region_avail, 1, this);
@@ -303,37 +321,42 @@ void WorkSpace::OnUIRender() {
 
 void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base, bool force_selection)
 {
-	if (this->active_element && this->active_element->v_can_have_children && !force_base)
+	if (this->selected_elements.size() > 1)
 	{
-		if (!this->active_element->v_can_contain_own_type && this->active_element->v_type_id == ele->v_type_id)
+		this->selected_elements.resize(1);
+	}
+
+	if (this->selected_elements.size() && this->selected_elements.front()->v_can_have_children && !force_base)
+	{
+		if (!this->selected_elements.front()->v_can_contain_own_type && this->selected_elements.front()->v_type_id == ele->v_type_id)
 		{
-			if (this->active_element->v_parent)
+			if (this->selected_elements.front()->v_parent)
 			{
-				this->active_element->v_parent->children.push_back(ele);
-				ele->v_parent = this->active_element->v_parent;
+				this->selected_elements.front()->v_parent->children.push_back(ele);
+				ele->v_parent = this->selected_elements.front()->v_parent;
 			}
 			else
 			{
-				igd::dialogs->GenericNotification("Error", "Cannot add this element to " + this->active_element->v_id + " as it is the base element");
+				igd::dialogs->GenericNotification("Error", "Cannot add this element to " + this->selected_elements.front()->v_id + " as it is the base element");
 			}
 		}
 		else
 		{
-			this->active_element->children.push_back(ele);
-			this->active_element->children.back()->v_parent = this->active_element;
+			this->selected_elements.front()->children.push_back(ele);
+			this->selected_elements.front()->children.back()->v_parent = this->selected_elements.front();
 		}
 	}
-	else if (this->active_element)
+	else if (this->selected_elements.front())
 	{
-		if (this->active_element->v_parent)
+		if (this->selected_elements.front()->v_parent)
 		{
-			this->active_element->v_parent->children.push_back(ele);
-			ele->v_parent = this->active_element->v_parent;
+			this->selected_elements.front()->v_parent->children.push_back(ele);
+			ele->v_parent = this->selected_elements.front()->v_parent;
 		}
 		else
 		{
-			this->active_element->children.push_back(ele);
-			ele->v_parent = this->active_element->v_parent;
+			this->selected_elements.front()->children.push_back(ele);
+			ele->v_parent = this->selected_elements.front()->v_parent;
 		}
 	}
 	else
@@ -342,7 +365,7 @@ void WorkSpace::AddNewElement(ImGuiElement* ele, bool force_base, bool force_sel
 		this->basic_workspace_element->children.push_back(ele);
 	}
 	if (force_selection)
-		this->active_element = ele;
+		this->selected_elements.front() = ele;
 
 	ele->InitState();
 }

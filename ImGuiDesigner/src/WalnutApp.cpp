@@ -79,7 +79,8 @@ void update_layer_stack()
 {
 	if (igd::delete_workspace.size()>0)
 	{
-		igd::active_workspace->active_element = nullptr;
+
+		igd::active_workspace->selected_elements.clear();
 		for (auto& w : igd::delete_workspace)
 		{
 			std::cout << "Deleting workspace" << std::endl;

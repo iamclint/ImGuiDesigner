@@ -18,9 +18,11 @@ public:
 	std::vector<ImGuiElement*> undoStack;
 	std::vector<ImGuiElement*> redoStack;
 	std::vector<ImGuiElement*> sort_buffer;
-	ImGuiElement* copied_element;
-	ImGuiElement* active_element;
+	std::vector<ImGuiElement*> copied_elements;
+	std::vector<ImGuiElement*> selected_elements;
 	InteractionMode interaction_mode;
+	ImGuiElement* GetSingleSelection();
+	void SetSingleSelection(ImGuiElement* ele);
 	void AddNewElement(ImGuiElement* ele, bool force_base = false, bool force_selection = true);
 	ImGuiElement* CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent);
 	void load(std::filesystem::path path);
@@ -40,6 +42,7 @@ public:
 	bool is_open;
 	bool loading_workspace;
 	bool is_interacting;
+	bool is_dragging;
 	ImGuiElement* basic_workspace_element;
 	
 private:
