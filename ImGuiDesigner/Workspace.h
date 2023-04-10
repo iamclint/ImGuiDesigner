@@ -37,12 +37,17 @@ public:
 	bool FixParentChildRelationships(ImGuiElement* element);
 	void RenderCode();
 	void RenderAdd();
+	void DragSelect();
+	void SelectAll(ImGuiElement* element);
+	void SelectRect(ImGuiElement* element);
 	WorkSpace();
 	~WorkSpace();
+	ImRect drag_select;
 	bool is_open;
 	bool loading_workspace;
 	bool is_interacting;
 	bool is_dragging;
+	bool dragging_select;
 	ImGuiElement* basic_workspace_element;
 	
 private:

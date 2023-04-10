@@ -234,7 +234,7 @@ public:
 //methods
 public:
 	
-	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace);
+	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback=nullptr);
 	void Delete();
 	void Redo();
 	void Undo();
@@ -282,6 +282,7 @@ public:
 	bool v_can_contain_own_type;
 	bool v_auto_select;
 	float v_aspect_ratio;
+	ImRect item_rect;
 	std::string v_path;
 
 	std::unordered_map<int, std::string> v_custom_flags;
@@ -330,6 +331,7 @@ private:
 	int undoStackIndex;
 	bool is_dragging;
 	bool is_child_hovered;
+	
 	resize_direction ResizeDirection;
 	ImVec2 drag_start_pos;
 	ImVec2 last_size;

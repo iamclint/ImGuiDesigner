@@ -103,8 +103,9 @@ void Dialogs::generic()
 		ImVec2 size = ImGui::CalcTextSize(this->message.c_str());
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
 		ImGui::Text(this->message.c_str());
-
-		if (ImGui::Button(this->button_text.c_str()) || ImGui::GetIO().KeysDown[ImGuiKey_Escape])
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x - GImGui->Style.FramePadding.x;
+		if (ImGui::Button(this->button_text.c_str(), { width , 45 }) || ImGui::GetIO().KeysDown[ImGuiKey_Escape])
 		{
 			igd::UnPressKey(ImGuiKey_Escape);
 			this->callback();
@@ -128,7 +129,9 @@ void Dialogs::confirm()
 		ImGui::Text(this->message.c_str());
 
 		ImGui::Dummy({ 0,20 });
-		if (ImGui::Button("Yes", {140, 0}) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+		if (ImGui::Button("Yes", { width, 45}) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
 		{
 			igd::UnPressKey(ImGuiKey_Enter);
 			igd::UnPressKey(ImGuiKey_KeyPadEnter);
@@ -136,7 +139,7 @@ void Dialogs::confirm()
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No", { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		if (ImGui::Button("No", { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			igd::UnPressKey(ImGuiKey_Escape);
 			this->callback_confirmation(false);
@@ -166,8 +169,9 @@ void Dialogs::textinput()
 		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::Spacing();
-
-		if (ImGui::Button(input_buttons.first.c_str(), { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+		if (ImGui::Button(input_buttons.first.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
 		{
 			igd::UnPressKey(ImGuiKey_Enter);
 			igd::UnPressKey(ImGuiKey_KeyPadEnter);
@@ -177,7 +181,7 @@ void Dialogs::textinput()
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button(input_buttons.second.c_str(), { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		if (ImGui::Button(input_buttons.second.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			igd::UnPressKey(ImGuiKey_Escape);
 			this->callback_inputtext(false, this->input_text);
@@ -246,8 +250,9 @@ void Dialogs::textinputvec()
 		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::Spacing();
-		
-		if (ImGui::Button(input_buttons.first.c_str(), { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+		if (ImGui::Button(input_buttons.first.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
 		{
 			igd::UnPressKey(ImGuiKey_Enter);
 			igd::UnPressKey(ImGuiKey_KeyPadEnter);
@@ -257,7 +262,7 @@ void Dialogs::textinputvec()
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button(input_buttons.second.c_str(), { 140, 0 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		if (ImGui::Button(input_buttons.second.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			igd::UnPressKey(ImGuiKey_Escape);
 			this->callback_inputtext_vec(false, this->input_text_vec);

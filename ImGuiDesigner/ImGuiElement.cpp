@@ -370,30 +370,6 @@ void ImGuiElement::KeyMove()
 void ImGuiElement::KeyBinds()
 {
 
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
-	{
-		std::string msg = "Are you sure you wish to delete " + this->v_id;
-		if (igd::active_workspace->selected_elements.size()>1)
-			msg = "Are you sure you wish to delete all the selected elements?";
-		igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
-			if (!conf)
-				return;
-
-			for (auto& e : igd::active_workspace->selected_elements)
-			{
-				if (e->children.size() > 0)
-				{
-					for (auto& child : e->children)
-						child->Delete();
-				}
-				e->Delete();
-			}
-		});
-	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
-	{
-		igd::active_workspace->selected_elements.clear();
-	}
 }
 
 
@@ -653,10 +629,7 @@ void ImGuiElement::Select()
 
 void ImGuiElement::DrawSelection()
 {
-	ImGuiContext& g = *GImGui;
-	ImGuiWindow* window = g.CurrentWindow;
-	ImRect item_location = ImRect({ g.LastItemData.Rect.Min.x - 4,g.LastItemData.Rect.Min.y - 4 }, { g.LastItemData.Rect.Max.x + 4,g.LastItemData.Rect.Max.y + 4 });
-	ImGui::GetWindowDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
+	ImGui::GetWindowDrawList()->AddRect(item_rect.Min, item_rect.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
 }
 
 void ImGuiElement::PopColorAndStyles(void* ws)
@@ -832,11 +805,13 @@ void ImGuiElement::HandleDrop()
 		this->can_drop = false;
 	}
 }
-void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws)
+void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
 {
 
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
+
+	
 
 //v_generate_code = generate_code;
 	is_child_hovered = false;
@@ -946,8 +921,10 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	{
 		this->AddCode(this->RenderInternal(script_only));
 	}
+	if (callback)
+		callback();
 	this->AddCode(this->RenderFoot(script_only));
-	
+
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
 	{
 		ImGui::EndDisabled();
@@ -980,6 +957,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 	this->last_position = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());// ImGui::GetCursorPos();
 	this->last_size = ImVec2(g.LastItemData.Rect.Max.x - g.LastItemData.Rect.Min.x, g.LastItemData.Rect.Max.y - g.LastItemData.Rect.Min.y);
+	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
 	HandleDrop();
 	if (!is_child_hovered)
 		Interact();

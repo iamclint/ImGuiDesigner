@@ -17,9 +17,9 @@ WorkSpace::~WorkSpace()
 }
 
 WorkSpace::WorkSpace()
-	: code{}, elements_buffer{}, undoStack{}, redoStack{}, selected_elements{}, 
+	: code{}, elements_buffer{}, undoStack{}, redoStack{}, selected_elements{},
 	copied_elements{}, loading_workspace(false), is_interacting(false), sort_buffer{},
-	interaction_mode(InteractionMode::designer), is_dragging(false)
+	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
@@ -80,8 +80,95 @@ ImGuiElement* WorkSpace::GetSingleSelection()
 		return nullptr;
 	return this->selected_elements[0];
 }
+
+bool doRectanglesIntersect(const ImRect& rect1, const ImRect& rect2)
+{
+	// Ensure that the coordinates are in the correct order
+	float left1 = std::min(rect1.Min.x, rect1.Max.x);
+	float top1 = std::min(rect1.Min.y, rect1.Max.y);
+	float right1 = std::max(rect1.Min.x, rect1.Max.x);
+	float bottom1 = std::max(rect1.Min.y, rect1.Max.y);
+
+	float left2 = std::min(rect2.Min.x, rect2.Max.x);
+	float top2 = std::min(rect2.Min.y, rect2.Max.y);
+	float right2 = std::max(rect2.Min.x, rect2.Max.x);
+	float bottom2 = std::max(rect2.Min.y, rect2.Max.y);
+
+	// Check if the rectangles intersect
+	return left1 <= right2 && right1 >= left2 && top1 <= bottom2 && bottom1 >= top2;
+}
+
+void WorkSpace::SelectRect(ImGuiElement* element)
+{
+	
+	//check if element is in rect
+	if (doRectanglesIntersect(this->drag_select,element->item_rect))
+	{
+		if (std::find(this->selected_elements.begin(), this->selected_elements.end(), element) == this->selected_elements.end())
+			this->selected_elements.push_back(element);
+	}
+	else
+	{
+		//remove from selected elements
+		for (auto it = this->selected_elements.begin(); it != this->selected_elements.end();)
+		{
+			if (*it == element)
+				it = this->selected_elements.erase(it);
+			else
+				it++;
+		}
+	}
+	if (!element->v_can_have_children)
+		return;
+	for (auto& e : element->children)
+		SelectRect(e);
+}
+void WorkSpace::DragSelect()
+{
+	ImGuiContext& g = *GImGui;
+	if (!ImGui::IsAnyItemHovered() && (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput))
+	{
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			selected_elements.clear();
+			drag_select.Min = ImGui::GetMousePos();
+			drag_select.Max = ImGui::GetMousePos();
+			dragging_select = true;
+		}
+	}
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+	{
+		drag_select.Max = ImGui::GetMousePos();
+
+	}
+	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+		dragging_select = false;
+
+	if (this->dragging_select)
+	{
+
+		SelectRect(this->basic_workspace_element);
+		ImGui::GetWindowDrawList()->AddRectFilled(drag_select.Min, drag_select.Max, ImColor(0.0f, 1.0f, 1.0f, 0.1f), 0.0f, 0);
+		ImGui::GetWindowDrawList()->AddRect(drag_select.Min, drag_select.Max, ImColor(0.0f, 1.0f, 1.0f, 0.3f), 0.0f, 0, 1.0f);
+	}
+}
+
+void WorkSpace::SelectAll(ImGuiElement* element)
+{
+	selected_elements.push_back(element);
+	if (!element->v_can_have_children)
+		return;
+	for (auto& e : element->children)
+		SelectAll(e);
+}
+
 void WorkSpace::KeyBinds()
 {
+	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+		return;
+	
+	DragSelect();
+
 	if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::GetIO().KeyCtrl)
 	{
 		for (auto& e : igd::active_workspace->selected_elements)
@@ -105,6 +192,11 @@ void WorkSpace::KeyBinds()
 			}
 		}
 
+	}
+	if (ImGui::IsKeyPressed(ImGuiKey_A) && ImGui::GetIO().KeyCtrl)
+	{
+		selected_elements.clear();
+		SelectAll(this->basic_workspace_element);
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Z) && ImGui::GetIO().KeyCtrl)
 	{
@@ -130,6 +222,37 @@ void WorkSpace::KeyBinds()
 			redoStack.pop_back();
 		}
 		std::cout << "Redo stack size: " << redoStack.size() << std::endl;
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !igd::dialogs->IsShowing())
+	{
+		std::string msg = "";
+		std::cout << "Press delete?" << std::endl;
+		if (!this->selected_elements.size())
+			return;
+		if (this->selected_elements.size()==1)
+			msg = "Are you sure you wish to delete " + this->selected_elements.front()->v_id;
+		else
+			msg = "Are you sure you wish to delete all the selected elements?";
+
+		igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
+			if (!conf)
+				return;
+
+			for (auto& e : this->selected_elements)
+			{
+				if (e->children.size() > 0)
+				{
+					for (auto& child : e->children)
+						child->Delete();
+				}
+				e->Delete();
+			}
+			});
+	}
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
+	{
+		igd::active_workspace->selected_elements.clear();
 	}
 }
 
@@ -296,19 +419,18 @@ void WorkSpace::OnUIRender() {
 		return;
 	}
 	
-	if (igd::active_workspace == this)
-	{
-		igd::active_workspace->KeyBinds();
-	}
+	//if (igd::active_workspace == this)
+	//{
+	//	igd::active_workspace->KeyBinds();
+	//}
 
 	if (!igd::active_workspace->selected_elements.size())
 		igd::active_workspace->selected_elements.push_back(igd::active_workspace->basic_workspace_element);
 
 	this->FixParentChildRelationships(nullptr);
 	
-	
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
-	basic_workspace_element->Render(region_avail, 1, this);
+	basic_workspace_element->Render(region_avail, 1, this, std::bind(&WorkSpace::KeyBinds, this));
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)
