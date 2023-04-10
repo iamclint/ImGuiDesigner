@@ -38,7 +38,7 @@ public:
 	void RenderCode();
 	void RenderAdd();
 	void DragSelect();
-	void SelectAll(ImGuiElement* element);
+	void SelectAll(ImGuiElement* element, int level=0);
 	void SelectRect(ImGuiElement* element);
 	WorkSpace();
 	~WorkSpace();

@@ -18,6 +18,7 @@ namespace igd
 	std::vector<WorkSpace*> workspaces;
 	Properties* properties;
 	Dialogs* dialogs;
+	Settings* settings=new Settings();
 	Walnut::Application* app;
 	bool add_workspace = false;
 	std::string open_file="";
@@ -161,8 +162,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.FontDataSize = sizeof(embedded::corbel);
 	spec.FontSize = 16;
 	igd::app = new Walnut::Application(spec);
-	
-
+	igd::settings->load();
 	GLFWimage Images[1];
 	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
 	glfwSetWindowIcon(igd::app->GetWindowHandle(), 1, Images);
@@ -174,6 +174,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
 	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 20, nullptr);
 	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 24, nullptr);
+	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 36, nullptr);
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();
@@ -212,6 +213,14 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			if (ImGui::MenuItem("Exit"))
 			{
 				igd::app->Close();
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Tools"))
+		{
+			if (ImGui::MenuItem("Settings"))
+			{
+				igd::dialogs->ShowSettings();
 			}
 			ImGui::EndMenu();
 		}

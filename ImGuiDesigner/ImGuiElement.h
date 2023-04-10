@@ -260,6 +260,7 @@ public:
 	int v_flags;
 	ImGuiElementVec2 v_size;
 	ImGuiElementVec2 v_pos;
+	ImGuiElementVec2 v_pos_dragging;
 	std::string v_id;
 	std::string v_label;
 	std::map<ImGuiCol_, ColorValue> v_colors;
@@ -318,6 +319,7 @@ private:
 	void ApplyDeltaResize(ImVec2 delta);
 	void ApplyPos(ImVec2 literal_pos);
 	void ApplyDeltaPos(ImVec2 delta);
+	void ApplyDeltaPosDrag(ImVec2 delta);
 	bool ChildrenUseRelative();
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	void Interact();

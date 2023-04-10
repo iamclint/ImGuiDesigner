@@ -150,6 +150,46 @@ void Dialogs::confirm()
 	this->EndDialog();
 }
 
+void Dialogs::ShowSettings()
+{
+	show_settings = true;
+}
+
+void Dialogs::Settings()
+{
+	if (this->show_settings)
+	{
+		this->title = "Settings";
+		ImGui::OpenPopup("Settings");
+		this->show_settings = false;
+	}
+	ImGui::SetNextWindowSize({ 800, 600 });
+	if (this->BeginDialog("Settings"))
+	{
+		/*ImGui::PushFont(igd::font_manager->GetFont("designer", 36)->font);
+		ImVec2 size = ImGui::CalcTextSize("Settings");
+		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
+		ImGui::Text("Settings");
+		ImGui::PopFont();*/
+		ImGui::Dummy({ 0,20 });
+		if (ImGui::Checkbox("Select all selects all children", &igd::settings->bools["select_children"]))
+			igd::settings->save();
+
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x - GImGui->Style.FramePadding.x;
+		
+		ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetWindowSize().y  - (GImGui->Style.FramePadding.y*2)-60 });
+		if (ImGui::Button("Ok", { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			igd::UnPressKey(ImGuiKey_Escape);
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::Spacing();
+	}
+	this->EndDialog();
+}
+
+
 void Dialogs::textinput()
 {
 	if (this->show_inputtext)
@@ -200,7 +240,7 @@ bool Dialogs::BeginDialog(const char* title)
 	is_open = ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
 	if (is_open)
 	{
-		ImGui::PushFont(igd::font_manager->GetFont("designer", 24)->font);
+		ImGui::PushFont(igd::font_manager->GetFont("designer", 36)->font);
 		ImVec2 size = ImGui::CalcTextSize(this->title.c_str());
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
 		ImGui::Text(this->title.c_str());
@@ -285,5 +325,6 @@ void Dialogs::OnUIRender()
 	confirm();
 	textinput();
 	textinputvec();
+	Settings();
 	igd::pop_designer_theme();
 }

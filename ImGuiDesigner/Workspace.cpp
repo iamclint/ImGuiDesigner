@@ -146,20 +146,25 @@ void WorkSpace::DragSelect()
 
 	if (this->dragging_select)
 	{
-
 		SelectRect(this->basic_workspace_element);
 		ImGui::GetWindowDrawList()->AddRectFilled(drag_select.Min, drag_select.Max, ImColor(0.0f, 1.0f, 1.0f, 0.1f), 0.0f, 0);
 		ImGui::GetWindowDrawList()->AddRect(drag_select.Min, drag_select.Max, ImColor(0.0f, 1.0f, 1.0f, 0.3f), 0.0f, 0, 1.0f);
 	}
 }
 
-void WorkSpace::SelectAll(ImGuiElement* element)
+void WorkSpace::SelectAll(ImGuiElement* element, int level)
 {
-	selected_elements.push_back(element);
+	if (level>0)
+		selected_elements.push_back(element);
 	if (!element->v_can_have_children)
 		return;
 	for (auto& e : element->children)
-		SelectAll(e);
+	{
+		if (igd::settings->bools["select_children"])
+			SelectAll(e, level+1);
+		else
+			selected_elements.push_back(e);
+	}
 }
 
 void WorkSpace::KeyBinds()
@@ -167,7 +172,8 @@ void WorkSpace::KeyBinds()
 	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
 		return;
 	
-	DragSelect();
+	if (ImGui::GetIO().KeyShift)
+		DragSelect();
 
 	if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::GetIO().KeyCtrl)
 	{
@@ -195,7 +201,17 @@ void WorkSpace::KeyBinds()
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_A) && ImGui::GetIO().KeyCtrl)
 	{
+		ImGuiElement* element = nullptr;
+		if (this->selected_elements.size() > 0 && this->selected_elements[0]->v_can_have_children)
+			element = this->selected_elements[0];
+
 		selected_elements.clear();
+		if (!igd::settings->bools["select_children"] && element)
+		{
+			SelectAll(element);
+			return;
+		}
+
 		SelectAll(this->basic_workspace_element);
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Z) && ImGui::GetIO().KeyCtrl)
@@ -248,6 +264,7 @@ void WorkSpace::KeyBinds()
 				}
 				e->Delete();
 			}
+			this->selected_elements.clear();
 			});
 	}
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
@@ -546,15 +563,18 @@ void WorkSpace::load(std::filesystem::path path)
 		}
 		basic_workspace_element->v_window_bool = &is_open;
 		is_open = true;
+		i.close();
 	}
 	catch (nlohmann::json::exception& ex)
 	{
 		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.what() << std::endl;
+		i.close();
 	}
 	catch (nlohmann::json::parse_error& ex)
 	{
 		igd::dialogs->GenericNotification("Json Error", ex.what(), "", "Ok", []() {});
 		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+		i.close();
 	}
 }

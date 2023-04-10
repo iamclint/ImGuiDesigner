@@ -4,6 +4,7 @@
 #include "ToolBar.h"
 #include "Dialogs.h"
 #include "FontManager.h"
+#include "Settings.h"
 #include <filesystem>
 #include "Walnut/Image.h"
 namespace igd
@@ -39,5 +40,6 @@ namespace igd
 	extern std::string open_file;
 	extern ImFont* designer_font;
 	extern std::unordered_map<const char*, ImFont*>* designer_fonts;
+	extern Settings* settings;
 	void onUpdate();
 }

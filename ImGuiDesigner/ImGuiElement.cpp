@@ -383,11 +383,11 @@ void ImGuiElement::Delete()
 			e = nullptr;
 	}
 
-	for (auto& e : igd::active_workspace->selected_elements)
-	{
-		if (e == this)
-			e = nullptr;
-	}
+	//for (auto& e : igd::active_workspace->selected_elements)
+	//{
+	//	if (e == this)
+	//		e = nullptr;
+	//}
 }
 
 void ImGuiElement::ApplyResize(ImVec2 literal_size)
@@ -600,7 +600,7 @@ void ImGuiElement::Select()
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 	ImGuiWindow* window = g.CurrentWindow;
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ResizeDirection == resize_direction::none && !was_dragging)
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ResizeDirection == resize_direction::none && !was_dragging && !igd::active_workspace->dragging_select)
 	{
 
 		if (!ImGui::GetIO().KeyCtrl)
@@ -712,6 +712,7 @@ void ImGuiElement::AddCode(std::string code, int depth)
 
 void ImGuiElement::Interact()
 {
+
 	ImGuiContext& g = *GImGui;
 	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
 	{
@@ -719,6 +720,11 @@ void ImGuiElement::Interact()
 		{
 			if (e == this)
 			{
+				if (ImGui::GetIO().KeyShift)
+				{
+					DrawSelection();
+					continue;
+				}
 				if (Resize() || Drag())
 					igd::active_workspace->is_interacting = true;
 				else
@@ -728,6 +734,7 @@ void ImGuiElement::Interact()
 				KeyBinds();
 			}
 		}
+		
 		if (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput)
 			Select();
 
@@ -772,7 +779,7 @@ void ImGuiElement::HandleDrop()
 				if (e->v_pos.type == Vec2Type::Absolute) //relative positioning will be calculated per frame so no need to modify
 				{
 					if (this->v_pos.type==Vec2Type::Absolute)
-						e->ApplyDeltaPos({-v_pos.value.x, -v_pos.value.y});
+						e->ApplyDeltaPos({ -(item_rect.Min.x - ImGui::GetWindowPos().x), -(item_rect.Min.y- ImGui::GetWindowPos().y) });
 					else
 					{
 						e->ApplyDeltaPos({ -(ContentRegionAvail.x* (v_pos.value.x / 100)), -(ContentRegionAvail.y * (v_pos.value.y / 100)) });

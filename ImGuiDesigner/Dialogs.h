@@ -5,11 +5,10 @@
 class Dialogs : public Walnut::Layer
 {
 public:
-	Dialogs() : show_generic(false), title(""), message(""), icon_path(""), button_text(""), show_confirm(false), show_inputtext(false), show_inputtext_vec(false), is_open(false) {}
+	Dialogs() : show_generic(false), title(""), message(""), icon_path(""), button_text(""), show_confirm(false), show_inputtext(false), show_inputtext_vec(false), is_open(false), show_settings(false) {}
 	void GenericNotification(std::string title, std::string message, std::string icon_path="", std::string button_text="Ok", std::function<void()> callback=[](){});
 	void Confirmation(std::string title, std::string message, std::string icon_path, std::function<void(bool)> callback);
-	
-
+	void ShowSettings();
 	/// <summary>
 	/// Input text popup
 	/// </summary>
@@ -23,10 +22,12 @@ public:
 	void SaveFile(std::function<void(std::string)> callback);
 	void OpenFile(std::function<void(std::string)> callback, std::string filter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0");
 	bool IsShowing();
+	
 	virtual void OnUIRender() override;
 private:
 	bool BeginDialog(const char* title);
 	void EndDialog();
+	void Settings();
 	void generic();
 	void confirm();
 	void textinput();
@@ -37,6 +38,7 @@ private:
 	bool show_confirm;
 	bool show_inputtext;
 	bool show_inputtext_vec;
+	bool show_settings;
 	std::pair<std::string, std::string> input_buttons;
 	std::function<void()> callback;
 	std::function<void(bool)> callback_confirmation;
