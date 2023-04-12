@@ -285,6 +285,7 @@ public:
 	float v_aspect_ratio;
 	ImRect item_rect;
 	std::string v_path;
+	ImVec2 drag_start_pos;
 
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;
@@ -324,9 +325,10 @@ private:
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	void Interact();
 	void HandleDrop();
+	void RenderDrag();
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
-	bool can_drop;
+	bool drop_new_parent;
 	bool was_dragging;
 	int color_pops;
 	int style_pops;
@@ -335,7 +337,7 @@ private:
 	bool is_child_hovered;
 	
 	resize_direction ResizeDirection;
-	ImVec2 drag_start_pos;
+
 	ImVec2 last_size;
 	ImVec2 last_position;
 	ImVec2 last_known_cursor;

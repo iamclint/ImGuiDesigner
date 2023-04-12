@@ -63,7 +63,7 @@ ImGuiElement::ImGuiElement()
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
 	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""),
-	v_aspect_ratio(1.0f), is_child_hovered(false), can_drop(false), was_dragging(false)
+	v_aspect_ratio(1.0f), is_child_hovered(false), drop_new_parent(false), was_dragging(false)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -317,8 +317,13 @@ ImVec2 get_mouse_location()
 bool ImGuiElement::Drag()
 {
 	ImGuiContext& g = *GImGui;
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection == resize_direction::none)
+
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection == resize_direction::none && !is_dragging)
 	{
+		for (auto& e : igd::active_workspace->selected_elements)
+		{
+			e->v_pos_dragging.value = { e->item_rect.Min.x, e->item_rect.Min.y };
+		}
 		is_dragging = true;
 		igd::active_workspace->is_dragging = true;
 	}
@@ -331,7 +336,10 @@ bool ImGuiElement::Drag()
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		for (auto& e : igd::active_workspace->selected_elements)
-			e->ApplyDeltaPos(ImGui::GetMouseDragDelta());
+		{
+
+			e->ApplyDeltaPosDrag(ImGui::GetMouseDragDelta());
+		}
 		ImGui::ResetMouseDragDelta();
 	}
 	return is_dragging;
@@ -372,6 +380,28 @@ void ImGuiElement::KeyBinds()
 
 }
 
+void ImGuiElement::RenderDrag()
+{
+	if (is_dragging)
+	{
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking;
+		for (auto& e : igd::active_workspace->selected_elements)
+		{
+			ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
+			ImGui::SetNextWindowBgAlpha(0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+			if (ImGui::Begin(("Drag##Drag_" + e->v_id).c_str(), NULL, flags))
+			{
+				e->RenderHead();
+				e->RenderInternal();
+				e->RenderFoot();
+				ImGui::End();
+			}
+			ImGui::PopStyleVar(2);
+		}
+	}
+}
 
 void ImGuiElement::Delete()
 {
@@ -439,6 +469,19 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 			v_size.value.x += (delta.x / ContentRegionAvail.x) * 100;
 		if (delta.y != 0)
 			v_size.value.y += (delta.y / ContentRegionAvail.y) * 100;
+	}
+}
+
+void ImGuiElement::ApplyDeltaPosDrag(ImVec2 delta)
+{
+	if (v_pos.type == Vec2Type::Absolute)
+	{
+		v_pos_dragging.value += delta;
+	}
+	else if (v_pos.type == Vec2Type::Relative)
+	{
+		v_pos_dragging.value.x = ((v_pos_dragging.value.x + delta.x - ImGui::GetWindowPos().x) / ContentRegionAvail.x) * 100;
+		v_pos_dragging.value.y = ((v_pos_dragging.value.x + delta.y - ImGui::GetWindowPos().y) / ContentRegionAvail.y) * 100;
 	}
 }
 
@@ -748,6 +791,17 @@ void ImGuiElement::Interact()
 			ResizeDirection = resize_direction::none;
 			if (did_move)
 			{
+				std::cout << "Drop!" << std::endl;
+				if (!drop_new_parent)
+				{
+					for (auto& e : igd::active_workspace->selected_elements)
+					{
+						if (e->v_pos.type == Vec2Type::Absolute)
+							e->v_pos.value = e->v_pos_dragging.value - ImGui::GetWindowPos();
+						else
+							e->v_pos.value = e->v_pos_dragging.value;
+					}
+				}
 				PushUndo();
 				did_move = false;
 			}
@@ -760,8 +814,7 @@ void ImGuiElement::HandleDrop()
 {
 	if (!this->v_can_have_children)
 		return;
-
-
+	
 	//don't do anything if this is in the selected list (can't drop this to this)
 	for (auto& e : igd::active_workspace->selected_elements)
 	{
@@ -769,7 +822,7 @@ void ImGuiElement::HandleDrop()
 			return;
 	}
 
-	if (!ImGui::IsMouseDown(0) && can_drop)
+	if (!ImGui::IsMouseDown(0) && drop_new_parent)
 	{
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
@@ -778,21 +831,26 @@ void ImGuiElement::HandleDrop()
 				e->v_parent = this;
 				if (e->v_pos.type == Vec2Type::Absolute) //relative positioning will be calculated per frame so no need to modify
 				{
-					if (this->v_pos.type==Vec2Type::Absolute)
-						e->ApplyDeltaPos({ -(item_rect.Min.x - ImGui::GetWindowPos().x), -(item_rect.Min.y- ImGui::GetWindowPos().y) });
+					e->v_pos.value = e->v_pos_dragging.value - ImGui::GetWindowPos();
+					if (this->v_pos.type == Vec2Type::Absolute)
+					{
+						e->ApplyPos({ e->v_pos.value.x - this->v_pos.value.x , e->v_pos.value.y - this->v_pos.value.y });
+					}
 					else
 					{
+					e->v_pos.value = e->v_pos_dragging.value;
 						e->ApplyDeltaPos({ -(ContentRegionAvail.x* (v_pos.value.x / 100)), -(ContentRegionAvail.y * (v_pos.value.y / 100)) });
 					}
 				}
 			}
 		}
-		can_drop = false;
+		drop_new_parent = false;
 	}
+
 
 	if (!igd::active_workspace->is_dragging)
 	{
-		can_drop = false;
+		drop_new_parent = false;
 		return;
 	}
 
@@ -804,12 +862,19 @@ void ImGuiElement::HandleDrop()
 			ImGuiWindow* window = g.CurrentWindow;
 			ImRect item_location = ImRect({ g.LastItemData.Rect.Min.x - 4,g.LastItemData.Rect.Min.y - 4 }, { g.LastItemData.Rect.Max.x + 4,g.LastItemData.Rect.Max.y + 4 });
 			ImGui::GetWindowDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 1.0f, 1.0f), 1.f, 0, 2.0f);
-			this->can_drop = true;
+			this->drop_new_parent = true;
 		}
 	}
 	else
 	{
-		this->can_drop = false;
+		if (igd::active_workspace->selected_elements.size() > 0 && ImGui::IsMouseDown(0) && !this->drop_new_parent)
+		{
+			ImGuiContext& g = *GImGui;
+			ImGuiWindow* window = g.CurrentWindow;
+			ImRect item_location = ImRect({ igd::active_workspace->basic_workspace_element->item_rect.Min.x - 4,igd::active_workspace->basic_workspace_element->item_rect.Min.y - 4 }, { igd::active_workspace->basic_workspace_element->item_rect.Max.x + 4,igd::active_workspace->basic_workspace_element->item_rect.Max.y + 4 });
+			ImGui::GetForegroundDrawList()->AddRect(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 1.0f, 1.0f), 1.f, 0, 2.0f);
+		}
+		this->drop_new_parent = false;
 	}
 }
 void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
@@ -817,8 +882,8 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
+	RenderDrag();
 
-	
 
 //v_generate_code = generate_code;
 	is_child_hovered = false;
@@ -930,6 +995,9 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 	if (callback)
 		callback();
+	if (this->v_type_id == (int)element_type::window)
+		this->item_rect = ImRect(ImGui::GetWindowPos(), ImGui::GetWindowPos()+ImGui::GetWindowSize());
+
 	this->AddCode(this->RenderFoot(script_only));
 
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
@@ -964,7 +1032,8 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 	this->last_position = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());// ImGui::GetCursorPos();
 	this->last_size = ImVec2(g.LastItemData.Rect.Max.x - g.LastItemData.Rect.Min.x, g.LastItemData.Rect.Max.y - g.LastItemData.Rect.Min.y);
-	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
+	if (this->v_type_id != (int)element_type::window)
+		this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
 	HandleDrop();
 	if (!is_child_hovered)
 		Interact();
