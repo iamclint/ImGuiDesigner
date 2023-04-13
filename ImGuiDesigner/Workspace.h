@@ -20,6 +20,7 @@ public:
 	std::vector<ImGuiElement*> sort_buffer;
 	std::vector<ImGuiElement*> copied_elements;
 	std::vector<ImGuiElement*> selected_elements;
+	ImGuiElement* hovered_element;
 	InteractionMode interaction_mode;
 	ImGuiElement* GetSingleSelection();
 	void SetSingleSelection(ImGuiElement* ele);

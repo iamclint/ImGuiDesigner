@@ -19,7 +19,7 @@ WorkSpace::~WorkSpace()
 WorkSpace::WorkSpace()
 	: code{}, elements_buffer{}, undoStack{}, redoStack{}, selected_elements{},
 	copied_elements{}, loading_workspace(false), is_interacting(false), sort_buffer{},
-	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false)
+	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false), hovered_element(nullptr)
 {
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
@@ -172,9 +172,12 @@ void WorkSpace::KeyBinds()
 	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
 		return;
 	
+
+
+
 	if (ImGui::GetIO().KeyShift)
 		DragSelect();
-
+	
 	if (ImGui::IsKeyPressed(ImGuiKey_C) && ImGui::GetIO().KeyCtrl)
 	{
 		for (auto& e : igd::active_workspace->selected_elements)
@@ -444,10 +447,27 @@ void WorkSpace::OnUIRender() {
 	if (!igd::active_workspace->selected_elements.size())
 		igd::active_workspace->selected_elements.push_back(igd::active_workspace->basic_workspace_element);
 
+	if (hovered_element)
+	{
+		ImGui::GetForegroundDrawList()->AddRect(hovered_element->item_rect.Min, hovered_element->item_rect.Max, ImColor(1.0f, 1.0f, 0.0f, 1.0f), 1.f, 0, 2.0f);
+	}
+
 	this->FixParentChildRelationships(nullptr);
-	
+	hovered_element = nullptr;
 	ImVec2 region_avail = ImGui::GetContentRegionAvail();
+
+
 	basic_workspace_element->Render(region_avail, 1, this, std::bind(&WorkSpace::KeyBinds, this));
+	if (igd::active_workspace->is_dragging)
+	{
+		basic_workspace_element->RenderDrag();
+	}
+	if (igd::active_workspace->hovered_element)
+	{
+		igd::active_workspace->hovered_element->HandleDrop();
+	}
+
+
 	if (elements_buffer.size() > 0)
 	{
 		for (auto& element : elements_buffer)

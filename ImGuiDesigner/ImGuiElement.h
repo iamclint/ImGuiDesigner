@@ -247,6 +247,8 @@ public:
 	void GenerateStylesColorsJson(nlohmann::json& j, std::string type_name);
 	void StylesColorsFromJson(nlohmann::json& j);
 	void SetNextWidth();
+	void HandleDrop();
+	void RenderDrag();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
 	ImColor JsonToColor(nlohmann::json col);
@@ -324,16 +326,17 @@ private:
 	bool ChildrenUseRelative();
 	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	void Interact();
-	void HandleDrop();
-	void RenderDrag();
+	
+
+	void HandleHover();
 	std::string GetContentRegionString();
 	void AddCode(std::string code, int depth=-1);
 	bool drop_new_parent;
 	bool was_dragging;
+
 	int color_pops;
 	int style_pops;
 	int undoStackIndex;
-	bool is_dragging;
 	bool is_child_hovered;
 	
 	resize_direction ResizeDirection;
