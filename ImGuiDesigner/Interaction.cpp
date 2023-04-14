@@ -33,17 +33,20 @@ void ImGuiElement::HandleDrop()
 		std::cout << "dropped on " << this->v_id << std::endl;
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
-			if (this != e && e->v_parent != this)
+			if (this != e && e->v_parent != this && e != igd::active_workspace->basic_workspace_element)
 			{
 
 				if (e->v_pos.type == Vec2Type::Absolute) //relative positioning will be calculated per frame so no need to modify
 				{
-					e->v_pos.value = e->v_parent->item_rect.Min - (e->v_pos_dragging.value - e->v_parent->item_rect.Min);
 					e->v_parent = this;
+					std::cout << "Drag pos: " << e->v_pos_dragging.value.x << " " << e->v_pos_dragging.value.y << std::endl;
+					std::cout << "Parent pos: " << e->v_parent->item_rect.Min.x << " " << e->v_parent->item_rect.Min.y << std::endl;
+					e->v_pos.value = { e->v_pos_dragging.value.x - e->v_parent->item_rect.Min.x, e->v_pos_dragging.value.y - e->v_parent->item_rect.Min.y };
 					if (this->v_parent)
 					{
-						std::cout << " New parent has a parent?? " << std::endl;
-						if (this->v_pos.type == Vec2Type::Absolute)
+						std::cout << " New parent " << std::endl;
+
+		/*				if (this->v_pos.type == Vec2Type::Absolute)
 						{
 							e->ApplyPos({ e->v_pos.value.x - this->v_pos.value.x , e->v_pos.value.y - this->v_pos.value.y });
 						}
@@ -51,7 +54,7 @@ void ImGuiElement::HandleDrop()
 						{
 							e->v_pos.value = e->v_pos_dragging.value;
 							e->ApplyDeltaPos({ -(ContentRegionAvail.x * (v_pos.value.x / 100)), -(ContentRegionAvail.y * (v_pos.value.y / 100)) });
-						}
+						}*/
 					}
 				}
 				else
@@ -70,7 +73,7 @@ void ImGuiElement::HandleDrop()
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && igd::active_workspace->selected_elements.size() > 0 )
 	{
 		ImRect item_location = ImRect({ this->item_rect.Min.x - 4,this->item_rect.Min.y - 4 }, { this->item_rect.Max.x + 4,this->item_rect.Max.y + 4 });
-		ImGui::GetForegroundDrawList()->AddRectFilled(item_location.Min, item_location.Max, ImColor(0.0f, 1.0f, 1.0f, 0.1f), 1.f, 0);
+		ImGui::GetForegroundDrawList()->AddRectFilled(item_location.Min, item_location.Max, ImColor(0.0f, 0.0f, .5f, 0.1f), 1.f, 0);
 		this->drop_new_parent = true;
 	}
 }

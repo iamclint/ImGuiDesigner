@@ -544,11 +544,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		{
 			if (p == this || iters >= max_iterations)
 				break;
-
 			p->is_child_hovered = true;
-
-			if (p == p->v_parent)
-				break;
 			p = p->v_parent;
 			iters++;
 		}

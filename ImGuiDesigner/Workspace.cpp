@@ -447,10 +447,10 @@ void WorkSpace::OnUIRender() {
 	if (!igd::active_workspace->selected_elements.size())
 		igd::active_workspace->selected_elements.push_back(igd::active_workspace->basic_workspace_element);
 
-	if (hovered_element)
-	{
-		ImGui::GetForegroundDrawList()->AddRect(hovered_element->item_rect.Min, hovered_element->item_rect.Max, ImColor(1.0f, 1.0f, 0.0f, 1.0f), 1.f, 0, 2.0f);
-	}
+	//if (hovered_element)
+	//{
+	//	ImGui::GetForegroundDrawList()->AddRect(hovered_element->item_rect.Min, hovered_element->item_rect.Max, ImColor(1.0f, 1.0f, 0.0f, 1.0f), 1.f, 0, 2.0f);
+	//}
 
 	this->FixParentChildRelationships(nullptr);
 	hovered_element = nullptr;
