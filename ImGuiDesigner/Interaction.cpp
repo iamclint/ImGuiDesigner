@@ -30,35 +30,22 @@ void ImGuiElement::HandleDrop()
 
 	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && this->drop_new_parent)
 	{
-		std::cout << "dropped on " << this->v_id << std::endl;
+		igd::active_workspace->ResetSelectTimeout();
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
 			if (this != e && e->v_parent != this && e != igd::active_workspace->basic_workspace_element)
 			{
 
-				if (e->v_pos.type == Vec2Type::Absolute) //relative positioning will be calculated per frame so no need to modify
-				{
-					e->v_parent = this;
-					std::cout << "Drag pos: " << e->v_pos_dragging.value.x << " " << e->v_pos_dragging.value.y << std::endl;
-					std::cout << "Parent pos: " << e->v_parent->item_rect.Min.x << " " << e->v_parent->item_rect.Min.y << std::endl;
-					e->v_pos.value = { e->v_pos_dragging.value.x - e->v_parent->item_rect.Min.x, e->v_pos_dragging.value.y - e->v_parent->item_rect.Min.y };
-					if (this->v_parent)
-					{
-						std::cout << " New parent " << std::endl;
-
-		/*				if (this->v_pos.type == Vec2Type::Absolute)
-						{
-							e->ApplyPos({ e->v_pos.value.x - this->v_pos.value.x , e->v_pos.value.y - this->v_pos.value.y });
-						}
-						else
-						{
-							e->v_pos.value = e->v_pos_dragging.value;
-							e->ApplyDeltaPos({ -(ContentRegionAvail.x * (v_pos.value.x / 100)), -(ContentRegionAvail.y * (v_pos.value.y / 100)) });
-						}*/
-					}
-				}
+				e->v_parent = this;
+				ImVec2 final_pos = e->v_pos_dragging.value - e->v_parent->item_rect.Min + e->v_parent->v_scroll_position;
+				if (e->v_pos.type == Vec2Type::Absolute)
+					e->v_pos.value = final_pos;
 				else
-					e->v_parent = this;
+				{
+					e->v_pos.value.x = (final_pos.x / e->v_parent->ContentRegionAvailSelf.x) * 100;
+					e->v_pos.value.y = (final_pos.y / e->v_parent->ContentRegionAvailSelf.y) * 100;
+				}
+
 			}
 		}
 		this->drop_new_parent = false;
@@ -70,7 +57,7 @@ void ImGuiElement::HandleDrop()
 		return;
 	}
 
-	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && igd::active_workspace->selected_elements.size() > 0 )
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && igd::active_workspace->selected_elements.size() > 0 && igd::active_workspace->selected_elements[0]->v_parent!=this)
 	{
 		ImRect item_location = ImRect({ this->item_rect.Min.x - 4,this->item_rect.Min.y - 4 }, { this->item_rect.Max.x + 4,this->item_rect.Max.y + 4 });
 		ImGui::GetForegroundDrawList()->AddRectFilled(item_location.Min, item_location.Max, ImColor(0.0f, 0.0f, .5f, 0.1f), 1.f, 0);
@@ -92,8 +79,11 @@ bool ImGuiElement::Drag()
 		igd::active_workspace->is_dragging = true;
 	}
 
-	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && igd::active_workspace->is_dragging)
+	{
+		igd::active_workspace->ResetSelectTimeout();
 		igd::active_workspace->is_dragging = false;
+	}
 
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && igd::active_workspace->is_dragging)
 	{
@@ -220,15 +210,7 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 
 void ImGuiElement::ApplyDeltaPosDrag(ImVec2 delta)
 {
-	if (v_pos.type == Vec2Type::Absolute)
-	{
-		v_pos_dragging.value += delta;
-	}
-	else if (v_pos.type == Vec2Type::Relative)
-	{
-		v_pos_dragging.value.x = ((v_pos_dragging.value.x + delta.x - ImGui::GetWindowPos().x) / ContentRegionAvail.x) * 100;
-		v_pos_dragging.value.y = ((v_pos_dragging.value.x + delta.y - ImGui::GetWindowPos().y) / ContentRegionAvail.y) * 100;
-	}
+	v_pos_dragging.value += delta;
 }
 
 void ImGuiElement::ApplyDeltaPos(ImVec2 delta)
@@ -255,13 +237,18 @@ void ImGuiElement::ApplyPos(ImVec2 literal_pos)
 		v_pos.value.y = (literal_pos.y / ContentRegionAvail.y) * 100;
 	}
 }
+bool isNeg(float val)
+{
+	return val < 0;
+}
 
 bool ImGuiElement::Resize()
 {
-	if (v_property_flags & property_flags::no_resize)
+	if ((v_property_flags & property_flags::no_resize) || !igd::active_workspace->CanSelect())
 		return false;
 
-	float delta_offset = 8.0f;
+	float delta_offset_outter = 8.0f;
+	float delta_offset_inner = 3.0f;
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 	ImGuiIO& io = g.IO;
@@ -271,33 +258,52 @@ bool ImGuiElement::Resize()
 	ImVec2 mouse_delta_bl = { g.LastItemData.Rect.Min.x - io.MousePos.x,g.LastItemData.Rect.Max.y - io.MousePos.y };
 	ImVec2 mouse_delta_tr = { g.LastItemData.Rect.Max.x - io.MousePos.x,g.LastItemData.Rect.Min.y - io.MousePos.y };
 	ImVec2 mouse_delta_tl = { g.LastItemData.Rect.Min.x - io.MousePos.x,g.LastItemData.Rect.Min.y - io.MousePos.y };
-	bool is_mouse_hovering_br = fabs(mouse_delta_br.x) < delta_offset && fabs(mouse_delta_br.y) < delta_offset;
-	bool is_mouse_hovering_r = fabs(mouse_delta_br.x) < delta_offset && io.MousePos.y > g.LastItemData.Rect.Min.y && io.MousePos.y < g.LastItemData.Rect.Max.y;
-	bool is_mouse_hovering_tr = fabs(mouse_delta_tr.x) < delta_offset && fabs(mouse_delta_tr.y) < delta_offset;
-	bool is_mouse_hovering_l = fabs(mouse_delta_bl.x) < delta_offset && io.MousePos.y > g.LastItemData.Rect.Min.y && io.MousePos.y < g.LastItemData.Rect.Max.y;
-	bool is_mouse_hovering_b = fabs(mouse_delta_bl.y) < delta_offset && io.MousePos.x > g.LastItemData.Rect.Min.x && io.MousePos.x < g.LastItemData.Rect.Max.x;
-	bool is_mouse_hovering_t = fabs(mouse_delta_tr.y) < delta_offset && io.MousePos.x > g.LastItemData.Rect.Min.x && io.MousePos.x < g.LastItemData.Rect.Max.x;
-	bool is_mouse_hovering_bl = fabs(mouse_delta_bl.x) < delta_offset && fabs(mouse_delta_bl.y) < delta_offset;
-	bool is_mouse_hovering_tl = fabs(mouse_delta_tl.x) < delta_offset && fabs(mouse_delta_tl.y) < delta_offset;
+
+	//if (this->v_type_id == (int)element_type::button)
+	//{
+	//	std::stringstream ss;
+	//	ss << "mouse_delta_br: " << mouse_delta_br.x << " " << mouse_delta_br.y << std::endl;
+	//	ss << "mouse_delta_bl: " << mouse_delta_bl.x << " " << mouse_delta_bl.y << std::endl;
+	//	ss << "mouse_delta_tr: " << mouse_delta_tr.x << " " << mouse_delta_tr.y << std::endl;
+	//	ss << "mouse_delta_tl: " << mouse_delta_tl.x << " " << mouse_delta_tl.y << std::endl;
+	//	ImGui::Text(ss.str().c_str());
+	//}
+	bool is_mouse_hovering_br = fabs(mouse_delta_br.x) < delta_offset_outter && fabs(mouse_delta_br.y) < delta_offset_outter;
+	bool is_mouse_hovering_r = fabs(mouse_delta_br.x) < delta_offset_outter && io.MousePos.y > g.LastItemData.Rect.Min.y && io.MousePos.y < g.LastItemData.Rect.Max.y;
+	bool is_mouse_hovering_tr = fabs(mouse_delta_tr.x) < delta_offset_outter && fabs(mouse_delta_tr.y) < delta_offset_outter;
+	bool is_mouse_hovering_l = fabs(mouse_delta_bl.x) < delta_offset_outter && io.MousePos.y > g.LastItemData.Rect.Min.y && io.MousePos.y < g.LastItemData.Rect.Max.y;
+	bool is_mouse_hovering_b = fabs(mouse_delta_bl.y) < delta_offset_outter && io.MousePos.x > g.LastItemData.Rect.Min.x && io.MousePos.x < g.LastItemData.Rect.Max.x;
+	bool is_mouse_hovering_t = fabs(mouse_delta_tr.y) < delta_offset_outter && io.MousePos.x > g.LastItemData.Rect.Min.x && io.MousePos.x < g.LastItemData.Rect.Max.x;
+	bool is_mouse_hovering_bl = fabs(mouse_delta_bl.x) < delta_offset_outter && fabs(mouse_delta_bl.y) < delta_offset_outter;
+	bool is_mouse_hovering_tl = fabs(mouse_delta_tl.x) < delta_offset_outter && fabs(mouse_delta_tl.y) < delta_offset_outter;
+
+	//bool is_mouse_hovering_br = (isNeg(mouse_delta_br.x) && fabs(mouse_delta_br.x) < delta_offset_outter) && (fabs(mouse_delta_br.y) < delta_offset_outter);// mouse_delta_br.x < delta_offset_outter && (mouse_delta_br.y) < delta_offset_outter;
+	//bool is_mouse_hovering_r = false;
+	//bool is_mouse_hovering_tr = false;
+	//bool is_mouse_hovering_l = false;
+	//bool is_mouse_hovering_b = false;
+	//bool is_mouse_hovering_t = false;
+	//bool is_mouse_hovering_bl = false;
+	//bool is_mouse_hovering_tl = false;
 
 	if (ResizeDirection == resize_direction::none)
 	{
 		if (is_mouse_hovering_br)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-		else if (is_mouse_hovering_r)
-			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
 		else if (is_mouse_hovering_tr)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
+		else if (is_mouse_hovering_bl)
+			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
+		else if (is_mouse_hovering_tl)
+			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
+		else if (is_mouse_hovering_r)
+			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
 		else if (is_mouse_hovering_l)
 			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
 		else if (is_mouse_hovering_b)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 		else if (is_mouse_hovering_t)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
-		else if (is_mouse_hovering_bl)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-		else if (is_mouse_hovering_tl)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 	}
 
 	if (ImGui::IsMouseClicked(0) && !igd::active_workspace->is_dragging && ResizeDirection == resize_direction::none)
@@ -389,33 +395,15 @@ void ImGuiElement::Select()
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
 	ImGuiWindow* window = g.CurrentWindow;
-	if (this->drop_new_parent)
-		return;
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ResizeDirection == resize_direction::none && !igd::active_workspace->is_dragging && !igd::active_workspace->dragging_select)
+
+	if (this->drop_new_parent || igd::active_workspace->is_dragging || igd::active_workspace->dragging_select)
 	{
-
-		if (!ImGui::GetIO().KeyCtrl)
-		{
-			igd::active_workspace->SetSingleSelection(this);
-		}
-		else
-		{
-			bool exists = false;
-			for (auto& e : igd::active_workspace->selected_elements)
-			{
-				if (e == this)
-				{
-					exists = true;
-					break;
-				}
-			}
-			if (exists)
-				igd::active_workspace->selected_elements.erase(std::remove(igd::active_workspace->selected_elements.begin(), igd::active_workspace->selected_elements.end(), this), igd::active_workspace->selected_elements.end());
-			else
-				igd::active_workspace->selected_elements.push_back(this);
-		}
-
+		//std::cout << "drop_new_parent: " << (int)this->drop_new_parent << " is_dragging: " << (int)igd::active_workspace->is_dragging << " dragging select: " << (int)igd::active_workspace->dragging_select << " Can Select: " << (int)igd::active_workspace->CanSelect() << std::endl;
+		return;
 	}
+
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ResizeDirection == resize_direction::none)
+		igd::active_workspace->SelectElement(this);
 }
 
 void ImGuiElement::DrawSelection()
@@ -466,16 +454,19 @@ void ImGuiElement::Interact()
 				{
 					for (auto& e : igd::active_workspace->selected_elements)
 					{
-						if (e->v_pos.type == Vec2Type::Absolute)
-							e->v_pos.value = e->v_pos_dragging.value - ImGui::GetWindowPos();
+						ImVec2 final_pos = e->v_pos_dragging.value - e->v_parent->item_rect.Min + e->v_parent->v_scroll_position;
+						if (e->v_pos.type == Vec2Type::Absolute && e->v_parent)
+							e->v_pos.value = final_pos;
 						else
-							e->v_pos.value = e->v_pos_dragging.value;
+						{
+							e->v_pos.value.x = (final_pos.x / ContentRegionAvail.x) * 100;
+							e->v_pos.value.y = (final_pos.y / ContentRegionAvail.y) * 100;
+						}
 					}
 				}
 				PushUndo();
 				did_move = false;
 			}
-			//igd::active_workspace->is_dragging = false;
 		}
 	}
 }

@@ -26,7 +26,10 @@ void Settings::save()
 void Settings::load()
 {
 	std::filesystem::path path = std::filesystem::current_path();
-	path.append("settings.igs");
+	path.append("settings.igd");
+	if (!std::filesystem::exists(path))
+		return;
+
 	std::ifstream i(path);
 	try
 	{
@@ -40,14 +43,16 @@ void Settings::load()
 	}
 	catch (nlohmann::json::exception& ex)
 	{
-		igd::dialogs->GenericNotification("Json Error Loading Settings", ex.what(), "", "Ok", []() {});
-		std::cerr << "parse error at byte " << ex.what() << std::endl;
+		std::string err = path.string() + "\n\n" + std::string(ex.what());
+		igd::dialogs->GenericNotification("Error Parsing Settings", err  , "", "Ok", []() {});
+		std::cout << "parse error at byte " << ex.what() << std::endl;
 		i.close();
 	}
 	catch (nlohmann::json::parse_error& ex)
 	{
-		igd::dialogs->GenericNotification("Json Error Loading Settings", ex.what(), "", "Ok", []() {});
-		std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+		std::string err = path.string() + "\n\n" + std::string(ex.what());
+		igd::dialogs->GenericNotification("Error Parsing Settings", err, "", "Ok", []() {});
+		std::cout << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 		i.close();
 	}
 }

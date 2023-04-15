@@ -29,6 +29,35 @@ namespace igd
 	ImFont* designer_font;
 	std::unordered_map<const char*, ImFont*>* designer_fonts;
 
+	std::string WordWrap(std::string& input, int char_limit)
+	{
+		int len = input.length();
+		if (len <= char_limit)
+			return input;
+
+		std::stringstream output;
+		int i = 0;
+		while (i < len)
+		{
+			if (i + char_limit < len)
+			{
+				//find the next space in case the line break is in the middle of a word
+				int next_space = input.substr(i + char_limit).find(' ');
+				if (next_space != std::string::npos)
+				{
+					output << input.substr(i, char_limit + next_space) << std::endl;
+					i += next_space + 1;
+				}
+				else
+					output << input.substr(i, char_limit) << std::endl;
+			}
+			i += char_limit;
+			if (i >= len)
+				output << input.substr(i - char_limit);
+		}
+		return output.str();
+	}
+
 	void onUpdate()
 	{
 		//if (!designer_font)
@@ -162,7 +191,6 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.FontDataSize = sizeof(embedded::corbel);
 	spec.FontSize = 16;
 	igd::app = new Walnut::Application(spec);
-	igd::settings->load();
 	GLFWimage Images[1];
 	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
 	glfwSetWindowIcon(igd::app->GetWindowHandle(), 1, Images);
@@ -180,6 +208,8 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	igd::properties = properties.get();
 	igd::dialogs = dialogs.get();
 	igd::font_manager = font_manager.get();
+	igd::settings->load();
+
 	igd::app->PushLayer<ToolBar>();
 	igd::app->PushLayer(work);
 	igd::app->PushLayer(properties);

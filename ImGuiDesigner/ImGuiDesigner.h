@@ -24,7 +24,7 @@ namespace igd
 			}
 		}
 	}
-
+	std::string WordWrap(std::string& text, int max_chars);
 	void UnPressKey(ImGuiKey key);
 	void push_designer_theme();
 	void pop_designer_theme();

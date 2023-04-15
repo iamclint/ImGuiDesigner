@@ -3,7 +3,7 @@
 #include "Walnut/Application.h"
 #include "ImGuiDesigner.h"
 #include "misc/cpp/imgui_stdlib.h"
-
+#include <iostream>
 void Dialogs::GenericNotification(std::string title, std::string message, std::string icon_path, std::string button_text, std::function<void()> callback)
 {
 	this->show_generic = true;
@@ -100,9 +100,11 @@ void Dialogs::generic()
 	}
 	if (this->BeginDialog((this->title + "##generic").c_str()))
 	{
-		ImVec2 size = ImGui::CalcTextSize(this->message.c_str());
+		std::string f = igd::WordWrap(this->message, 70);
+		ImVec2 size = ImGui::CalcTextSize(f.c_str());
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
-		ImGui::Text(this->message.c_str());
+		ImGui::Text(f.c_str());
+		ImGui::Dummy({0, 20 });
 		ImVec2 b_size = ImGui::GetContentRegionAvail();
 		float width = b_size.x - GImGui->Style.FramePadding.x;
 		if (ImGui::Button(this->button_text.c_str(), { width , 45 }) || ImGui::GetIO().KeysDown[ImGuiKey_Escape])

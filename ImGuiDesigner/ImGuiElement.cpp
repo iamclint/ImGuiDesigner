@@ -484,7 +484,9 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	std::string RenderHead = this->RenderHead(script_only);
 	if (RenderHead !="")
 		this->AddCode(RenderHead);
-	
+	if (ContentRegionAvail.x == 0 && ContentRegionAvail.y == 0)
+		ContentRegionAvail = ImGui::GetContentRegionAvail();
+	ContentRegionAvailSelf = ImGui::GetContentRegionAvail();
 	////irritating that we have to do this but imgui uses tab items sort of like buttons
 	//if (this->v_type_id == (int)element_type::tabitem)
 	//	Interact();
@@ -519,6 +521,9 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 	if (callback)
 		callback();
+
+	if (this->v_can_have_children)
+		v_scroll_position = { ImGui::GetScrollX(), ImGui::GetScrollY() };
 
 	if (this->v_type_id != (int)element_type::window)
 	{

@@ -86,8 +86,15 @@ void Properties::buildTree(ImGuiElement* current_element)
 	int flags = 0;
 	if (current_element->children.size() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
-	if (igd::active_workspace->GetSingleSelection() == current_element)
-		flags |= ImGuiTreeNodeFlags_Selected;
+
+	for (auto& e : igd::active_workspace->selected_elements)
+	{
+		if (e == current_element)
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+			break;
+		}
+	}
 	flags |= ImGuiTreeNodeFlags_DefaultOpen;
 	
 	std::stringstream ss;
@@ -103,7 +110,8 @@ void Properties::buildTree(ImGuiElement* current_element)
 	bool IsOpen = ImGui::TreeNodeEx(ss.str().c_str(), flags);
 	{
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			igd::active_workspace->SetSingleSelection(current_element);
+			igd::active_workspace->SelectElement(current_element);
+
 		if (ImGui::BeginDragDropTarget()) {
 
 			ImGuiElement* source_element = *(ImGuiElement**)(ImGui::GetDragDropPayload()->Data);

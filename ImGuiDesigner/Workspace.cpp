@@ -8,6 +8,7 @@
 #include <filesystem>
 #include "igd_elements.h"
 #include <boost/algorithm/string.hpp>
+
 WorkSpace::~WorkSpace()
 {
 	for (auto& ele : basic_workspace_element->children)
@@ -21,9 +22,50 @@ WorkSpace::WorkSpace()
 	copied_elements{}, loading_workspace(false), is_interacting(false), sort_buffer{},
 	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false), hovered_element(nullptr)
 {
+	last_selection_time = std::chrono::system_clock::now();
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
 	is_open = true;
+}
+
+void WorkSpace::ResetSelectTimeout()
+{
+	last_selection_time = std::chrono::system_clock::now();
+}
+void WorkSpace::SelectElement(ImGuiElement* element)
+{
+	if (this->CanSelect())
+	{
+		if (!ImGui::GetIO().KeyCtrl)
+		{
+			this->SetSingleSelection(element);
+		}
+		else
+		{
+			bool exists = false;
+			for (auto& e : this->selected_elements)
+			{
+				if (e == element)
+				{
+					exists = true;
+					break;
+				}
+			}
+			if (exists)
+				this->selected_elements.erase(std::remove(this->selected_elements.begin(), this->selected_elements.end(), element), this->selected_elements.end());
+			else
+				this->selected_elements.push_back(element);
+		}
+		ResetSelectTimeout();
+	}
+}
+
+bool WorkSpace::CanSelect()
+{
+	if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_selection_time).count() < 50)
+		return false;
+	else
+		return true;
 }
 
 ImGuiElement* WorkSpace::CreateElementFromJson(nlohmann::json& obj, ImGuiElement* parent)
@@ -169,12 +211,41 @@ void WorkSpace::SelectAll(ImGuiElement* element, int level)
 
 void WorkSpace::KeyBinds()
 {
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !igd::dialogs->IsShowing())
+	{
+		std::string msg = "";
+		std::cout << "Press delete?" << std::endl;
+		if (!this->selected_elements.size())
+			return;
+		if (this->selected_elements.size() == 1)
+			msg = "Are you sure you wish to delete " + this->selected_elements.front()->v_id;
+		else
+			msg = "Are you sure you wish to delete all the selected elements?";
+
+		igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
+			if (!conf)
+				return;
+
+			for (auto& e : this->selected_elements)
+			{
+				if (e->children.size() > 0)
+				{
+					for (auto& child : e->children)
+						child->Delete();
+				}
+				e->Delete();
+			}
+			this->selected_elements.clear();
+			});
+	}
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
+	{
+		igd::active_workspace->selected_elements.clear();
+	}
+
 	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
 		return;
 	
-
-
-
 	if (ImGui::GetIO().KeyShift)
 		DragSelect();
 	
@@ -243,37 +314,7 @@ void WorkSpace::KeyBinds()
 		std::cout << "Redo stack size: " << redoStack.size() << std::endl;
 	}
 
-	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !igd::dialogs->IsShowing())
-	{
-		std::string msg = "";
-		std::cout << "Press delete?" << std::endl;
-		if (!this->selected_elements.size())
-			return;
-		if (this->selected_elements.size()==1)
-			msg = "Are you sure you wish to delete " + this->selected_elements.front()->v_id;
-		else
-			msg = "Are you sure you wish to delete all the selected elements?";
-
-		igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
-			if (!conf)
-				return;
-
-			for (auto& e : this->selected_elements)
-			{
-				if (e->children.size() > 0)
-				{
-					for (auto& child : e->children)
-						child->Delete();
-				}
-				e->Delete();
-			}
-			this->selected_elements.clear();
-			});
-	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
-	{
-		igd::active_workspace->selected_elements.clear();
-	}
+	
 }
 
 void WorkSpace::PushUndo(ImGuiElement* ele)
@@ -394,10 +435,10 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 		if (!cElement->v_parent)
 		{
 			std::cout << "Moving element " << cElement->v_id << " -> workspace " << "Index: " << cElement->v_render_index  << std::endl;
-			if (cElement->v_render_index>=this->basic_workspace_element->children.size())
+		//	if (cElement->v_render_index>=this->basic_workspace_element->children.size())
 				this->basic_workspace_element->children.push_back(cElement);
-			else
-				this->basic_workspace_element->children.emplace(this->basic_workspace_element->children.begin()+cElement->v_render_index, cElement);
+			//else
+			//	this->basic_workspace_element->children.emplace(this->basic_workspace_element->children.begin()+cElement->v_render_index, cElement);
 			cElement->v_parent = this->basic_workspace_element;
 			it = element_vector->erase(it);
 			return false;
@@ -405,12 +446,12 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 		else if (cElement->v_parent != element) //if the element has a parent and the parent is not the element we are looking at
 		{
 			std::cout << "Moving element " << cElement->v_id << " -> " << cElement->v_parent->v_id << " Index: " << cElement->v_render_index << std::endl;
-			if (cElement->v_render_index >= cElement->v_parent->children.size())
+			//if (cElement->v_render_index >= cElement->v_parent->children.size())
 				cElement->v_parent->children.push_back(cElement);
-			else
-			{
-				cElement->v_parent->children.emplace(cElement->v_parent->children.begin() + cElement->v_render_index, cElement);
-			}
+			//else
+			//{
+			//	cElement->v_parent->children.emplace(cElement->v_parent->children.begin() + cElement->v_render_index, cElement);
+			//}
 			it = element_vector->erase(it);
 			return false;
 		}
@@ -454,10 +495,8 @@ void WorkSpace::OnUIRender() {
 
 	this->FixParentChildRelationships(nullptr);
 	hovered_element = nullptr;
-	ImVec2 region_avail = ImGui::GetContentRegionAvail();
 
-
-	basic_workspace_element->Render(region_avail, 1, this, std::bind(&WorkSpace::KeyBinds, this));
+	basic_workspace_element->Render({0,0}, 1, this, std::bind(&WorkSpace::KeyBinds, this));
 	if (igd::active_workspace->is_dragging)
 	{
 		basic_workspace_element->RenderDrag();

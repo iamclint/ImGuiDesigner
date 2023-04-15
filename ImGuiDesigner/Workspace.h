@@ -2,6 +2,7 @@
 #include "Walnut/Application.h"
 #include "ImGuiElement.h"
 #include <vector>
+#include <chrono>
 enum class InteractionMode : int
 {
 	designer,
@@ -41,6 +42,9 @@ public:
 	void DragSelect();
 	void SelectAll(ImGuiElement* element, int level=0);
 	void SelectRect(ImGuiElement* element);
+	bool CanSelect();
+	void ResetSelectTimeout();
+	void SelectElement(ImGuiElement* element);
 	WorkSpace();
 	~WorkSpace();
 	ImRect drag_select;
@@ -51,9 +55,10 @@ public:
 	bool dragging_select;
 	ImGuiElement* basic_workspace_element;
 	
+	
 private:
 	void GenerateStaticVars();
-
+	std::chrono::system_clock::time_point last_selection_time;
 };
 
 //store the states of the elements for each workspace

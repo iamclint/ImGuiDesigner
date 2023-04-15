@@ -285,6 +285,7 @@ public:
 	bool v_can_contain_own_type;
 	bool v_auto_select;
 	float v_aspect_ratio;
+	ImVec2 v_scroll_position;
 	ImRect item_rect;
 	std::string v_path;
 	ImVec2 drag_start_pos;
@@ -294,6 +295,7 @@ public:
 	WorkSpace* v_workspace;
 	int v_depth;
 	ImVec2 ContentRegionAvail;
+	ImVec2 ContentRegionAvailSelf;
 	std::string ContentRegionString;
 	
 	ImGuiElement* v_parent;
