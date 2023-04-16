@@ -60,7 +60,7 @@ void ImGuiElement::HandleDrop()
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && igd::active_workspace->selected_elements.size() > 0 && igd::active_workspace->selected_elements[0]->v_parent!=this)
 	{
 		ImRect item_location = ImRect({ this->item_rect.Min.x - 4,this->item_rect.Min.y - 4 }, { this->item_rect.Max.x + 4,this->item_rect.Max.y + 4 });
-		ImGui::GetForegroundDrawList()->AddRectFilled(item_location.Min, item_location.Max, ImColor(0.0f, 0.0f, .5f, 0.1f), 1.f, 0);
+		ImGui::GetForegroundDrawList()->AddRectFilled(item_location.Min, item_location.Max, ImColor(34, 205, 141, 26), 1.f, 0);
 		this->drop_new_parent = true;
 	}
 }
@@ -70,7 +70,7 @@ bool ImGuiElement::Drag()
 {
 	ImGuiContext& g = *GImGui;
 
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && ResizeDirection == resize_direction::none && !igd::active_workspace->is_dragging)
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(0) && resize_direction == ResizeDirection::none && !igd::active_workspace->is_dragging)
 	{
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
@@ -134,6 +134,8 @@ void ImGuiElement::RenderDrag()
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing;
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
+			if (e->delete_me)
+				continue;
 			ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
 			ImGui::SetNextWindowBgAlpha(0);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -242,9 +244,20 @@ bool isNeg(float val)
 	return val < 0;
 }
 
+
+
+//void ImGuiElement::GetResizeRects()
+//{
+//	float delta_offset_outter = 5.0f;
+//	float delta_offset_inner = -5.0f;
+//	resize_rects[ResizeDirection::bottom_right] = ImRect(item_rect.Max.x+ delta_offset_inner, item_rect.Max.y + delta_offset_inner, item_rect.Max.x + delta_offset_outter, item_rect.Max.y + delta_offset_outter);
+//	ImGui::GetForegroundDrawList()->AddRect(resize_rects[ResizeDirection::bottom_right].Min, resize_rects[ResizeDirection::bottom_right].Max, ImColor(1.0f, 0.0f, 1.0f, 1.0f), 0, 0, 2);
+//}
+
 bool ImGuiElement::Resize()
 {
-	if ((v_property_flags & property_flags::no_resize) || !igd::active_workspace->CanSelect())
+	//GetResizeRects();
+	if ((v_property_flags & property_flags::no_resize) || !igd::active_workspace->CanSelect() || igd::active_workspace->dragging_select)
 		return false;
 
 	float delta_offset_outter = 8.0f;
@@ -286,7 +299,7 @@ bool ImGuiElement::Resize()
 	//bool is_mouse_hovering_bl = false;
 	//bool is_mouse_hovering_tl = false;
 
-	if (ResizeDirection == resize_direction::none)
+	if (resize_direction == ResizeDirection::none)
 	{
 		if (is_mouse_hovering_br)
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
@@ -306,79 +319,79 @@ bool ImGuiElement::Resize()
 			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 	}
 
-	if (ImGui::IsMouseClicked(0) && !igd::active_workspace->is_dragging && ResizeDirection == resize_direction::none)
+	if (ImGui::IsMouseClicked(0) && !igd::active_workspace->is_dragging && resize_direction == ResizeDirection::none)
 	{
 		if (is_mouse_hovering_br)
-			ResizeDirection = resize_direction::bottom_right;
+			resize_direction = ResizeDirection::bottom_right;
 		else if (is_mouse_hovering_r)
-			ResizeDirection = resize_direction::right;
+			resize_direction = ResizeDirection::right;
 		else if (is_mouse_hovering_tr)
-			ResizeDirection = resize_direction::top_right;
+			resize_direction = ResizeDirection::top_right;
 		else if (is_mouse_hovering_l)
-			ResizeDirection = resize_direction::left;
+			resize_direction = ResizeDirection::left;
 		else if (is_mouse_hovering_b)
-			ResizeDirection = resize_direction::bottom;
+			resize_direction = ResizeDirection::bottom;
 		else if (is_mouse_hovering_t)
-			ResizeDirection = resize_direction::top;
+			resize_direction = ResizeDirection::top;
 		else if (is_mouse_hovering_bl)
-			ResizeDirection = resize_direction::bottom_left;
+			resize_direction = ResizeDirection::bottom_left;
 		else if (is_mouse_hovering_tl)
-			ResizeDirection = resize_direction::top_left;
+			resize_direction = ResizeDirection::top_left;
 	}
-	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ResizeDirection != resize_direction::none)
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && resize_direction != ResizeDirection::none)
 	{
 		mouse_drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 		did_resize = true;
-		switch (ResizeDirection)
+		switch (resize_direction)
 		{
-		case resize_direction::top_right:
+		case ResizeDirection::top_right:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
 			ApplyDeltaResize({ mouse_drag_delta.x,-mouse_drag_delta.y });// { last_size.x + mouse_drag_delta.x, last_size.y - mouse_drag_delta.y });
 			ApplyDeltaPos({ 0, mouse_drag_delta.y });
 			break;
 		}
-		case resize_direction::top_left:
+		case ResizeDirection::top_left:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 			ApplyDeltaResize(mouse_drag_delta * -1);// { last_size.x - mouse_drag_delta.x, last_size.y - mouse_drag_delta.y });
 			ApplyDeltaPos(mouse_drag_delta);
 			break;
 		}
-		case resize_direction::bottom_left:
+		case ResizeDirection::bottom_left:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
 			ApplyDeltaResize({ -mouse_drag_delta.x, mouse_drag_delta.y });
 			ApplyDeltaPos({ mouse_drag_delta.x, 0 });
 			break;
 		}
-		case resize_direction::left:
+		case ResizeDirection::left:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
 			ApplyDeltaResize({ -mouse_drag_delta.x, 0 });
 			ApplyDeltaPos({ mouse_drag_delta.x, 0 });
 			break;
 		}
-		case resize_direction::bottom_right:
+		case ResizeDirection::bottom_right:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 			ApplyDeltaResize(mouse_drag_delta);
 			break;
 		}
-		case resize_direction::right:
+		case ResizeDirection::right:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
 			ApplyDeltaResize({ mouse_drag_delta.x,0 });
 			break;
 		}
-		case resize_direction::top:
+		case ResizeDirection::top:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 			ApplyDeltaResize({ 0, -mouse_drag_delta.y });
 			ApplyDeltaPos({ 0,  mouse_drag_delta.y });
 			break;
 		}
-		case resize_direction::bottom:
+		case ResizeDirection::bottom:
 		{
 			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 			ApplyDeltaResize({ 0, mouse_drag_delta.y });
@@ -387,7 +400,7 @@ bool ImGuiElement::Resize()
 		}
 		ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
 	}
-	return ResizeDirection != resize_direction::none;
+	return resize_direction != ResizeDirection::none;
 }
 
 void ImGuiElement::Select()
@@ -402,7 +415,7 @@ void ImGuiElement::Select()
 		return;
 	}
 
-	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ResizeDirection == resize_direction::none)
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left) && resize_direction == ResizeDirection::none)
 		igd::active_workspace->SelectElement(this);
 }
 
@@ -422,11 +435,7 @@ void ImGuiElement::Interact()
 		{
 			if (e == this)
 			{
-				if (ImGui::GetIO().KeyShift)
-				{
-					DrawSelection();
-					continue;
-				}
+
 				if (Resize() || Drag())
 					igd::active_workspace->is_interacting = true;
 				else
@@ -447,7 +456,7 @@ void ImGuiElement::Interact()
 				PushUndo();
 				did_resize = false;
 			}
-			ResizeDirection = resize_direction::none;
+			resize_direction = ResizeDirection::none;
 			if (did_move)
 			{
 				if (!drop_new_parent)

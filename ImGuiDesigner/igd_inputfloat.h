@@ -19,6 +19,8 @@ namespace igd
 		float step_fast;
 		std::string format;
 		InputFloat() {
+			v_icon = igd::textures.images["input"];
+			v_tooltip = "Input Float";
 			v_type_id = (int)element_type::inputfloat;
 			input_data = 0;
 			format = "%.3f";

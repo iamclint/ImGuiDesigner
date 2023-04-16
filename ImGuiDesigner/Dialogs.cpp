@@ -21,7 +21,17 @@ void Dialogs::Confirmation(std::string title, std::string message, std::string i
 	this->icon_path = icon_path;
 	this->callback_confirmation = callback;
 }
-
+void Dialogs::SaveWidget(std::string title, std::vector<std::string> messages, std::string icon_path, std::pair<std::string, std::string> buttons, std::function<void(bool, std::vector<std::string>, std::string icon_name)> callback)
+{
+	this->input_text_vec.clear();
+	this->input_text_vec.resize(messages.size());
+	this->show_savewidget = true;
+	this->title = title;
+	this->message_vec = messages;
+	this->icon_path = icon_path;
+	this->callback_widget = callback;
+	this->input_buttons = buttons;
+}
 void Dialogs::InputTextVec(std::string title, std::vector<std::string> messages, std::string icon_path, std::pair<std::string, std::string> buttons, std::function<void(bool, std::vector<std::string>)> callback)
 {
 	this->input_text_vec.clear();
@@ -242,7 +252,7 @@ bool Dialogs::BeginDialog(const char* title)
 	is_open = ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
 	if (is_open)
 	{
-		ImGui::PushFont(igd::font_manager->GetFont("designer", 36)->font);
+		ImGui::PushFont(igd::font_manager->GetFont("designer", 28)->font);
 		ImVec2 size = ImGui::CalcTextSize(this->title.c_str());
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
 		ImGui::Text(this->title.c_str());
@@ -316,6 +326,79 @@ void Dialogs::textinputvec()
 	this->EndDialog();
 }
 
+void Dialogs::widget()
+{
+	static std::string sel_texture = "";
+	if (this->show_savewidget)
+	{
+		sel_texture = "";
+		ImGui::OpenPopup((this->title + "##save_widget").c_str());
+		this->show_savewidget = false;
+	}
+	if (this->BeginDialog((this->title + "##save_widget").c_str()))
+	{
+		ImGuiContext& g = *GImGui;
+		bool set_focus = false;
+		for (int i = 0; auto & m : this->message_vec)
+		{
+			ImVec2 size = ImGui::CalcTextSize(m.c_str());
+			//ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
+			//ImGui::Text(m.c_str());
+			if (ImGui::IsWindowAppearing() && !set_focus)
+			{
+				set_focus = true;
+				ImGui::SetKeyboardFocusHere();
+			}
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+			ImVec2 pos = ImGui::GetCursorPos();
+			ImGui::InputText(("##input_text_text " + std::to_string(i)).c_str(), &this->input_text_vec[i]);
+			//ImGui::Text(m.c_str());
+			if (this->input_text_vec[i].length() == 0)
+				ImGui::GetWindowDrawList()->AddText({ ImGui::GetWindowPos().x + pos.x + 7, ImGui::GetWindowPos().y + pos.y + (size.y / 2) - (GImGui->Style.FramePadding.y / 2) }, ImGui::GetColorU32(ImGuiCol_Text), m.c_str());
+			ImGui::Dummy({ 0, 10 });
+			i++;
+		}
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImColor(65, 67, 74, 65).Value);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(65, 67, 74, 255).Value);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(65, 67, 74, 255).Value);
+		ImGui::BeginTable("##textures", 5, ImGuiTableFlags_SizingStretchSame);
+		for (auto& [name, data] : igd::textures.images)
+		{
+			ImGui::TableNextColumn();
+			if (igd::ImageButton(data->GetDescriptorSet(), data->GetSize() / 2, { 50, 50 }, name==sel_texture ? ImColor(65, 67, 74, 255) : ImColor(0,0,0,0)))
+				sel_texture = name;
+		}
+		ImGui::EndTable();
+		ImGui::PopStyleColor(3);
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImVec2 b_size = ImGui::GetContentRegionAvail();
+		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
+		if (ImGui::Button(input_buttons.first.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeyPadEnter))
+		{
+			igd::UnPressKey(ImGuiKey_Enter);
+			igd::UnPressKey(ImGuiKey_KeyPadEnter);
+
+			this->callback_widget(true, this->input_text_vec, sel_texture);
+			input_text_vec.clear();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(input_buttons.second.c_str(), { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			igd::UnPressKey(ImGuiKey_Escape);
+			this->callback_widget(false, this->input_text_vec, sel_texture);
+			input_text_vec.clear();
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::Spacing();
+	}
+	this->EndDialog();
+}
+
 bool Dialogs::IsShowing()
 {
 	return this->show_generic || this->show_confirm;
@@ -324,6 +407,7 @@ void Dialogs::OnUIRender()
 {
 	igd::push_designer_theme();
 	generic();
+	widget();
 	confirm();
 	textinput();
 	textinputvec();

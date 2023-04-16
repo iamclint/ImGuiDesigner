@@ -10,6 +10,7 @@
 #include "imgui_internal.h"
 #include "Workspace.h"
 #include "ScriptHelpers.h"
+#include "Walnut/Image.h"
 struct ElementFont;
 class WorkSpace;
 enum class property_flags : int
@@ -138,7 +139,7 @@ inline int operator&(property_flags a, property_flags b)
 {
 	return static_cast<int>(static_cast<int>(a) & static_cast<int>(b));
 }
-enum class resize_direction : int
+enum class ResizeDirection : int
 {
 	none,
 	left,
@@ -239,7 +240,7 @@ public:
 	void Redo();
 	void Undo();
 	void PushUndo();
-	void SaveAsWidget(std::string name, std::string desc);
+	void SaveAsWidget(std::string name, std::string desc, std::string icon_name = "");
 	void PushStyleColor(ImGuiCol idx, const ImVec4& col, void* ws = nullptr);
 	void PushStyleVar(ImGuiStyleVar idx, float val, void* ws = nullptr);
 	void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val, void* ws = nullptr);
@@ -285,6 +286,8 @@ public:
 	bool v_can_contain_own_type;
 	bool v_auto_select;
 	float v_aspect_ratio;
+	Walnut::Image* v_icon;
+	std::string v_tooltip;
 	ImVec2 v_scroll_position;
 	ImRect item_rect;
 	std::string v_path;
@@ -326,12 +329,10 @@ private:
 	void ApplyDeltaPos(ImVec2 delta);
 	void ApplyDeltaPosDrag(ImVec2 delta);
 	bool ChildrenUseRelative();
-	bool IsFlagGroup(std::pair<int, std::string> current_flag);
 	void Interact();
-	
-
 	void HandleHover();
 	std::string GetContentRegionString();
+
 	void AddCode(std::string code, int depth=-1);
 	bool drop_new_parent;
 	bool was_dragging;
@@ -341,8 +342,8 @@ private:
 	int undoStackIndex;
 	bool is_child_hovered;
 	
-	resize_direction ResizeDirection;
-
+	ResizeDirection resize_direction;
+	//std::unordered_map<ResizeDirection, ImRect> resize_rects;
 	ImVec2 last_size;
 	ImVec2 last_position;
 	ImVec2 last_known_cursor;

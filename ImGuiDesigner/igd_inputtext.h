@@ -16,6 +16,8 @@ namespace igd
 		static inline std::string json_identifier = "inputtext";
 		std::string input_data;
 		InputText() {
+			v_icon = igd::textures.images["input"];
+			v_tooltip = "Input Text";
 			v_type_id = (int)element_type::inputtext;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiInputTextFlags_None;

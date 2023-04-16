@@ -17,6 +17,8 @@ namespace igd
 		static inline std::string json_identifier = "checkbox";
 		bool is_checked;
 		CheckBox() {
+			v_icon = igd::textures.images["check"];
+			v_tooltip = "Checkbox";
 			v_type_id = (int)element_type::checkbox;
 			is_checked = false;
 			ImGuiContext& g = *GImGui;

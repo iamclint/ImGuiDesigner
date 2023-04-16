@@ -58,12 +58,12 @@ void ImGuiElement::PushUndo()
 ImGuiElement::ImGuiElement()
 	: v_flags(ImGuiButtonFlags_None), v_size(ImVec2(0, 0)), v_id(RandomID()), v_label("new element"),
 	v_parent(nullptr), v_border(0),
-	v_pos(ImVec2(0, 0)), ResizeDirection(resize_direction::none), last_size(0, 0),
+	v_pos(ImVec2(0, 0)), resize_direction(ResizeDirection::none), last_size(0, 0),
 	delete_me(false), v_can_have_children(false), change_parent(nullptr), did_resize(false), did_move(false),
 	v_disabled(false), v_property_flags(property_flags::None), color_pops(0), style_pops(0), v_inherit_all_colors(false), v_inherit_all_styles(false),
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
 	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""),
-	v_aspect_ratio(1.0f), is_child_hovered(false), drop_new_parent(false), was_dragging(false)
+	v_aspect_ratio(1.0f), is_child_hovered(false), drop_new_parent(false), was_dragging(false), v_tooltip(""), v_icon(nullptr)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -82,6 +82,7 @@ ImVec2 ImGuiElement::GetSize()
 		return v_size.value;
 	else if (v_size.type == Vec2Type::Relative)
 		return { (ContentRegionAvail.x * (v_size.value.x / 100)) - g.Style.FramePadding.x,(ContentRegionAvail.y * (v_size.value.y / 100)) - g.Style.FramePadding.y };
+	return { 0,0 };
 }
 void ImGuiElement::RenderPropertiesInternal()
 {
@@ -280,7 +281,7 @@ nlohmann::json ImGuiElement::GetJsonWithChildren()
 	return main_obj;
 }
 
-void ImGuiElement::SaveAsWidget(std::string name, std::string desc)
+void ImGuiElement::SaveAsWidget(std::string name, std::string desc, std::string icon_name)
 {
 	//if (children.size() == 0)
 	//	return;
@@ -303,6 +304,7 @@ void ImGuiElement::SaveAsWidget(std::string name, std::string desc)
 	nlohmann::json main_obj = GetJsonWithChildren();
 	main_obj["obj"]["desc"] = desc;
 	main_obj["obj"]["name"] = name;
+	main_obj["obj"]["icon_name"] = icon_name;
 	file << main_obj.dump() << std::endl;
 	file.close();
 	std::cout << "Saved to widgets/" + name +".igd" << std::endl;

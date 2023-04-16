@@ -11,6 +11,8 @@ namespace igd
 	public:
 		static inline std::string json_identifier = "combo";
 		Combo() {
+			v_icon = igd::textures.images["combo"];
+			v_tooltip = "Combo Box";
 			v_type_id = (int)element_type::combo;
 			v_can_contain_own_type = false;
 			ImGuiContext& g = *GImGui;

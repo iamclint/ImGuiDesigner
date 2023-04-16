@@ -16,24 +16,54 @@ ToolBar::ToolBar()
 }
 
 template<typename T>
-bool ToolBar::Tool(std::string name, ImVec2 size)
+bool ToolBar::Tool(std::string name, ImVec2 size, bool handle_click, std::string override_tooltip)
 {
 	T ref_element;
 	ImGuiElement* ref = (ImGuiElement*)&ref_element;
 	ImGuiElement* active = igd::active_workspace->GetSingleSelection();
+	ImGuiContext& g = *GImGui;
+	bool clicked = false;
 	if (ref->v_parent_required_id && !active)
 		return false;
 	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & active->v_type_id))
 		return false;
 
 	if (!active || !active->v_element_filter || (active->v_element_filter && (active->v_element_filter & ref->v_type_id)))
-		if (ImGui::Button(name.c_str(), size))
+	{
+		ImGui::TableNextColumn();
+		if (ref->v_icon && ref->v_icon->GetDescriptorSet())
+		{
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImColor(65, 67, 74, 65).Value);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(65, 67, 74, 255).Value);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(65, 67, 74, 255).Value);
+
+			if (igd::ImageButton(ref->v_icon->GetDescriptorSet(), ref->v_icon->GetSize() / 2))
+				clicked = true;
+//			ImGui::Image(ref->v_icon->GetDescriptorSet(), ref->v_icon->GetSize()/2);
+
+			ImGui::PopStyleColor(3);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+				ImGui::BeginTooltip();
+				if (override_tooltip!="")
+					ImGui::Text(override_tooltip.c_str());
+				else
+					ImGui::Text(ref->v_tooltip.c_str());
+				ImGui::EndTooltip();
+			}
+			
+		}
+		else
+			clicked = ImGui::Button(name.c_str(), size);
+		if (clicked && handle_click)
 		{
 			if (ref->v_type_id == (int)element_type::texture)
 			{
 				igd::dialogs->OpenFile([ref](std::string file) {
 					igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Texture(file)), false, ref->v_auto_select);
-				}, "*.png\0*.jpg\0All Files(*.*)\0 * .*\0");
+					}, "*.png\0*.jpg\0All Files(*.*)\0 * .*\0");
 			}
 			else
 			{
@@ -41,21 +71,61 @@ bool ToolBar::Tool(std::string name, ImVec2 size)
 			}
 			return true;
 		}
-	return false;
+	}
+	return clicked;
 }
 void ToolBar::RenderElements()
 {
 
-
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
 	ImVec2 size = { 140, 30 };
-
+	ImGui::BeginTable("##toolbar", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingFixedSame);
+	
 	this->Tool<igd::ChildWindow>("Child Window", size);
 	this->Tool<igd::Button>("Button", size);
-	this->Tool<igd::InputText>("Input Text", size);
-	this->Tool<igd::InputInt>("Input Int", size);
-	this->Tool<igd::SliderInt>("Slider Int", size);
-	this->Tool<igd::InputFloat>("Input Float", size);
-	this->Tool<igd::SliderFloat>("Slider Float", size);
+	
+
+	if (this->Tool<igd::InputText>("Input Text", size, false, "Inputs"))
+	{
+		ImGui::OpenPopupEx(window->GetID("InputGroup"));
+	}
+
+	ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 5.f);
+	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(32, 32, 34, 85).Value);
+	ImGui::SetNextWindowBgAlpha(0.8f);
+	if (ImGui::BeginPopupEx(window->GetID("InputGroup"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+	{
+		//ImGui::Image(igd::textures.images["input"]->GetDescriptorSet(), igd::textures.images["input"]->GetSize()/2);
+		if (ImGui::Selectable("Input Text"))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputText()), false, true);
+		if (ImGui::Selectable("Input Int"))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputInt()), false, true);
+		if (ImGui::Selectable("Input Float"))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::InputFloat()), false, true);
+		ImGui::EndPopup();
+	}
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
+	if (this->Tool<igd::SliderInt>("Slider Int", size, false, "Sliders"))
+	{
+		ImGui::OpenPopupEx(window->GetID("SliderGroup"));
+	}
+
+	ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 5.f);
+	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(32, 32, 34, 85).Value);
+	ImGui::SetNextWindowBgAlpha(0.8f);
+	if (ImGui::BeginPopupEx(window->GetID("SliderGroup"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+	{
+		//ImGui::Image(igd::textures.images["input"]->GetDescriptorSet(), igd::textures.images["input"]->GetSize()/2);
+		if (ImGui::Selectable("Slider Int"))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderInt()), false, true);
+		if (ImGui::Selectable("Slider Float"))
+			igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::SliderFloat()), false, true);
+		ImGui::EndPopup();
+	}
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
 	this->Tool<igd::CheckBox>("Checkbox", size);
 	this->Tool<igd::Text>("Text", size);
 	this->Tool<igd::Separator>("Separator", size);
@@ -63,7 +133,9 @@ void ToolBar::RenderElements()
 	this->Tool<igd::Selectable>("Selectable", size);
 	this->Tool<igd::TabBar>("TabBar", size);
 	this->Tool<igd::TabItem>("TabItem", size);
+
 	this->Tool<igd::Texture>("Texture", size);
+	ImGui::EndTable();
 }
 
 void ToolBar::UpdateWidgets()
@@ -76,23 +148,29 @@ void ToolBar::UpdateWidgets()
 			if (widgets.find(p.path()) == widgets.end())
 			{
 				std::ifstream i(p.path().string());
-				nlohmann::json j;
-				i >> j;
 				try
 				{
-					widgets[p.path()] = widget(p.path(), j["obj"]["name"], j["obj"]["desc"], nullptr);
+					nlohmann::json j;
+					i >> j;
+					if (j["obj"].contains("icon_name"))
+						widgets[p.path()] = widget(p.path(), j["obj"]["name"], j["obj"]["desc"], nullptr, j["obj"]["icon_name"]);
+					else
+						widgets[p.path()] = widget(p.path(), j["obj"]["name"], j["obj"]["desc"], nullptr, "");
 				}
 				catch (nlohmann::json::exception& ex)
 				{
-					widgets[p.path()] = widget(p.path(), "", "", nullptr);
 					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.what() << std::endl;
 				}
 				catch (nlohmann::json::parse_error& ex)
 				{
-					widgets[p.path()] = widget(p.path(), "", "", nullptr);
 					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
+				}
+				catch (nlohmann::json::type_error& ex)
+				{
+	
+					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 				}
 			}
 		}
@@ -103,22 +181,36 @@ void ToolBar::UpdateWidgets()
 void ToolBar::RenderCustomWidgets()
 {
 	UpdateWidgets();
+	ImGuiContext& g = *GImGui;
 	//iterate all files in widgets folder
+	ImGui::PushStyleColor(ImGuiCol_Button, ImColor(65, 67, 74, 65).Value);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(65, 67, 74, 255).Value);
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(65, 67, 74, 255).Value);
+	//ImGui::BeginTable("##toolbar", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_SizingFixedFit);
 	for (int i = 0;auto& [path, w] : widgets)
 	{
+
 		std::string name= w.file.filename().stem().string();
 		if (w.name != "")
 			name = w.name + "##" + w.name + std::to_string(i);
-		if (ImGui::Button(name.c_str(), { 140, 0 }))
+		//ImGui::TableNextColumn();
+		//check if exists in map
+		bool clicked = false;
+		if (w.icon_name != "" && igd::textures.images.find(w.icon_name) != igd::textures.images.end())
 		{
+			if (igd::ImageButtonText(igd::textures.images[w.icon_name]->GetDescriptorSet(), igd::textures.images[w.icon_name]->GetSize() / 2, w.desc, { ImGui::GetContentRegionAvail().x, 50 }))
+				clicked = true;
+		}
+		else if (igd::ImageButtonText(igd::textures.images["widget2"]->GetDescriptorSet(), igd::textures.images["widget2"]->GetSize() / 2, w.desc, { ImGui::GetContentRegionAvail().x, 50}))
+			clicked = true;
+
+		if (clicked)
 			igd::active_workspace->load(w.file);
-		}
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text(w.desc.c_str());
-			ImGui::EndTooltip();
-		}
+	//	ImGui::TableNextColumn();
+	//		if (ImGui::Selectable(w.desc.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+	//			igd::active_workspace->load(w.file);
+			
+			
 
 		if (ImGui::BeginPopupContextItem(name.c_str()))
 		{
@@ -141,6 +233,8 @@ void ToolBar::RenderCustomWidgets()
 		}
 		i++;
 	}
+	//ImGui::EndTable();
+	ImGui::PopStyleColor(3);
 }
 void ToolBar::OnUIRender() {
 

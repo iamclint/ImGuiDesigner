@@ -3,7 +3,7 @@
 #include <string>
 
 #include "vulkan/vulkan.h"
-
+#include "imgui.h"
 namespace Walnut {
 
 	enum class ImageFormat
@@ -18,6 +18,7 @@ namespace Walnut {
 	public:
 		Image(std::string_view path);
 		Image(uint32_t width, uint32_t height, ImageFormat format, const void* data = nullptr);
+		Image(const uint8_t* raw_data, int size);
 		//Image();
 		~Image();
 		void FromPath(std::string_view path);
@@ -29,6 +30,7 @@ namespace Walnut {
 
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
+		ImVec2 GetSize() const { return ImVec2((float)m_Width, (float)m_Height); }
 	private:
 		void AllocateMemory(uint64_t size);
 		void Release();

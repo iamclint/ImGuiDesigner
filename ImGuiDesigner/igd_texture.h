@@ -23,6 +23,8 @@ namespace igd
 			v_type_id = (int)element_type::texture;
 			this->v_size.type = Vec2Type::Absolute;
 			this->v_size.value = { 128, 128 };
+			v_icon = igd::textures.images["texture"];
+			v_tooltip = "Image";
 		}
 		Texture(std::string path) {
 			uv0 = ImVec2(0, 0);

@@ -15,6 +15,8 @@ namespace igd
 	public:
 		static inline std::string json_identifier = "text";
 		Text() {
+			v_icon = igd::textures.images["text"];
+			v_tooltip = "Text";
 			v_type_id = (int)element_type::text;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiButtonFlags_None;

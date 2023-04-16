@@ -636,10 +636,10 @@ void Properties::OnUIRender() {
 		float width = b_size.x / 2 - GImGui->Style.FramePadding.x;
 		if (ImGui::Button("Save as Widget##Json_Save", { width, button_height }))
 		{
-			igd::dialogs->InputTextVec("Save as widget", { "name", "short description" }, "", { "Continue", "Cancel" }, [](bool do_save, std::vector<std::string> rval)
+			igd::dialogs->SaveWidget(igd::active_workspace->GetSingleSelection()->v_id + "\nSave as widget" , { "filename", "short description" }, "", { "Save", "Cancel" }, [](bool do_save, std::vector<std::string> rval, std::string icon_name)
 				{
 					if (do_save)
-						igd::active_workspace->GetSingleSelection()->SaveAsWidget(rval[0], rval[1]);
+						igd::active_workspace->GetSingleSelection()->SaveAsWidget(rval[0], rval[1], icon_name);
 				});
 		}
 

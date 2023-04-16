@@ -27,6 +27,7 @@ namespace igd
 	FontManager* font_manager;
 	std::filesystem::path startup_path;
 	ImFont* designer_font;
+	Textures textures;
 	std::unordered_map<const char*, ImFont*>* designer_fonts;
 
 	std::string WordWrap(std::string& input, int char_limit)
@@ -57,6 +58,107 @@ namespace igd
 		}
 		return output.str();
 	}
+
+
+	// ImageButton() is flawed as 'id' is always derived from 'texture_id' (see #2464 #1390)
+// We provide this internal helper to write your own variant while we figure out how to redesign the public ImageButton() API.
+	bool ImageButtonEx(ImGuiID id, ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& full_rect_size, const ImVec4& bg_col, const ImVec4& tint_col)
+	{
+		using namespace ImGui;
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGui::KeepAliveID(id);
+
+		const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + full_rect_size);
+		ItemSize(bb);
+		if (!ItemAdd(bb, id))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+		// Render
+		const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		RenderNavHighlight(bb, id);
+		RenderFrame(bb.Min, bb.Max, col, true, ImClamp((float)ImMin(full_rect_size.x, full_rect_size.y), 0.0f, g.Style.FrameRounding));
+		if (bg_col.w > 0.0f)
+			window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(bg_col));
+		window->DrawList->AddImage(texture_id, bb.Min + ((full_rect_size - size) / 2), bb.Max - ((full_rect_size - size) / 2), uv0, uv1, GetColorU32(tint_col));
+
+		return pressed;
+	}
+	bool ImageButtonTextEx(ImGuiID id, ImTextureID texture_id, const ImVec2& size, std::string& text, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& full_rect_size, const ImVec4& bg_col, const ImVec4& tint_col)
+	{
+		using namespace ImGui;
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGui::KeepAliveID(id);
+
+		const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + full_rect_size);
+		ItemSize(bb);
+		if (!ItemAdd(bb, id))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+		// Render
+		const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		RenderNavHighlight(bb, id);
+		RenderFrame(bb.Min, bb.Max, col, true, ImClamp((float)ImMin(full_rect_size.x, full_rect_size.y), 0.0f, g.Style.FrameRounding));
+		if (bg_col.w > 0.0f)
+			window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(bg_col));
+
+		ImRect ImageRect = { bb.Min + ImVec2(10, ((full_rect_size.y - size.y) / 2)), bb.Min + ImVec2(size.x + 10, (((full_rect_size.y - size.y) / 2) + size.y)) };
+		window->DrawList->AddImage(texture_id, ImageRect.Min, ImageRect.Max, uv0, uv1, GetColorU32(tint_col));
+		ImVec2 TextPos = ImVec2(ImageRect.Max.x+10, bb.Min.y+(((bb.Max.y-bb.Min.y)- ImGui::CalcTextSize(text.c_str()).y)/2));// ((ImageRect.Max.y - ImageRect.Min.y) - ImGui::CalcTextSize(text.c_str()).y) / 2);
+		window->DrawList->AddText(TextPos, GetColorU32(ImGuiCol_Text), text.c_str());
+		return pressed;
+	}
+	bool ImageButtonText(ImTextureID user_texture_id, const ImVec2& size, std::string text, ImVec2 full_size, ImColor bg_color)
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		if (window->SkipItems)
+			return false;
+
+		// Default to using texture ID as ID. User can still push string/integer prefixes.
+		ImGui::PushID((void*)(intptr_t)user_texture_id);
+		const ImGuiID id = window->GetID("#image");
+		ImGui::PopID();
+		const ImVec2& uv0 = ImVec2(0, 0);
+		const ImVec2& uv1 = ImVec2(1, 1);
+		int frame_padding = -1;
+		const ImVec4& tint_col = ImVec4(1, 1, 1, 1);
+		const ImVec2 padding = full_size;
+		return ImageButtonTextEx(id, user_texture_id, size, text, uv0, uv1, full_size, bg_color, tint_col);
+	}
+	bool ImageButton(ImTextureID user_texture_id, const ImVec2& size, ImVec2 full_size, ImColor bg_color)
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		if (window->SkipItems)
+			return false;
+
+		// Default to using texture ID as ID. User can still push string/integer prefixes.
+		ImGui::PushID((void*)(intptr_t)user_texture_id);
+		const ImGuiID id = window->GetID("#image");
+		ImGui::PopID();
+		const ImVec2& uv0 = ImVec2(0, 0);
+		const ImVec2& uv1 = ImVec2(1, 1);
+		int frame_padding = -1;
+		const ImVec4& tint_col = ImVec4(1, 1, 1, 1);
+		const ImVec2 padding = full_size;
+		return ImageButtonEx(id, user_texture_id, size, uv0, uv1, full_size, bg_color, tint_col);
+	}
+
+
 
 	void onUpdate()
 	{
@@ -195,13 +297,14 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
 	glfwSetWindowIcon(igd::app->GetWindowHandle(), 1, Images);
 	stbi_image_free(Images[0].pixels);
-	
+	igd::textures.init();
 	std::shared_ptr<Properties> properties = std::make_shared<Properties>();
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Dialogs> dialogs = std::make_shared<Dialogs>();
 	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
 	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 20, nullptr);
 	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 24, nullptr);
+	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 28, nullptr);
 	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 36, nullptr);
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
@@ -255,5 +358,6 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			ImGui::EndMenu();
 		}
 	});
+
 	return igd::app;
 }

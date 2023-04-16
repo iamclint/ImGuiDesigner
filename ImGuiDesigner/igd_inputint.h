@@ -18,6 +18,8 @@ namespace igd
 		int step;
 		int step_fast;
 		InputInt() {
+			v_icon = igd::textures.images["input"];
+			v_tooltip = "Input Int";
 			v_type_id = (int)element_type::inputint;
 			input_data = 0;
 			step = 1;

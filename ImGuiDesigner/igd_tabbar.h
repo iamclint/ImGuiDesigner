@@ -11,6 +11,8 @@ namespace igd
 	public:
 		static inline std::string json_identifier = "tabbar";
 		TabBar() {
+			v_icon = igd::textures.images["tab"];
+			v_tooltip = "Tab Bar";
 			v_type_id = (int)element_type::tabbar;
 			v_element_filter = (int)element_type::tabitem;
 			v_can_contain_own_type = false;

@@ -16,6 +16,8 @@ namespace igd
 		static inline std::string json_identifier = "selectable";
 		bool selected = false;
 		Selectable() {
+			v_icon = igd::textures.images["selectable"];
+			v_tooltip = "Selectable";
 			v_type_id = (int)element_type::selectable;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiSelectableFlags_None;

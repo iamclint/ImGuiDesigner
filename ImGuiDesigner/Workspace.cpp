@@ -119,7 +119,7 @@ void WorkSpace::SetSingleSelection(ImGuiElement* ele)
 ImGuiElement* WorkSpace::GetSingleSelection()
 {
 	if (!this->selected_elements.size())
-		return nullptr;
+		return igd::active_workspace->basic_workspace_element;
 	return this->selected_elements[0];
 }
 
@@ -211,6 +211,16 @@ void WorkSpace::SelectAll(ImGuiElement* element, int level)
 
 void WorkSpace::KeyBinds()
 {
+	ImGuiContext& g = *GImGui;
+	
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
+	{
+		igd::active_workspace->selected_elements.clear();
+	}
+
+	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+		return;
+
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !igd::dialogs->IsShowing())
 	{
 		std::string msg = "";
@@ -238,13 +248,6 @@ void WorkSpace::KeyBinds()
 			this->selected_elements.clear();
 			});
 	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
-	{
-		igd::active_workspace->selected_elements.clear();
-	}
-
-	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
-		return;
 	
 	if (ImGui::GetIO().KeyShift)
 		DragSelect();

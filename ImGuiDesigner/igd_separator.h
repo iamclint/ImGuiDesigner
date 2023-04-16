@@ -16,6 +16,8 @@ namespace igd
 		static inline std::string json_identifier = "separator";
 
 		Separator() {
+			v_icon = igd::textures.images["separator"];
+			v_tooltip = "Separator";
 			v_type_id = (int)element_type::separator;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiSeparatorFlags_None;

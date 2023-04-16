@@ -11,6 +11,8 @@ namespace igd
 	public:
 		static inline std::string json_identifier = "child window";
 		ChildWindow() {
+			v_icon = igd::textures.images["child"];
+			v_tooltip = "Child Window";
 			v_type_id = (int)element_type::childwindow;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;

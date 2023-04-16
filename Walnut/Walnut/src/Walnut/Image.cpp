@@ -69,6 +69,30 @@ namespace Walnut {
 		SetData(data);
 		stbi_image_free(data);
 	}
+
+	Image::Image(const uint8_t* raw_data, int size)
+	{
+		int width, height, channels;
+		uint8_t* data = nullptr;
+		m_Filepath = "";
+		if (stbi_is_hdr(m_Filepath.c_str()))
+		{
+			data = (uint8_t*)stbi_loadf_from_memory(raw_data, size, &width, &height, &channels, 4);
+			m_Format = ImageFormat::RGBA32F;
+		}
+		else
+		{
+			data = stbi_load_from_memory(raw_data, size, &width, &height, &channels, 4);
+			m_Format = ImageFormat::RGBA;
+		}
+
+		m_Width = width;
+		m_Height = height;
+		AllocateMemory(m_Width * m_Height * Utils::BytesPerPixel(m_Format));
+		SetData(data);
+		stbi_image_free(data);
+	}
+
 	Image::Image(std::string_view path)
 		: m_Filepath(path)
 	{

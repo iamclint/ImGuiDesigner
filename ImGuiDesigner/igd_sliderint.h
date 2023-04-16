@@ -19,6 +19,8 @@ namespace igd
 		int max;
 		std::string format;
 		SliderInt() {
+			v_icon = igd::textures.images["slider"];
+			v_tooltip = "Slider Int";
 			v_type_id = (int)element_type::sliderint;
 			input_data = 0;
 			min = 1;

@@ -19,6 +19,8 @@ namespace igd
 		float v_max;
 		std::string format;
 		SliderFloat() {
+			v_icon = igd::textures.images["slider"];
+			v_tooltip = "Slider Float";
 			v_type_id = (int)element_type::sliderfloat;
 			input_data = 0;
 			format = "%.3f";
