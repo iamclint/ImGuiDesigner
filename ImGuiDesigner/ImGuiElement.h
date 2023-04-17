@@ -250,6 +250,7 @@ public:
 	void SetNextWidth();
 	void HandleDrop();
 	void RenderDrag();
+	void KeyMove();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
 	ImColor JsonToColor(nlohmann::json col);
@@ -320,7 +321,6 @@ private:
 	bool Drag();
 	bool Resize();
 	void DrawSelection();
-	void KeyMove();
 	void Select();
 	void KeyBinds();
 	void ApplyResize(ImVec2 literal_size);

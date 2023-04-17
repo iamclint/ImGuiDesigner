@@ -18,11 +18,13 @@ namespace igd
 		ImVec2 uv1;
 		ImVec4 tint_col;
 		ImVec4 border_col;
+		float v_rounding;
 		Walnut::Image* img;
 		Texture() {
 			v_type_id = (int)element_type::texture;
 			this->v_size.type = Vec2Type::Absolute;
 			this->v_size.value = { 128, 128 };
+			this->v_rounding = 0;
 			v_icon = igd::textures.images["texture"];
 			v_tooltip = "Image";
 		}
@@ -31,7 +33,7 @@ namespace igd
 			uv1 = ImVec2(1, 1);
 			tint_col = ImVec4(1, 1, 1, 1);
 			border_col = ImVec4(0, 0, 0, 0);
-			
+			v_rounding = 0;
 			v_type_id = (int)element_type::texture;
 			std::cout << "Adding new texture: " << path << std::endl;
 			img = new Walnut::Image(path);
@@ -77,6 +79,8 @@ namespace igd
 			ImGui::ColorEdit4("##texture_tint", (float*)&tint_col, ImGuiColorEditFlags_NoInputs);
 			igd::properties->PropertyLabel("Border");
 			ImGui::ColorEdit4("##texture_border", (float*)&border_col, ImGuiColorEditFlags_NoInputs);
+			igd::properties->PropertyLabel("Rounding");
+			ImGui::InputFloat("##texture_rounding", &v_rounding, ImGuiColorEditFlags_NoInputs);
 		}
 
 		std::string ScriptHead() {
@@ -85,7 +89,7 @@ namespace igd
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "//You must supply the loaded img data" << std::endl;
-			code << "ImGui::Image(\"" << this->v_path << "\", " << igd::script::GetSizeScript(this) << ", " << igd::script::GetVec2String(uv0) << ", " << igd::script::GetVec2String(uv1) << ", " << igd::script::GetVec4String(tint_col) << ", " << igd::script::GetVec4String(border_col) << ")" << std::endl;
+			code << "ImGui::ImageRounded(\"" << this->v_path << "\", " << igd::script::GetSizeScript(this) << ", " << igd::script::GetVec2String(uv0) << ", " << igd::script::GetVec2String(uv1) << ", " << igd::script::GetVec4String(tint_col) << ", " << igd::script::GetVec4String(border_col) << ", " << igd::script::GetFloatString(v_rounding) << ")" << std::endl;
 			return code.str();
 		};
 
@@ -105,7 +109,7 @@ namespace igd
 				ImGui::Dummy(this->v_size.value);
 			else
 			{
-				ImGui::Image(img->GetDescriptorSet(), this->GetSize(), uv0, uv1, tint_col, border_col);
+				ImGui::ImageRounded(img->GetDescriptorSet(), this->GetSize(), uv0, uv1, tint_col, border_col, v_rounding);
 			}
 			return ScriptInternal();
 		}
@@ -123,6 +127,7 @@ namespace igd
 		{
 			nlohmann::json j;
 			j["path"] = v_path;
+			j["rounding"] = v_rounding;
 			j["uv0"] = { { "x", uv0.x }, {"y", uv0.y} };
 			j["uv1"] = { { "x", uv1.x }, {"y", uv1.y} };
 			j["tint_col"] = ColorToJson(tint_col);
@@ -139,19 +144,21 @@ namespace igd
 				igd::dialogs->GenericNotification("Error loading texture", "The texture file " + std::string(data["path"]) + " does not exist");
 				return nullptr;
 			}
+			std::cout << "Loading Texture: " << data["path"] << std::endl;
 			igd::Texture* b = new igd::Texture(data["path"]);
 			ImGuiElement* f = (ImGuiElement*)b;
 			f->v_parent = parent;
 			b->FromJSON(data);
-
+			if (data.contains("rounding"))
+				b->v_rounding = data["rounding"];
 			b->uv0 = { data["uv0"]["x"],data["uv0"]["y"] };
 			b->uv1 = { data["uv1"]["x"],data["uv1"]["y"] };
 			b->tint_col = b->JsonToColor(data["tint_col"]);
-			b->tint_col = b->JsonToColor(data["border_col"]);
+			b->border_col = b->JsonToColor(data["border_col"]);
 			if (!parent)
-				igd::active_workspace->AddNewElement((ImGuiElement*)b, true);
+				igd::active_workspace->AddNewElement(f, true, false);
 			else
-				parent->children.push_back((ImGuiElement*)b);
+				parent->children.push_back(f);
 			return f;
 		}
 	};

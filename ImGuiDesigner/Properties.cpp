@@ -405,15 +405,18 @@ void Properties::Colors()
 		{
 			std::cout << "changed active color" << std::endl;
 			active_color = (ImColor*)&c.second;
-			if (igd::active_workspace->GetSingleSelection()->v_inherit_all_colors || c.second.inherit)
+			if (igd::active_workspace->GetSingleSelection())
+				igd::active_workspace->GetSingleSelection()->v_inherit_all_colors = false;
+			this->ForcePicker = true;
+			c.second.inherit = false;
+			/*if (igd::active_workspace->GetSingleSelection()->v_inherit_all_colors || c.second.inherit)
 				igd::dialogs->Confirmation("Warning", "This element is inheriting its color from its parent, would you like to override it?", "", [&c, this](bool override) {
 				if (override)
 				{
 					this->ForcePicker = true;
-					igd::active_workspace->GetSingleSelection()->v_inherit_all_colors = false;
 					c.second.inherit = false;
 				}
-			});
+			});*/
 			
 			
 		}

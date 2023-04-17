@@ -110,6 +110,7 @@ namespace igd
 			v_styles[ImGuiStyleVar_ScrollbarSize] = g.Style.ScrollbarSize;
 			v_styles[ImGuiStyleVar_SelectableTextAlign] = g.Style.SelectableTextAlign;
 			v_styles[ImGuiStyleVar_TabRounding] = g.Style.TabRounding;
+			v_styles[ImGuiStyleVar_WindowPadding] = g.Style.WindowPadding;
 		}
 
 		virtual ImGuiElement* Clone() override

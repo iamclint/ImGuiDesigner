@@ -213,6 +213,7 @@ void WorkSpace::KeyBinds()
 {
 	ImGuiContext& g = *GImGui;
 	
+
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
 	{
 		igd::active_workspace->selected_elements.clear();
@@ -220,6 +221,11 @@ void WorkSpace::KeyBinds()
 
 	if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
 		return;
+
+	for (auto& e : selected_elements)
+	{
+		e->KeyMove();
+	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !igd::dialogs->IsShowing())
 	{
@@ -258,6 +264,12 @@ void WorkSpace::KeyBinds()
 			std::cout << "Copied element: " << e->v_id << std::endl;
 		igd::active_workspace->copied_elements.clear();
 		igd::active_workspace->copied_elements.insert(igd::active_workspace->copied_elements.begin(), igd::active_workspace->selected_elements.begin(), igd::active_workspace->selected_elements.end());
+
+		if (igd::settings->bools["select_copy_parent"])
+		{
+			if (igd::active_workspace->GetSingleSelection()->v_parent)
+				igd::active_workspace->SetSingleSelection(igd::active_workspace->GetSingleSelection()->v_parent);
+		}
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_V) && ImGui::GetIO().KeyCtrl)
@@ -500,15 +512,17 @@ void WorkSpace::OnUIRender() {
 	hovered_element = nullptr;
 
 	basic_workspace_element->Render({0,0}, 1, this, std::bind(&WorkSpace::KeyBinds, this));
-	if (igd::active_workspace->is_dragging)
+	if (this == igd::active_workspace)
 	{
-		basic_workspace_element->RenderDrag();
+		if (this->is_dragging)
+		{
+			this->basic_workspace_element->RenderDrag();
+		}
+		if (this->hovered_element)
+		{
+			this->hovered_element->HandleDrop();
+		}
 	}
-	if (igd::active_workspace->hovered_element)
-	{
-		igd::active_workspace->hovered_element->HandleDrop();
-	}
-
 
 	if (elements_buffer.size() > 0)
 	{
@@ -611,13 +625,13 @@ void WorkSpace::load(std::filesystem::path path)
 		{
 			if (s.contains("obj"))
 			{
-				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s["obj"], igd::active_workspace->basic_workspace_element);
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s["obj"], igd::active_workspace->GetSingleSelection()->v_can_have_children ? igd::active_workspace->GetSingleSelection() : igd::active_workspace->GetSingleSelection()->v_parent);
 				parent->v_pos = ImGuiElementVec2({ 0,0, });
 				GetAllChildren(s["obj"], parent);
 			}
 			else
 			{
-				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s, igd::active_workspace->basic_workspace_element);
+				ImGuiElement* parent = igd::active_workspace->CreateElementFromJson(s, igd::active_workspace->GetSingleSelection()->v_can_have_children ? igd::active_workspace->GetSingleSelection() : igd::active_workspace->GetSingleSelection()->v_parent);
 				parent->v_pos = ImGuiElementVec2({ 0,0, });
 				GetAllChildren(s, parent);
 			}

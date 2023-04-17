@@ -56,6 +56,7 @@ void Dialogs::SaveFile(std::function<void(std::string)> callback)
 {
 	std::thread f = std::thread([callback]()
 	{
+			
 		OPENFILENAMEA ofn;
 		char szFileName[MAX_PATH] = "";
 
@@ -73,6 +74,7 @@ void Dialogs::SaveFile(std::function<void(std::string)> callback)
 		{
 			callback(std::string(ofn.lpstrFile));
 		}
+		std::filesystem::current_path(igd::startup_path);
 	});
 	f.detach();
 }
@@ -81,23 +83,24 @@ void Dialogs::OpenFile(std::function<void(std::string)> callback, std::string fi
 	std::thread f = std::thread([callback, filter]()
 		{
 			OPENFILENAMEA ofn;
-	char szFileName[MAX_PATH] = "";
+			char szFileName[MAX_PATH] = "";
 
-	ZeroMemory(&ofn, sizeof(ofn));
+			ZeroMemory(&ofn, sizeof(ofn));
 
-	ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
-	ofn.hwndOwner = NULL;
-	ofn.lpstrFilter = filter.c_str();
-	ofn.lpstrFile = szFileName;
-	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-	ofn.lpstrDefExt = "igd";
+			ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
+			ofn.hwndOwner = NULL;
+			ofn.lpstrFilter = filter.c_str();
+			ofn.lpstrFile = szFileName;
+			ofn.nMaxFile = MAX_PATH;
+			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+			ofn.lpstrDefExt = "igd";
 
-	if (GetOpenFileNameA(&ofn))
-	{
-		callback(std::string(ofn.lpstrFile));
-	}
-		});
+			if (GetOpenFileNameA(&ofn))
+			{
+				callback(std::string(ofn.lpstrFile));
+			}
+			std::filesystem::current_path(igd::startup_path);
+	});
 	f.detach();
 }
 
@@ -186,7 +189,8 @@ void Dialogs::Settings()
 		ImGui::Dummy({ 0,20 });
 		if (ImGui::Checkbox("Select all selects all children", &igd::settings->bools["select_children"]))
 			igd::settings->save();
-
+		if (ImGui::Checkbox("Select parent after copy", &igd::settings->bools["select_copy_parent"]))
+			igd::settings->save();
 		ImVec2 b_size = ImGui::GetContentRegionAvail();
 		float width = b_size.x - GImGui->Style.FramePadding.x;
 		

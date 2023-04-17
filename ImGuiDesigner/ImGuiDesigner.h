@@ -8,6 +8,7 @@
 #include <filesystem>
 #include "Walnut/Image.h"
 #include "Textures.h"
+#include "igd_imgui_widgets.h"
 namespace igd
 {
 	template <typename t> void VecMove(std::vector<t>& v, size_t oldIndex, size_t newIndex)

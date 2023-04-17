@@ -16,7 +16,7 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
 			v_property_flags = property_flags::pos | property_flags::disabled ;
-			v_size = ImVec2(0, 0);
+			v_size = ImVec2(1024, 768);
 			v_id = ("Workspace##" + RandomID()).c_str();
 			v_label = "";
 			v_can_have_children = true;
@@ -171,7 +171,7 @@ namespace igd
 			ImGuiContext& g = *GImGui;
 
 			ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
-			ImGui::SetNextWindowSize(v_size.value, ImGuiCond_Always);
+			ImGui::SetNextWindowSize(v_size.value, ImGuiCond_Once);
 			//igd::push_designer_theme();
 			ImGui::Begin(v_id.c_str(), v_window_bool, v_flags);
 			//igd::pop_designer_theme(); //only around begin so the title bar matches designers theme
@@ -195,6 +195,7 @@ namespace igd
 		{
 			if (v_id == "")
 				return "";
+			this->v_size.value = ImGui::GetWindowSize();
 			ImGui::End();
 			return ScriptFoot();
 		}

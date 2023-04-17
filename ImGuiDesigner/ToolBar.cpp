@@ -33,7 +33,6 @@ bool ToolBar::Tool(std::string name, ImVec2 size, bool handle_click, std::string
 		ImGui::TableNextColumn();
 		if (ref->v_icon && ref->v_icon->GetDescriptorSet())
 		{
-
 			ImGui::PushStyleColor(ImGuiCol_Button, ImColor(65, 67, 74, 65).Value);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(65, 67, 74, 255).Value);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(65, 67, 74, 255).Value);
@@ -136,6 +135,7 @@ void ToolBar::RenderElements()
 
 	this->Tool<igd::Texture>("Texture", size);
 	ImGui::EndTable();
+	//ImGui::Text("path: %s", std::filesystem::current_path().string().c_str());
 }
 
 void ToolBar::UpdateWidgets()
@@ -152,6 +152,9 @@ void ToolBar::UpdateWidgets()
 				{
 					nlohmann::json j;
 					i >> j;
+					if (!j["obj"].contains("desc"))
+						j["obj"]["desc"] = "";
+
 					if (j["obj"].contains("icon_name"))
 						widgets[p.path()] = widget(p.path(), j["obj"]["name"], j["obj"]["desc"], nullptr, j["obj"]["icon_name"]);
 					else
@@ -159,12 +162,12 @@ void ToolBar::UpdateWidgets()
 				}
 				catch (nlohmann::json::exception& ex)
 				{
-					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					//igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.what() << std::endl;
 				}
 				catch (nlohmann::json::parse_error& ex)
 				{
-					igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
+					//igd::dialogs->GenericNotification("Json Error", std::string(ex.what()) + "\n" + p.path().string(), "", "Ok", []() {});
 					std::cerr << "parse error at byte " << ex.byte << std::endl << ex.what() << std::endl;
 				}
 				catch (nlohmann::json::type_error& ex)
@@ -198,10 +201,10 @@ void ToolBar::RenderCustomWidgets()
 		bool clicked = false;
 		if (w.icon_name != "" && igd::textures.images.find(w.icon_name) != igd::textures.images.end())
 		{
-			if (igd::ImageButtonText(igd::textures.images[w.icon_name]->GetDescriptorSet(), igd::textures.images[w.icon_name]->GetSize() / 2, w.desc, { ImGui::GetContentRegionAvail().x, 50 }))
+			if (igd::ImageButtonText(igd::textures.images[w.icon_name]->GetDescriptorSet(), igd::textures.images[w.icon_name]->GetSize() / 2, w.desc!="" ? w.desc : w.name, {ImGui::GetContentRegionAvail().x, 50}))
 				clicked = true;
 		}
-		else if (igd::ImageButtonText(igd::textures.images["widget2"]->GetDescriptorSet(), igd::textures.images["widget2"]->GetSize() / 2, w.desc, { ImGui::GetContentRegionAvail().x, 50}))
+		else if (igd::ImageButtonText(igd::textures.images["widget2"]->GetDescriptorSet(), igd::textures.images["widget2"]->GetSize() / 2, w.desc != "" ? w.desc : w.name, { ImGui::GetContentRegionAvail().x, 50}))
 			clicked = true;
 
 		if (clicked)

@@ -130,7 +130,7 @@ void ImGuiElement::KeyMove()
 
 void ImGuiElement::RenderDrag()
 {
-
+		ImGuiContext& g = *GImGui;
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing;
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
@@ -140,11 +140,63 @@ void ImGuiElement::RenderDrag()
 			ImGui::SetNextWindowBgAlpha(0);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+
+
+
 			if (ImGui::Begin(("Drag##Drag_" + e->v_id).c_str(), NULL, flags))
 			{
+				bool need_disable_pop = false;
+				color_pops = 0;
+				style_pops = 0;
+				if (e->v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+				{
+					if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+					{
+						this->AddCode("ImGui::BeginDisabled();");
+						need_disable_pop = true;
+						ImGui::BeginDisabled();
+					}
+
+
+				}
+
+				if (!e->v_inherit_all_colors)
+				{
+					for (auto& c : e->v_colors)
+					{
+						if (c.second.inherit)
+							continue;
+						e->PushStyleColor(c.first, c.second.value);
+					}
+				}
+				if (!e->v_inherit_all_styles)
+				{
+					for (auto& c : e->v_styles)
+					{
+						if (c.second.inherit)
+							continue;
+						if (c.second.type == StyleVarType::Float)
+							e->PushStyleVar(c.first, c.second.value.Float);
+						else if (c.second.type == StyleVarType::Vec2)
+							e->PushStyleVar(c.first, c.second.value.Vec2);
+					}
+				}
+
+				if (e->v_font.font)
+					ImGui::PushFont(e->v_font.font);
+
 				e->RenderHead();
 				e->RenderInternal();
 				e->RenderFoot();
+
+				if (e->v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
+					ImGui::EndDisabled();
+				if (e->v_font.font)
+				{
+					ImGui::PopFont();
+				}
+				PopColorAndStyles();
+
 				ImGui::End();
 			}
 			ImGui::PopStyleVar(2);
@@ -166,7 +218,7 @@ void ImGuiElement::ApplyResize(ImVec2 literal_size)
 		literal_size.y = 0;
 	if (v_size.type == Vec2Type::Absolute)
 	{
-		if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
+		if (ImGui::GetIO().KeyShift)
 		{
 			v_size.value.x = literal_size.x;
 			v_size.value.y = literal_size.x * v_aspect_ratio;
@@ -440,7 +492,6 @@ void ImGuiElement::Interact()
 					igd::active_workspace->is_interacting = true;
 				else
 					igd::active_workspace->is_interacting = false;
-				KeyMove();
 				DrawSelection();
 				KeyBinds();
 			}
