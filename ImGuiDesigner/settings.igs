@@ -1,1 +1,1 @@
-{"bools":[{"key":"select_children","value":false}]}
+{"bools":[{"key":"select_copy_parent","value":true},{"key":"select_children","value":false}]}

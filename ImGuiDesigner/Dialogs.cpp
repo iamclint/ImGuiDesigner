@@ -64,7 +64,7 @@ void Dialogs::SaveFile(std::function<void(std::string)> callback)
 
 		ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
 		ofn.hwndOwner = NULL;
-		ofn.lpstrFilter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0";
+		ofn.lpstrFilter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files (*.*)\0*.*\0\0";
 		ofn.lpstrFile = szFileName;
 		ofn.nMaxFile = MAX_PATH;
 		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
@@ -78,7 +78,7 @@ void Dialogs::SaveFile(std::function<void(std::string)> callback)
 	});
 	f.detach();
 }
-void Dialogs::OpenFile(std::function<void(std::string)> callback, std::string filter)
+void Dialogs::OpenFile(std::function<void(std::string)> callback, const char* filter)
 {
 	std::thread f = std::thread([callback, filter]()
 		{
@@ -89,7 +89,7 @@ void Dialogs::OpenFile(std::function<void(std::string)> callback, std::string fi
 
 			ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
 			ofn.hwndOwner = NULL;
-			ofn.lpstrFilter = filter.c_str();
+			ofn.lpstrFilter = filter;
 			ofn.lpstrFile = szFileName;
 			ofn.nMaxFile = MAX_PATH;
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
