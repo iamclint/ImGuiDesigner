@@ -335,10 +335,12 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			{
 				igd::dialogs->SaveFile([](std::string file) {
 					if (std::filesystem::exists(file))
-					igd::dialogs->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
-						if (result)
-							igd::active_workspace->Save(file);
-					});
+					{
+						igd::dialogs->Confirmation("Overwrite File", "Are you sure you wish to overwrite\n" + file, "", [file](bool result) {
+							if (result)
+								igd::active_workspace->Save(file);
+							});
+					}
 					else
 						igd::active_workspace->Save(file);
 				});
@@ -352,6 +354,14 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 		if (ImGui::BeginMenu("Tools"))
 		{
 			if (ImGui::MenuItem("Settings"))
+			{
+				igd::dialogs->ShowSettings();
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Help"))
+		{
+			if (ImGui::MenuItem("About"))
 			{
 				igd::dialogs->ShowSettings();
 			}

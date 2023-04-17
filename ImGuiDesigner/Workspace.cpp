@@ -100,12 +100,6 @@ void WorkSpace::Save(std::string file_path)
 	file.open(file_path);
 	nlohmann::json main_obj;
 	main_obj.push_back(basic_workspace_element->GetJsonWithChildren());
-	for (auto& e : basic_workspace_element->children)
-	{
-		if (e->delete_me)
-			continue;
-		main_obj.push_back(e->GetJsonWithChildren());
-	}
 	file << main_obj.dump() << std::endl;
 	file.close();
 	//SaveAsWidget(igd::active_workspace->active_element->v_id);
