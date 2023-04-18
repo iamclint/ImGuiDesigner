@@ -30,6 +30,51 @@ namespace igd
 	Textures textures;
 	std::unordered_map<const char*, ImFont*>* designer_fonts;
 
+	//get 2d distance between 2 vec2
+	float GetDistance(ImVec2 a, ImVec2 b)
+	{
+		return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
+	}
+
+	ImGuiElement* GetNearestElement(ImGuiElement* element)
+	{
+		float max_dist = FLT_MAX;
+		ImGuiElement* nearest=nullptr;
+		ImGuiElement* parent = element->v_parent;
+		if (!parent)
+			parent = igd::active_workspace->basic_workspace_element;
+
+		for (auto& e : parent->children)
+		{
+			if (e == element || e == parent || e->delete_me)
+				continue;
+			float current_dist = GetDistance(element->GetPos(), e->GetPos() + ImVec2(e->GetSize()/2));
+			if (current_dist < max_dist)
+			{
+				nearest = e;
+				max_dist = current_dist;
+			}
+		}
+		return nearest;
+	}
+
+	bool doRectanglesIntersect(const ImRect& rect1, const ImRect& rect2)
+	{
+		// Ensure that the coordinates are in the correct order
+		float left1 = std::min(rect1.Min.x, rect1.Max.x);
+		float top1 = std::min(rect1.Min.y, rect1.Max.y);
+		float right1 = std::max(rect1.Min.x, rect1.Max.x);
+		float bottom1 = std::max(rect1.Min.y, rect1.Max.y);
+
+		float left2 = std::min(rect2.Min.x, rect2.Max.x);
+		float top2 = std::min(rect2.Min.y, rect2.Max.y);
+		float right2 = std::max(rect2.Min.x, rect2.Max.x);
+		float bottom2 = std::max(rect2.Min.y, rect2.Max.y);
+
+		// Check if the rectangles intersect
+		return left1 <= right2 && right1 >= left2 && top1 <= bottom2 && bottom1 >= top2;
+	}
+
 	std::string WordWrap(std::string& input, int char_limit)
 	{
 		int len = input.length();

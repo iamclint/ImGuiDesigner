@@ -251,10 +251,12 @@ public:
 	void HandleDrop();
 	void RenderDrag();
 	void KeyMove();
+	ImVec2 GetPos();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
 	ImColor JsonToColor(nlohmann::json col);
 	ImVec2 GetSize();
+	ImVec2 GetRawSize();
 	std::string GetIDForVariable();
 	std::vector<std::string> GetSplitID();
 	nlohmann::json GetJsonWithChildren();

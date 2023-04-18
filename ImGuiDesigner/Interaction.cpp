@@ -1,6 +1,12 @@
 #include "ImGuiElement.h"
 #include "ImGuiDesigner.h"
 #include <iostream>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_PI_4
+#define M_PI_4 0.78539816339744830962
+#endif
 void ImGuiElement::HandleHover()
 {
 	if (is_child_hovered)
@@ -95,6 +101,9 @@ bool ImGuiElement::Drag()
 		}
 		ImGui::ResetMouseDragDelta();
 	}
+
+
+
 	return igd::active_workspace->is_dragging;
 }
 
@@ -126,14 +135,44 @@ void ImGuiElement::KeyMove()
 		v_pos.value.y = item_location.y;
 	}
 }
+enum class RectSide {
+	Top,
+	Right,
+	Bottom,
+	Left
+};
+RectSide getNearestSide(const ImVec2& center, const ImVec2& point) {
+	// Calculate the distance between the point and the center of the rectangle.
+	const float dx = point.x - center.x;
+	const float dy = point.y - center.y;
+	const float distanceSquared = dx * dx + dy * dy;
 
+	// Calculate the angle between the x-axis and the vector from the center to the point.
+	const float angle = atan2(dy, dx);
 
+	// Determine which side the point is closest to based on the angle.
+	if (angle > -M_PI_4 && angle <= M_PI_4) {
+		return RectSide::Right;
+	}
+	else if (angle > M_PI_4 && angle <= 3 * M_PI_4) {
+		return RectSide::Bottom;
+	}
+	else if (angle > -3 * M_PI_4 && angle <= -M_PI_4) {
+		return RectSide::Top;
+	}
+	else {
+		return RectSide::Left;
+	}
+}
 void ImGuiElement::RenderDrag()
 {
+
 		ImGuiContext& g = *GImGui;
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing;
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
+		
+
 			if (e->delete_me)
 				continue;
 			ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
@@ -145,6 +184,58 @@ void ImGuiElement::RenderDrag()
 
 			if (ImGui::Begin(("Drag##Drag_" + e->v_id).c_str(), NULL, flags))
 			{
+				float side_indicator_size = 2;
+				float line_offset = 5;
+				ImGuiElement* nearest = igd::GetNearestElement(e);
+				if (nearest && igd::GetDistance(e->GetPos(), nearest->GetPos())<250)
+				{
+					RectSide side = getNearestSide(nearest->GetPos() + ImVec2(nearest->GetRawSize() / 2), e->GetPos() + ImVec2(e->GetRawSize() / 2));// , nearest->item_rect.Max.x - nearest->item_rect.Min.x, nearest->item_rect.Max.y - nearest->item_rect.Min.y);
+
+					switch (side)
+					{
+					case RectSide::Bottom:
+					{
+						ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Min.x,nearest->item_rect.Max.y }, { nearest->item_rect.Max.x,nearest->item_rect.Max.y + side_indicator_size }, ImColor(255, 0, 255, 150), 1.f, 0);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Min.x,nearest->item_rect.Max.y }, { nearest->item_rect.Min.x,e->GetPos().y + e->GetRawSize().y + line_offset }, ImColor(255, 255, 255, 60), 1.f);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Max.x,nearest->item_rect.Max.y }, { nearest->item_rect.Max.x,e->GetPos().y + e->GetRawSize().y + line_offset }, ImColor(255, 255, 255, 60), 1.f);
+						break;
+					}
+					case RectSide::Top:
+					{
+						ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Min.x,nearest->item_rect.Min.y - side_indicator_size }, { nearest->item_rect.Max.x,nearest->item_rect.Min.y }, ImColor(255, 0, 255, 150), 1.f, 0);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Min.x,nearest->item_rect.Min.y }, { nearest->item_rect.Min.x,e->GetPos().y - line_offset }, ImColor(255, 255, 255, 60), 1.f);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Max.x,nearest->item_rect.Min.y }, { nearest->item_rect.Max.x,e->GetPos().y - line_offset }, ImColor(255, 255, 255, 60), 1.f);
+						break;
+					}
+					case RectSide::Left:
+					{
+						ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Min.x - side_indicator_size,nearest->item_rect.Min.y }, { nearest->item_rect.Min.x,nearest->item_rect.Max.y }, ImColor(255, 0, 255, 150), 1.f, 0);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Min.x,nearest->item_rect.Min.y }, { e->GetPos().x - line_offset,nearest->item_rect.Min.y }, ImColor(255, 255, 255, 60), 1.f);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Min.x,nearest->item_rect.Max.y }, { e->GetPos().x - line_offset,nearest->item_rect.Max.y }, ImColor(255, 255, 255, 60), 1.f);
+						break;
+					}
+					case RectSide::Right:
+					{
+						ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Max.x,nearest->item_rect.Min.y }, { nearest->item_rect.Max.x + side_indicator_size,nearest->item_rect.Max.y }, ImColor(255, 0, 255, 150), 1.f, 0);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Max.x,nearest->item_rect.Min.y }, { e->GetPos().x + e->GetRawSize().x + line_offset,nearest->item_rect.Min.y }, ImColor(255, 255, 255, 60), 1.f);
+						ImGui::GetForegroundDrawList()->AddLine({ nearest->item_rect.Max.x,nearest->item_rect.Max.y }, { e->GetPos().x + e->GetRawSize().x + line_offset,nearest->item_rect.Max.y }, ImColor(255, 255, 255, 60), 1.f);
+						break;
+					}
+					}
+
+
+
+
+
+					//ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Min.x,nearest->item_rect.Max.y }, { nearest->item_rect.Max.x,nearest->item_rect.Max.y + 5 }, ImColor(255, 0, 255, 150), 1.f, 0);
+					std::stringstream ss;
+					ss << "Dist: " << igd::GetDistance(e->GetPos(), nearest->GetPos());
+					//ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->item_rect.Min.x,nearest->item_rect.Min.y - 5 }, { nearest->item_rect.Max.x,nearest->item_rect.Min.y }, ImColor(255, 0, 255, 150), 1.f, 0);
+					ImGui::GetForegroundDrawList()->AddRectFilled(nearest->item_rect.Min, nearest->item_rect.Max, ImColor(0, 0, 0, 255), 1.f, 0);
+					ImGui::GetForegroundDrawList()->AddCircleFilled(nearest->GetPos() + ImVec2(nearest->GetSize() / 2), 5, ImColor(255, 0, 255, 150), 10);
+					ImGui::GetForegroundDrawList()->AddText(nearest->item_rect.Min, ImColor(0.0f, 1.0f, 0.0f, 1.0f), ss.str().c_str());
+				}
+
 				bool need_disable_pop = false;
 				color_pops = 0;
 				style_pops = 0;
@@ -152,14 +243,10 @@ void ImGuiElement::RenderDrag()
 				{
 					if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
 					{
-						this->AddCode("ImGui::BeginDisabled();");
 						need_disable_pop = true;
 						ImGui::BeginDisabled();
 					}
-
-
 				}
-
 				if (!e->v_inherit_all_colors)
 				{
 					for (auto& c : e->v_colors)
@@ -192,10 +279,9 @@ void ImGuiElement::RenderDrag()
 				if (e->v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
 					ImGui::EndDisabled();
 				if (e->v_font.font)
-				{
 					ImGui::PopFont();
-				}
 				PopColorAndStyles();
+
 
 				ImGui::End();
 			}

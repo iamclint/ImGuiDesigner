@@ -117,28 +117,13 @@ ImGuiElement* WorkSpace::GetSingleSelection()
 	return this->selected_elements[0];
 }
 
-bool doRectanglesIntersect(const ImRect& rect1, const ImRect& rect2)
-{
-	// Ensure that the coordinates are in the correct order
-	float left1 = std::min(rect1.Min.x, rect1.Max.x);
-	float top1 = std::min(rect1.Min.y, rect1.Max.y);
-	float right1 = std::max(rect1.Min.x, rect1.Max.x);
-	float bottom1 = std::max(rect1.Min.y, rect1.Max.y);
 
-	float left2 = std::min(rect2.Min.x, rect2.Max.x);
-	float top2 = std::min(rect2.Min.y, rect2.Max.y);
-	float right2 = std::max(rect2.Min.x, rect2.Max.x);
-	float bottom2 = std::max(rect2.Min.y, rect2.Max.y);
-
-	// Check if the rectangles intersect
-	return left1 <= right2 && right1 >= left2 && top1 <= bottom2 && bottom1 >= top2;
-}
 
 void WorkSpace::SelectRect(ImGuiElement* element)
 {
 	
 	//check if element is in rect
-	if (doRectanglesIntersect(this->drag_select,element->item_rect))
+	if (igd::doRectanglesIntersect(this->drag_select,element->item_rect))
 	{
 		if (std::find(this->selected_elements.begin(), this->selected_elements.end(), element) == this->selected_elements.end())
 			this->selected_elements.push_back(element);

@@ -75,6 +75,10 @@ void ImGuiElement::SetNextWidth()
 	else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
 		ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
 }
+ImVec2 ImGuiElement::GetRawSize()
+{
+	return { item_rect.Max.x - item_rect.Min.x,item_rect.Max.y - item_rect.Min.y };
+}
 ImVec2 ImGuiElement::GetSize()
 {
 	ImGuiContext& g = *GImGui;
@@ -403,6 +407,21 @@ void ImGuiElement::AddCode(std::string code, int depth)
 		for (auto& data : sp_data)
 			v_workspace->code << GetCodeTabs(depth==-1 ? v_depth : depth) << data << std::endl;
 	}
+}
+
+ImVec2 ImGuiElement::GetPos()
+{
+	if (igd::active_workspace->is_dragging)
+	{
+		for (auto& e : igd::active_workspace->selected_elements)
+		{
+			if (e == this)
+			{
+				return ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y);
+			}
+		}
+	}
+	return this->item_rect.Min;
 }
 
 
