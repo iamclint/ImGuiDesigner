@@ -491,8 +491,23 @@ void WorkSpace::OnUIRender() {
 	hovered_element = nullptr;
 
 	basic_workspace_element->Render({0,0}, 1, this, std::bind(&WorkSpace::KeyBinds, this));
+
+
 	if (this == igd::active_workspace)
 	{
+
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging)
+		{
+			for (auto& e : this->selected_elements)
+				e->DragSnap();
+
+			ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+		}
+		else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && this->is_dragging)
+		{
+			igd::active_workspace->is_dragging = false;
+		}
+
 		if (this->is_dragging)
 		{
 			this->basic_workspace_element->RenderDrag();

@@ -251,6 +251,7 @@ public:
 	void HandleDrop();
 	void RenderDrag();
 	void KeyMove();
+	void DragSnap();
 	ImVec2 GetPos();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
@@ -289,6 +290,7 @@ public:
 	bool v_can_contain_own_type;
 	bool v_auto_select;
 	float v_aspect_ratio;
+	bool v_is_dragging;
 	Walnut::Image* v_icon;
 	std::string v_tooltip;
 	ImVec2 v_scroll_position;
@@ -319,6 +321,7 @@ public:
 	ImGuiElement();
 	
 private:
+	
 	void ResetInteraction();
 	bool Drag();
 	bool Resize();
@@ -338,12 +341,12 @@ private:
 	void AddCode(std::string code, int depth=-1);
 	bool drop_new_parent;
 	bool was_dragging;
-
+	float SnapDist;
 	int color_pops;
 	int style_pops;
 	int undoStackIndex;
 	bool is_child_hovered;
-	
+
 	ResizeDirection resize_direction;
 	//std::unordered_map<ResizeDirection, ImRect> resize_rects;
 	ImVec2 last_size;

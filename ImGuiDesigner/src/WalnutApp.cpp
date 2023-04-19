@@ -36,7 +36,7 @@ namespace igd
 		return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 	}
 
-	ImGuiElement* GetNearestElement(ImGuiElement* element)
+	ImGuiElement* GetNearestElement(ImGuiElement* element, bool use_custom_rect, ImRect custom_rect)
 	{
 		float max_dist = FLT_MAX;
 		ImGuiElement* nearest=nullptr;
@@ -48,7 +48,7 @@ namespace igd
 		{
 			if (e == element || e == parent || e->delete_me)
 				continue;
-			float current_dist = GetDistance(element->GetPos(), e->GetPos() + ImVec2(e->GetSize()/2));
+			float current_dist = GetDistance(element->GetPos() + ImVec2(element->GetSize() / 2), e->GetPos() + ImVec2(e->GetSize()/2));
 			if (current_dist < max_dist)
 			{
 				nearest = e;
