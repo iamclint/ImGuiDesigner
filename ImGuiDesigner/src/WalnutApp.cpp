@@ -36,7 +36,30 @@ namespace igd
 		return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 	}
 
-	ImGuiElement* GetNearestElement(ImGuiElement* element, bool use_custom_rect, ImRect custom_rect)
+	ImGuiElement* GetNearestElement(ImRect& rect, ImGuiElement* element)
+	{
+		float max_dist = FLT_MAX;
+		ImGuiElement* nearest = nullptr;
+		ImGuiElement* parent = element->v_parent;
+		if (!parent)
+			parent = igd::active_workspace->basic_workspace_element;
+
+		for (auto& e : parent->children)
+		{
+			if (e == element || e == parent || e->delete_me || e->v_is_dragging)
+				continue;
+
+			float current_dist = GetDistance(rect.Min+(rect.GetSize()/2), e->GetPos() + ImVec2(e->GetSize() / 2));
+			if (current_dist < max_dist)
+			{
+				nearest = e;
+				max_dist = current_dist;
+			}
+		}
+		return nearest;
+	}
+
+	ImGuiElement* GetNearestElement(ImGuiElement* element)
 	{
 		float max_dist = FLT_MAX;
 		ImGuiElement* nearest=nullptr;
@@ -46,7 +69,7 @@ namespace igd
 
 		for (auto& e : parent->children)
 		{
-			if (e == element || e == parent || e->delete_me)
+			if (e == element || e == parent || e->delete_me || e->v_is_dragging)
 				continue;
 			float current_dist = GetDistance(element->GetPos() + ImVec2(element->GetSize() / 2), e->GetPos() + ImVec2(e->GetSize()/2));
 			if (current_dist < max_dist)

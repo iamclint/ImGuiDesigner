@@ -498,9 +498,29 @@ void WorkSpace::OnUIRender() {
 
 		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging)
 		{
-			for (auto& e : this->selected_elements)
-				e->DragSnap();
+			ImRect total_selected_rect = { ImVec2(FLT_MAX, FLT_MAX),ImVec2(-FLT_MAX, -FLT_MAX) };
+			for (auto& e : igd::active_workspace->selected_elements)
+			{
+				if (total_selected_rect.Min.x > e->GetPos().x)
+					total_selected_rect.Min.x = e->GetPos().x;
+				if (total_selected_rect.Min.y > e->GetPos().y)
+					total_selected_rect.Min.y = e->GetPos().y;
 
+				if (total_selected_rect.Max.x < e->GetPos().x + e->GetRawSize().x)
+					total_selected_rect.Max.x = e->GetPos().x + e->GetRawSize().x;
+				if (total_selected_rect.Max.y < e->GetPos().y + e->GetRawSize().y)
+					total_selected_rect.Max.y = e->GetPos().y + e->GetRawSize().y;
+			}
+
+			ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
+			if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
+				this->selected_elements.front()->DragSnap(total_selected_rect);
+			else
+			{
+				for (auto& e : this->selected_elements)
+					e->DragSnap();
+
+			}
 			ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
 		}
 		else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && this->is_dragging)

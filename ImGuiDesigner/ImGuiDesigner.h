@@ -36,7 +36,8 @@ namespace igd
 	bool ImageButton(ImTextureID user_texture_id, const ImVec2& size, ImVec2 full_size = { 60, 60 }, ImColor bg_color={0,0,0,0});
 	bool ImageButtonText(ImTextureID user_texture_id, const ImVec2& size, std::string text, ImVec2 full_size = { 60, 60 }, ImColor bg_color = { 0,0,0,0 });
 	bool doRectanglesIntersect(const ImRect& rect1, const ImRect& rect2);
-	ImGuiElement* GetNearestElement(ImGuiElement* element, bool use_custom_rect = false, ImRect custom_rect={ImVec2(0,0),ImVec2(0,0)});
+	ImGuiElement* GetNearestElement(ImGuiElement* element);
+	ImGuiElement* GetNearestElement(ImRect& rect, ImGuiElement* element);
 	float GetDistance(ImVec2 a, ImVec2 b);
 	extern Dialogs* dialogs;
 	extern WorkSpace* active_workspace;

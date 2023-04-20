@@ -251,7 +251,7 @@ public:
 	void HandleDrop();
 	void RenderDrag();
 	void KeyMove();
-	void DragSnap();
+	void DragSnap(ImRect max_selected_rect=ImRect(ImVec2(0,0),ImVec2(0,0)));
 	ImVec2 GetPos();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
