@@ -168,10 +168,12 @@ void ImGuiElement::DragSnap(ImRect total_selected_rect)
 		const float snap_dist_draw = 50;
 		ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
 		ImGuiElement* nearest = nullptr;
+		bool is_larger_group = false;
 		if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
 		{
 			ImGui::GetForegroundDrawList()->AddRectFilled(total_selected_rect.Min, total_selected_rect.Max, ImColor(255, 255, 255, 26), 1.f, 0);
 			nearest = igd::GetNearestElement(total_selected_rect, this);
+			is_larger_group = true;
 		}
 		else
 			nearest = igd::GetNearestElement(this);
