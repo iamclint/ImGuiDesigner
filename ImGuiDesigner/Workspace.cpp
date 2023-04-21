@@ -23,6 +23,7 @@ WorkSpace::WorkSpace()
 	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false), hovered_element(nullptr)
 {
 	last_selection_time = std::chrono::system_clock::now();
+	multi_drag_element = (ImGuiElement*)(new igd::ChildWindow());
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
 	is_open = true;
@@ -34,6 +35,8 @@ void WorkSpace::ResetSelectTimeout()
 }
 void WorkSpace::SelectElement(ImGuiElement* element)
 {
+	if (element == this->basic_workspace_element || element == this->multi_drag_element)
+		return;
 	if (this->CanSelect())
 	{
 		if (!ImGui::GetIO().KeyCtrl)
@@ -56,6 +59,7 @@ void WorkSpace::SelectElement(ImGuiElement* element)
 			else
 				this->selected_elements.push_back(element);
 		}
+		this->SelectedRect = this->GetSelectedRect();
 		ResetSelectTimeout();
 	}
 }
@@ -398,6 +402,28 @@ void WorkSpace::RenderAdd()
 	igd::pop_designer_theme();
 }
 
+ImRect WorkSpace::GetSelectedRect()
+{
+	ImRect total_selected_rect = { ImVec2(FLT_MAX, FLT_MAX),ImVec2(-FLT_MAX, -FLT_MAX) };
+	for (auto& e : igd::active_workspace->selected_elements)
+	{
+		if (total_selected_rect.Min.x > e->GetPos().x)
+			total_selected_rect.Min.x = e->GetPos().x;
+		if (total_selected_rect.Min.y > e->GetPos().y)
+			total_selected_rect.Min.y = e->GetPos().y;
+		if (total_selected_rect.Max.x < e->GetPos().x + e->GetRawSize().x)
+			total_selected_rect.Max.x = e->GetPos().x + e->GetRawSize().x;
+		if (total_selected_rect.Max.y < e->GetPos().y + e->GetRawSize().y)
+			total_selected_rect.Max.y = e->GetPos().y + e->GetRawSize().y;
+	}
+
+	for (auto& e : igd::active_workspace->selected_elements)
+	{
+		e->multi_select_offset = { e->GetPos().x - total_selected_rect.Min.x, e->GetPos().y - total_selected_rect.Min.y };
+	}
+	return total_selected_rect;
+}
+
 
 bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 {
@@ -463,6 +489,7 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 	return true;
 }
 
+
 void WorkSpace::OnUIRender() {
 	
 	if (!is_open)
@@ -496,25 +523,28 @@ void WorkSpace::OnUIRender() {
 	if (this == igd::active_workspace)
 	{
 
-		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging)
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging && this->selected_elements.size()>0 )
 		{
-			ImRect total_selected_rect = { ImVec2(FLT_MAX, FLT_MAX),ImVec2(-FLT_MAX, -FLT_MAX) };
-			for (auto& e : igd::active_workspace->selected_elements)
+			if (this->selected_elements.size() > 1) //some witchcrafted drag snapping for multiselected elements
 			{
-				if (total_selected_rect.Min.x > e->GetPos().x)
-					total_selected_rect.Min.x = e->GetPos().x;
-				if (total_selected_rect.Min.y > e->GetPos().y)
-					total_selected_rect.Min.y = e->GetPos().y;
-
-				if (total_selected_rect.Max.x < e->GetPos().x + e->GetRawSize().x)
-					total_selected_rect.Max.x = e->GetPos().x + e->GetRawSize().x;
-				if (total_selected_rect.Max.y < e->GetPos().y + e->GetRawSize().y)
-					total_selected_rect.Max.y = e->GetPos().y + e->GetRawSize().y;
+				ImRect total_selected_rect = GetSelectedRect();
+				ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
+				if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
+				{
+					multi_drag_element->item_rect = total_selected_rect;
+					multi_drag_element->v_parent = this->selected_elements.front()->v_parent;
+					multi_drag_element->v_pos.value = total_selected_rect.Min;
+					multi_drag_element->v_size.value = total_selected_rect_size;
+					multi_drag_element->v_pos.type = Vec2Type::Absolute;
+					multi_drag_element->v_size.type = Vec2Type::Absolute;
+					multi_drag_element->v_pos_dragging = total_selected_rect.Min;
+					multi_drag_element->DragSnap();
+					for (auto& e : this->selected_elements)
+					{
+						e->v_pos_dragging.value =multi_drag_element->v_pos_dragging.value+e->multi_select_offset;
+					}
+				}
 			}
-
-			ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
-			if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
-				this->selected_elements.front()->DragSnap(total_selected_rect);
 			else
 			{
 				for (auto& e : this->selected_elements)

@@ -59,9 +59,39 @@ namespace igd
 		return nearest;
 	}
 
+	RectSide getNearestSide(const ImRect& rect1, const ImRect& rect2, float threshold)
+	{
+		float leftDist = fabsf(rect1.Min.x - rect2.Max.x);
+		float rightDist = fabsf(rect1.Max.x - rect2.Min.x);
+		float topDist = fabsf(rect1.Min.y - rect2.Max.y);
+		float bottomDist = fabsf(rect1.Max.y - rect2.Min.y);
+
+		if (topDist <= bottomDist && topDist <= threshold && rect1.Min.y >= rect2.Max.y)
+		{
+			return RectSide::Top;
+		}
+		else if (bottomDist <= topDist && bottomDist <= threshold && rect1.Max.y <= rect2.Min.y)
+		{
+			return RectSide::Bottom;
+		}
+		else if (leftDist <= rightDist && leftDist <= threshold)
+		{
+			return RectSide::Left;
+		}
+		else if (rightDist <= leftDist && rightDist <= threshold)
+		{
+			return RectSide::Right;
+		}
+		else
+		{
+			return RectSide::Bottom;
+		}
+	}
+
+
 	ImGuiElement* GetNearestElement(ImGuiElement* element)
 	{
-		float max_dist = FLT_MAX;
+		float current_nearest_dist = FLT_MAX;
 		ImGuiElement* nearest=nullptr;
 		ImGuiElement* parent = element->v_parent;
 		if (!parent)
@@ -71,11 +101,17 @@ namespace igd
 		{
 			if (e == element || e == parent || e->delete_me || e->v_is_dragging)
 				continue;
-			float current_dist = GetDistance(element->GetPos() + ImVec2(element->GetSize() / 2), e->GetPos() + ImVec2(e->GetSize()/2));
-			if (current_dist < max_dist)
+			//float current_dist = std::min(std::min(std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x), std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x)),
+		//		std::min(std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y), std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y)));
+
+			float current_dist = std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x) + std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y)
+				+ std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x) + std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y);
+			//current_dist =  GetDistance(element->GetPos() + ImVec2(element->GetRawSize() / 2), e->GetPos() + ImVec2(e->GetRawSize()/2));
+			std::cout << "Distance: " << current_dist << " element: " << e->v_id << std::endl;
+			if (current_dist < current_nearest_dist)
 			{
 				nearest = e;
-				max_dist = current_dist;
+				current_nearest_dist = current_dist;
 			}
 		}
 		return nearest;

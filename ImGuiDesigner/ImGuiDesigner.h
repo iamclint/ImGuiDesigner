@@ -9,6 +9,14 @@
 #include "Walnut/Image.h"
 #include "Textures.h"
 #include "igd_imgui_widgets.h"
+
+enum class RectSide {
+	Top,
+	Right,
+	Bottom,
+	Left
+};
+
 namespace igd
 {
 	template <typename t> void VecMove(std::vector<t>& v, size_t oldIndex, size_t newIndex)
@@ -26,6 +34,8 @@ namespace igd
 			}
 		}
 	}
+
+
 	std::string WordWrap(std::string& text, int max_chars);
 	void UnPressKey(ImGuiKey key);
 	void push_designer_theme();
@@ -38,6 +48,7 @@ namespace igd
 	bool doRectanglesIntersect(const ImRect& rect1, const ImRect& rect2);
 	ImGuiElement* GetNearestElement(ImGuiElement* element);
 	ImGuiElement* GetNearestElement(ImRect& rect, ImGuiElement* element);
+	RectSide getNearestSide(const ImRect& rect1, const ImRect& rect2, float threshold);
 	float GetDistance(ImVec2 a, ImVec2 b);
 	extern Dialogs* dialogs;
 	extern WorkSpace* active_workspace;

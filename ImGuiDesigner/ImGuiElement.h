@@ -251,13 +251,14 @@ public:
 	void HandleDrop();
 	void RenderDrag();
 	void KeyMove();
-	void DragSnap(ImRect max_selected_rect=ImRect(ImVec2(0,0),ImVec2(0,0)));
+	void DragSnap();
 	ImVec2 GetPos();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
 	ImColor JsonToColor(nlohmann::json col);
 	ImVec2 GetSize();
 	ImVec2 GetRawSize();
+	ImRect GetItemRect();
 	std::string GetIDForVariable();
 	std::vector<std::string> GetSplitID();
 	nlohmann::json GetJsonWithChildren();
@@ -297,6 +298,7 @@ public:
 	ImRect item_rect;
 	std::string v_path;
 	ImVec2 drag_start_pos;
+	ImVec2 multi_select_offset;
 
 	std::unordered_map<int, std::string> v_custom_flags;
 	std::unordered_map<int, bool> v_custom_flag_groups;

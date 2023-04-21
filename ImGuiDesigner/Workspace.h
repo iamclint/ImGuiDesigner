@@ -45,6 +45,7 @@ public:
 	bool CanSelect();
 	void ResetSelectTimeout();
 	void SelectElement(ImGuiElement* element);
+	ImRect GetSelectedRect();
 	WorkSpace();
 	~WorkSpace();
 	ImRect drag_select;
@@ -53,8 +54,9 @@ public:
 	bool is_interacting;
 	bool is_dragging;
 	bool dragging_select;
+	ImRect SelectedRect;
 	ImGuiElement* basic_workspace_element;
-	
+	ImGuiElement* multi_drag_element;
 	
 private:
 	void GenerateStaticVars();

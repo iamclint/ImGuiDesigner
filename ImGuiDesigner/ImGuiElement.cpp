@@ -80,6 +80,15 @@ ImVec2 ImGuiElement::GetRawSize()
 {
 	return { item_rect.Max.x - item_rect.Min.x,item_rect.Max.y - item_rect.Min.y };
 }
+
+ImRect ImGuiElement::GetItemRect()
+{
+	if (this->v_is_dragging)
+		return { this->v_pos_dragging.value,this->v_pos_dragging.value + this->GetRawSize() };
+	else
+		return item_rect;
+
+}
 ImVec2 ImGuiElement::GetSize()
 {
 	ImGuiContext& g = *GImGui;
