@@ -64,7 +64,7 @@ ImGuiElement::ImGuiElement()
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
 	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""),
 	v_aspect_ratio(1.0f), is_child_hovered(false), drop_new_parent(false), was_dragging(false), v_tooltip(""), v_icon(nullptr),
-	v_is_dragging(false), SnapDist(0.f)
+	v_is_dragging(false), SnapDist(ImVec2(0,0))
 {
 	v_property_flags = property_flags::disabled;
 }

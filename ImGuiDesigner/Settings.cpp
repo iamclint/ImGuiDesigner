@@ -26,7 +26,7 @@ void Settings::save()
 void Settings::load()
 {
 	std::filesystem::path path = std::filesystem::current_path();
-	path.append("settings.igd");
+	path.append("settings.igs");
 	if (!std::filesystem::exists(path))
 		return;
 

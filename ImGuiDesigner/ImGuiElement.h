@@ -323,7 +323,7 @@ public:
 	ImGuiElement();
 	
 private:
-	
+	ImVec2 GetAverageSpacing();
 	void ResetInteraction();
 	bool Drag();
 	bool Resize();
@@ -343,7 +343,7 @@ private:
 	void AddCode(std::string code, int depth=-1);
 	bool drop_new_parent;
 	bool was_dragging;
-	float SnapDist;
+	ImVec2 SnapDist;
 	int color_pops;
 	int style_pops;
 	int undoStackIndex;

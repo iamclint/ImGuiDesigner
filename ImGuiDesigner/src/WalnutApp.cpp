@@ -107,8 +107,8 @@ namespace igd
 			float current_dist = std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x) + std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y)
 				+ std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x) + std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y);
 			//current_dist =  GetDistance(element->GetPos() + ImVec2(element->GetRawSize() / 2), e->GetPos() + ImVec2(e->GetRawSize()/2));
-			std::cout << "Distance: " << current_dist << " element: " << e->v_id << std::endl;
-			if (current_dist < current_nearest_dist)
+
+			if (current_dist < current_nearest_dist && current_dist>0)
 			{
 				nearest = e;
 				current_nearest_dist = current_dist;

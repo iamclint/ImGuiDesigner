@@ -62,7 +62,7 @@ bool ToolBar::Tool(std::string name, ImVec2 size, bool handle_click, std::string
 			{
 				igd::dialogs->OpenFile([ref](std::string file) {
 					igd::active_workspace->AddNewElement((ImGuiElement*)(new igd::Texture(file)), false, ref->v_auto_select);
-					}, "*.png\0*.jpg\0All Files(*.*)\0 * .*\0");
+					}, "PNG\0*.png\0JPG\0*.jpg\0All Files(*.*)\0*.*\0\0");
 			}
 			else
 			{

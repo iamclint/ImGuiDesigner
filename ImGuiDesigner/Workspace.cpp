@@ -37,6 +37,7 @@ void WorkSpace::SelectElement(ImGuiElement* element)
 {
 	if (element == this->basic_workspace_element || element == this->multi_drag_element)
 		return;
+
 	if (this->CanSelect())
 	{
 		if (!ImGui::GetIO().KeyCtrl)
@@ -45,6 +46,7 @@ void WorkSpace::SelectElement(ImGuiElement* element)
 		}
 		else
 		{
+			this->selected_elements.erase(std::remove(this->selected_elements.begin(), this->selected_elements.end(), this->basic_workspace_element), this->selected_elements.end());
 			bool exists = false;
 			for (auto& e : this->selected_elements)
 			{
@@ -55,7 +57,9 @@ void WorkSpace::SelectElement(ImGuiElement* element)
 				}
 			}
 			if (exists)
+			{
 				this->selected_elements.erase(std::remove(this->selected_elements.begin(), this->selected_elements.end(), element), this->selected_elements.end());
+			}
 			else
 				this->selected_elements.push_back(element);
 		}
@@ -126,25 +130,34 @@ ImGuiElement* WorkSpace::GetSingleSelection()
 void WorkSpace::SelectRect(ImGuiElement* element)
 {
 	
-	//check if element is in rect
-	if (igd::doRectanglesIntersect(this->drag_select,element->item_rect))
+	if (element != this->basic_workspace_element)
 	{
-		if (std::find(this->selected_elements.begin(), this->selected_elements.end(), element) == this->selected_elements.end())
-			this->selected_elements.push_back(element);
-	}
-	else
-	{
-		//remove from selected elements
-		for (auto it = this->selected_elements.begin(); it != this->selected_elements.end();)
+		this->selected_elements.erase(std::remove(this->selected_elements.begin(), this->selected_elements.end(), this->basic_workspace_element), this->selected_elements.end());
+		//check if element is in rect
+		if (igd::doRectanglesIntersect(this->drag_select, element->item_rect))
 		{
-			if (*it == element)
-				it = this->selected_elements.erase(it);
-			else
-				it++;
+			if (std::find(this->selected_elements.begin(), this->selected_elements.end(), element) == this->selected_elements.end())
+			{
+				if (element != this->multi_drag_element && !element->delete_me)
+				{
+					this->selected_elements.push_back(element);
+				}
+			}
 		}
+		else
+		{
+			//remove from selected elements
+			for (auto it = this->selected_elements.begin(); it != this->selected_elements.end();)
+			{
+				if (*it == element)
+					it = this->selected_elements.erase(it);
+				else
+					it++;
+			}
+		}
+		if (!element->v_can_have_children)
+			return;
 	}
-	if (!element->v_can_have_children)
-		return;
 	for (auto& e : element->children)
 		SelectRect(e);
 }
