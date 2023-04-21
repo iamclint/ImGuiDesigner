@@ -129,7 +129,7 @@ ImVec2 ImGuiElement::GetAverageSpacing()
 		{
 			if (e == this)
 				continue;
-			if (igd::GetDistance(e->item_rect.Min, this->item_rect.Min) < 400)
+			if (igd::GetDistance(e->item_rect.Min, this->item_rect.Min) < 400 && !e->delete_me)
 				vrects.push_back(e->item_rect);
 		}
 
