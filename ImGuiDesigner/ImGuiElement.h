@@ -338,6 +338,7 @@ private:
 	bool ChildrenUseRelative();
 	void Interact();
 	void HandleHover();
+	bool ResizeSnap(ResizeDirection& resize_direction);
 	std::string GetContentRegionString();
 
 	void AddCode(std::string code, int depth=-1);
