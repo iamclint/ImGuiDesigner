@@ -215,7 +215,6 @@ void ImGuiElement::DragSnap()
 			{
 				case RectSide::Bottom:
 				{
-					ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->GetItemRect().Min.x,nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x,nearest->GetItemRect().Max.y + side_indicator_size }, ImColor(255, 0, 255, 150), 1.f, 0);
 					float l = this->GetPos().x - nearest->GetItemRect().Min.x;
 					float r = (this->GetPos().x + this->GetRawSize().x) - nearest->GetItemRect().Max.x;
 					float m = (this->GetPos().x + (this->GetRawSize().x/2)) - (nearest->GetItemRect().Min.x +(nearest->GetRawSize().x/2));
@@ -269,7 +268,6 @@ void ImGuiElement::DragSnap()
 				}
 				case RectSide::Top:
 				{
-					ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->GetItemRect().Min.x,nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x,nearest->GetItemRect().Max.y + side_indicator_size }, ImColor(255, 0, 255, 150), 1.f, 0);
 					float l = this->GetPos().x - nearest->GetItemRect().Min.x;
 					float r = (this->GetPos().x + this->GetRawSize().x) - nearest->GetItemRect().Max.x;
 					float m = (this->GetPos().x + (this->GetRawSize().x / 2)) - (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2));
@@ -322,7 +320,6 @@ void ImGuiElement::DragSnap()
 				case RectSide::Left:
 				{
 					
-					ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->GetItemRect().Min.x,nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x,nearest->GetItemRect().Max.y + side_indicator_size }, ImColor(255, 0, 255, 150), 1.f, 0);
 					float t = this->GetPos().y - nearest->GetItemRect().Min.y;
 					float b = (this->GetPos().y + this->GetRawSize().y) - nearest->GetItemRect().Max.y;
 					float m = (this->GetPos().y + (this->GetRawSize().y / 2)) - (nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2));
@@ -373,7 +370,6 @@ void ImGuiElement::DragSnap()
 				}
 				case RectSide::Right:
 				{
-					ImGui::GetForegroundDrawList()->AddRectFilled({ nearest->GetItemRect().Min.x,nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x,nearest->GetItemRect().Max.y + side_indicator_size }, ImColor(255, 0, 255, 150), 1.f, 0);
 					float t = this->GetPos().y - nearest->GetItemRect().Min.y;
 					float b = (this->GetPos().y + this->GetRawSize().y) - nearest->GetItemRect().Max.y;
 					float m = (this->GetPos().y + (this->GetRawSize().y / 2)) - (nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2));
