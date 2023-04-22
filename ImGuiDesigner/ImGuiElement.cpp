@@ -51,7 +51,6 @@ void ImGuiElement::PushUndo()
 	std::cout << "using generic push undo" << std::endl;
 	igd::active_workspace->PushUndo(this);
 	undoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].push_back(*this);
-
 	//if you make an edit you lose your redo stack
 	redoMap<std::remove_reference<decltype(*this)>::type>[igd::active_workspace][this].clear();
 }

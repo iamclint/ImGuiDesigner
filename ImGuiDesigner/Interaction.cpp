@@ -121,16 +121,17 @@ void ImGuiElement::HandleDrop()
 
 ImVec2 ImGuiElement::GetAverageSpacing()
 {
-		if (!this->v_parent)
-			return { 0,0 };
-
+		ImGuiElement* parent = this->v_parent;
+		if (!parent)
+			parent = igd::active_workspace->basic_workspace_element;
+			
 		std::vector<ImRect> vrects;
-		for (auto& e : this->v_parent->children)
+		for (auto& e : parent->children)
 		{
 			if (e == this)
 				continue;
-			if (igd::GetDistance(e->item_rect.Min, this->item_rect.Min) < 400 && !e->delete_me)
-				vrects.push_back(e->item_rect);
+			if (!e->delete_me)
+				vrects.push_back(e->GetItemRect());
 		}
 
 		ImRect* rects = vrects.data();
@@ -433,10 +434,14 @@ void ImGuiElement::DragSnap()
 bool ImGuiElement::Drag()
 {
 	ImGuiContext& g = *GImGui;
+	if (igd::active_workspace->dragging_select || !igd::active_workspace->is_focused)
+		return false;
 
+	//std::cout << "Dragging: " << ImGui::IsMouseDragging(ImGuiMouseButton_Left) << " Dragging State: " << igd::active_workspace->is_dragging << " hovered: " << ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) << std::endl;
+	
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && resize_direction == ResizeDirection::none && !igd::active_workspace->is_dragging)
 	{
-		//this->v_is_dragging = true;
+		std::cout << "Dragging" << std::endl;
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
 			e->v_is_dragging = true;
@@ -457,10 +462,6 @@ bool ImGuiElement::Drag()
 		did_move = true;
 		g.MouseCursor = ImGuiMouseCursor_ResizeAll;
 		this->ApplyDeltaPosDrag(ImGui::GetMouseDragDelta());
-		/*for (auto& e : igd::active_workspace->selected_elements)
-		{
-			e->ApplyDeltaPosDrag(ImGui::GetMouseDragDelta());
-		}*/
 	}
 
 	return igd::active_workspace->is_dragging;

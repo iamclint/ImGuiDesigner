@@ -54,6 +54,7 @@ public:
 	bool is_interacting;
 	bool is_dragging;
 	bool dragging_select;
+	bool is_focused;
 	ImRect SelectedRect;
 	ImGuiElement* basic_workspace_element;
 	ImGuiElement* multi_drag_element;

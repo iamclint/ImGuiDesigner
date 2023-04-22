@@ -20,7 +20,8 @@ WorkSpace::~WorkSpace()
 WorkSpace::WorkSpace()
 	: code{}, elements_buffer{}, undoStack{}, redoStack{}, selected_elements{},
 	copied_elements{}, loading_workspace(false), is_interacting(false), sort_buffer{},
-	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false), hovered_element(nullptr)
+	interaction_mode(InteractionMode::designer), is_dragging(false), drag_select{}, dragging_select(false), hovered_element(nullptr), 
+	is_focused(false), SelectedRect{}, basic_workspace_element(nullptr), multi_drag_element(nullptr), last_selection_time(std::chrono::system_clock::now())
 {
 	last_selection_time = std::chrono::system_clock::now();
 	multi_drag_element = (ImGuiElement*)(new igd::ChildWindow());
@@ -208,7 +209,7 @@ void WorkSpace::SelectAll(ImGuiElement* element, int level)
 void WorkSpace::KeyBinds()
 {
 	ImGuiContext& g = *GImGui;
-	
+	this->is_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
 	{
