@@ -510,7 +510,8 @@ void ImGuiElement::RenderDrag()
 			ImGui::SetNextWindowBgAlpha(0);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-
+			int color_pops = 0;
+			int style_pops = 0;
 			if (ImGui::Begin(("Drag##Drag_" + e->v_id).c_str(), NULL, flags))
 			{
 				bool need_disable_pop = false;
@@ -530,7 +531,8 @@ void ImGuiElement::RenderDrag()
 					{
 						if (c.second.inherit)
 							continue;
-						e->PushStyleColor(c.first, c.second.value);
+						ImGui::PushStyleColor(c.first, c.second.value);
+						color_pops++;
 					}
 				}
 				if (!e->v_inherit_all_styles)
@@ -540,9 +542,10 @@ void ImGuiElement::RenderDrag()
 						if (c.second.inherit)
 							continue;
 						if (c.second.type == StyleVarType::Float)
-							e->PushStyleVar(c.first, c.second.value.Float);
+							ImGui::PushStyleVar(c.first, c.second.value.Float);
 						else if (c.second.type == StyleVarType::Vec2)
-							e->PushStyleVar(c.first, c.second.value.Vec2);
+							ImGui::PushStyleVar(c.first, c.second.value.Vec2);
+						style_pops++;
 					}
 				}
 
@@ -557,9 +560,10 @@ void ImGuiElement::RenderDrag()
 					ImGui::EndDisabled();
 				if (e->v_font.font)
 					ImGui::PopFont();
-				PopColorAndStyles();
-
-
+				if (style_pops>0)
+					ImGui::PopStyleVar(style_pops);
+				if (color_pops>0)
+					ImGui::PopStyleColor(color_pops);
 				ImGui::End();
 			}
 			ImGui::PopStyleVar(2);
@@ -609,10 +613,12 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 		{
 			v_size.value.x = last_size.x + delta.x;
 			v_size.value.y = last_size.y + delta.x * v_aspect_ratio;
+			last_size = v_size.value;
 		}
 		else
 		{
 			v_size.value = last_size + delta;
+			last_size = v_size.value;
 		}
 
 	}
@@ -622,6 +628,8 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 			v_size.value.x += (delta.x / ContentRegionAvail.x) * 100;
 		if (delta.y != 0)
 			v_size.value.y += (delta.y / ContentRegionAvail.y) * 100;
+
+		last_size += delta;
 	}
 }
 
@@ -635,11 +643,14 @@ void ImGuiElement::ApplyDeltaPos(ImVec2 delta)
 	if (v_pos.type == Vec2Type::Absolute)
 	{
 		v_pos.value = last_position + delta;
+		last_position = v_pos.value;
 	}
 	else if (v_pos.type == Vec2Type::Relative)
 	{
+		last_position += delta;
 		v_pos.value.x = ((last_position.x + delta.x) / ContentRegionAvail.x) * 100;
 		v_pos.value.y = ((last_position.y + delta.y) / ContentRegionAvail.y) * 100;
+		
 	}
 }
 void ImGuiElement::ApplyPos(ImVec2 literal_pos)
@@ -660,7 +671,7 @@ bool isNeg(float val)
 }
 
 
-bool ImGuiElement::ResizeSnap(ResizeDirection& resize_direction)
+bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 {
 	ImGuiContext& g = *GImGui;
 	static ImVec2 previous_drag_delta = ImGui::GetMouseDragDelta();
@@ -672,7 +683,7 @@ bool ImGuiElement::ResizeSnap(ResizeDirection& resize_direction)
 	bool rval = false;
 	ImGuiElement* nearest = igd::GetNearestElement(this);
 	this->v_is_dragging = false;
-	if (nearest)// && igd::GetDistance(this->GetPos(), nearest->GetPos()) < 600)
+	if (nearest)
 	{
 		bool reset_snap=false;
 		ImGui::GetForegroundDrawList()->AddRectFilled(nearest->GetItemRect().Min, nearest->GetItemRect().Max, ImColor(255, 255, 255, 15));
@@ -680,21 +691,52 @@ bool ImGuiElement::ResizeSnap(ResizeDirection& resize_direction)
 
 		switch (resize_direction)
 		{
-
-			
 			case ResizeDirection::left:
 			{
+				float s = this->GetItemRect().Min.x - nearest->GetItemRect().Min.x;
+				if (this->GetPos().y > nearest->GetPos().y) // is below
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Min.x, this->GetItemRect().Max.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
+				else
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Min.y }, { nearest->GetItemRect().Min.x, this->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
+
+				if (fabs(s) < distance_threshold)
+				{
+					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					{
+						ApplyDeltaPos({ -s, 0 });
+						ApplyDeltaResize({ s,0 });
+						rval = true;
+					}
+					reset_snap = true;
+				}
+				else
+					this->SnapDist.x = 0;
 				break;
 			}
-			
-
 			case ResizeDirection::right:
 			{
+				float s = this->GetItemRect().Max.x - nearest->GetItemRect().Max.x;
+				if (this->GetPos().y > nearest->GetPos().y) // is below
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x, nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x, this->GetItemRect().Max.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
+				else
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x, nearest->GetItemRect().Min.y }, { nearest->GetItemRect().Max.x, this->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
+
+				if (fabs(s) < distance_threshold)
+				{
+					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					{
+						ApplyDeltaResize({ -s,0 });
+						rval = true;
+					}
+					reset_snap = true;
+				}
+				else
+					this->SnapDist.x = 0;
 				break;
 			}
 			case ResizeDirection::top:
-			case ResizeDirection::top_right:
-			case ResizeDirection::top_left:
 			{
 				float t = this->GetItemRect().Min.y - nearest->GetItemRect().Min.y;
 				if (this->GetPos().x>nearest->GetPos().x) // to the right
@@ -718,8 +760,6 @@ bool ImGuiElement::ResizeSnap(ResizeDirection& resize_direction)
 				break;
 			}
 			case ResizeDirection::bottom:
-			case ResizeDirection::bottom_right:
-			case ResizeDirection::bottom_left:
 			{
 				float t = this->GetItemRect().Max.y - nearest->GetItemRect().Max.y;
 				if (this->GetPos().x > nearest->GetPos().x) // to the right
@@ -783,44 +823,42 @@ bool ImGuiElement::Resize()
 	bool is_mouse_hovering_bl = fabs(mouse_delta_bl.x) < delta_offset_outter && fabs(mouse_delta_bl.y) < delta_offset_outter;
 	bool is_mouse_hovering_tl = fabs(mouse_delta_tl.x) < delta_offset_outter && fabs(mouse_delta_tl.y) < delta_offset_outter;
 
-	//if (resize_direction == ResizeDirection::none)
-	//{
-		if (is_mouse_hovering_br)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-		else if (is_mouse_hovering_tr)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-		else if (is_mouse_hovering_bl)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-		else if (is_mouse_hovering_tl)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-		else if (is_mouse_hovering_r)
-			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-		else if (is_mouse_hovering_l)
-			g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-		else if (is_mouse_hovering_b)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
-		else if (is_mouse_hovering_t)
-			g.MouseCursor = ImGuiMouseCursor_ResizeNS;
-	//}
+	if (is_mouse_hovering_br)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
+	else if (is_mouse_hovering_tr)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
+	else if (is_mouse_hovering_bl)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
+	else if (is_mouse_hovering_tl)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
+	else if (is_mouse_hovering_r)
+		g.MouseCursor = ImGuiMouseCursor_ResizeEW;
+	else if (is_mouse_hovering_l)
+		g.MouseCursor = ImGuiMouseCursor_ResizeEW;
+	else if (is_mouse_hovering_b)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNS;
+	else if (is_mouse_hovering_t)
+		g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !igd::active_workspace->is_dragging && resize_direction == ResizeDirection::none)
 	{
+		//order must be the corners first to override the sides
 		if (is_mouse_hovering_br)
 			resize_direction = ResizeDirection::bottom_right;
-		else if (is_mouse_hovering_r)
-			resize_direction = ResizeDirection::right;
 		else if (is_mouse_hovering_tr)
 			resize_direction = ResizeDirection::top_right;
+		else if (is_mouse_hovering_bl)
+			resize_direction = ResizeDirection::bottom_left;
+		else if (is_mouse_hovering_tl)
+			resize_direction = ResizeDirection::top_left;
+		else if (is_mouse_hovering_r)
+			resize_direction = ResizeDirection::right;
 		else if (is_mouse_hovering_l)
 			resize_direction = ResizeDirection::left;
 		else if (is_mouse_hovering_b)
 			resize_direction = ResizeDirection::bottom;
 		else if (is_mouse_hovering_t)
 			resize_direction = ResizeDirection::top;
-		else if (is_mouse_hovering_bl)
-			resize_direction = ResizeDirection::bottom_left;
-		else if (is_mouse_hovering_tl)
-			resize_direction = ResizeDirection::top_left;
 	}
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && resize_direction != ResizeDirection::none)
 	{
@@ -831,29 +869,30 @@ bool ImGuiElement::Resize()
 			case ResizeDirection::top_right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-				if (!ResizeSnap(resize_direction))
+				
+				ResizeSnap(ResizeDirection::right);
+				if (!ResizeSnap(ResizeDirection::top))
 				{
 					ApplyDeltaResize({ mouse_drag_delta.x,-mouse_drag_delta.y });
 					ApplyDeltaPos({ 0, mouse_drag_delta.y });
 				}
 				else
-				{
 					ApplyDeltaResize({ mouse_drag_delta.x,0 });
-				}
 				break;
 			}
 			case ResizeDirection::top_left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-				if (!ResizeSnap(resize_direction))
+				ResizeSnap(ResizeDirection::left);
+				if (!ResizeSnap(ResizeDirection::top))
 				{
 					ApplyDeltaResize(mouse_drag_delta * -1);
 					ApplyDeltaPos(mouse_drag_delta);
 				}
 				else
 				{
-					ApplyDeltaResize({ -mouse_drag_delta.x, 0 });
-					ApplyDeltaPos({ mouse_drag_delta.x, 0 });
+					ApplyDeltaResize({ -mouse_drag_delta.x,0 });
+					ApplyDeltaPos({ mouse_drag_delta.x,0 });
 				}
 
 				break;
@@ -861,7 +900,8 @@ bool ImGuiElement::Resize()
 			case ResizeDirection::bottom_left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNESW;
-				if (!ResizeSnap(resize_direction))
+				ResizeSnap(ResizeDirection::left);
+				if (!ResizeSnap(ResizeDirection::bottom))
 				{
 					ApplyDeltaResize({ -mouse_drag_delta.x, mouse_drag_delta.y });
 					ApplyDeltaPos({ mouse_drag_delta.x, 0 });
@@ -876,14 +916,18 @@ bool ImGuiElement::Resize()
 			case ResizeDirection::left:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-				ApplyDeltaResize({ -mouse_drag_delta.x, 0 });
-				ApplyDeltaPos({ mouse_drag_delta.x, 0 });
+				if (!ResizeSnap(resize_direction))
+				{
+					ApplyDeltaResize({ -mouse_drag_delta.x, 0 });
+					ApplyDeltaPos({ mouse_drag_delta.x, 0 });
+				}
 				break;
 			}
 			case ResizeDirection::bottom_right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
-				if (!ResizeSnap(resize_direction))
+				ResizeSnap(ResizeDirection::right);
+				if (!ResizeSnap(ResizeDirection::bottom))
 					ApplyDeltaResize(mouse_drag_delta);
 				else
 					ApplyDeltaResize({ mouse_drag_delta.x, 0 });
@@ -892,7 +936,10 @@ bool ImGuiElement::Resize()
 			case ResizeDirection::right:
 			{
 				g.MouseCursor = ImGuiMouseCursor_ResizeEW;
-				ApplyDeltaResize({ mouse_drag_delta.x,0 });
+				if (!ResizeSnap(resize_direction))
+				{
+					ApplyDeltaResize({ mouse_drag_delta.x, 0 });
+				}
 				break;
 			}
 			case ResizeDirection::top:
@@ -937,7 +984,13 @@ void ImGuiElement::Select()
 
 void ImGuiElement::DrawSelection()
 {
-	ImGui::GetWindowDrawList()->AddRect(item_rect.Min, item_rect.Max, ImColor(0.0f, 1.0f, 0.0f, 1.0f), 0.0f, 0, 2.0f);
+	ImGuiContext& g = *GImGui;
+	float rounding = 0;
+	if (this->v_type_id!=(int)element_type::childwindow)
+		rounding = g.Style.FrameRounding;
+	else 
+		rounding = g.Style.ChildRounding;
+	ImGui::GetWindowDrawList()->AddRect(item_rect.Min+ImVec2(1,1), item_rect.Max-ImVec2(1,1), ImColor(0.0f, 1.0f, 0.0f, 0.6f), rounding, 0, 2.0f);
 }
 
 
