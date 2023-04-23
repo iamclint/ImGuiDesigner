@@ -26,7 +26,6 @@ enum class property_flags : int
 
 enum class element_type : int
 {
-	window = 0,
 	button = 1 << 0,
 	checkbox = 1 << 1,
 	childwindow = 1 << 2,
@@ -41,7 +40,8 @@ enum class element_type : int
 	tabbar = 1 << 11,
 	tabitem = 1 << 12,
 	text = 1 << 13,
-	texture = 1 << 14
+	texture = 1 << 14,
+	window = 1 << 15
 };
 
 static inline const char* ImGuiStyleVar_Strings[] = {
@@ -236,6 +236,7 @@ public:
 public:
 	
 	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback=nullptr);
+	
 	void Delete();
 	void Redo();
 	void Undo();
@@ -339,6 +340,12 @@ private:
 	void Interact();
 	void HandleHover();
 	bool ResizeSnap(ResizeDirection resize_direction);
+	void InteractionWindow();
+	void InteractionSelectable();
+	void InteractionItem();
+	void RenderHeadInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
+	void RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback);
+	void RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
 	std::string GetContentRegionString();
 
 	void AddCode(std::string code, int depth=-1);
@@ -349,7 +356,7 @@ private:
 	int style_pops;
 	int undoStackIndex;
 	bool is_child_hovered;
-
+	bool need_disable_pop;
 	ResizeDirection resize_direction;
 	//std::unordered_map<ResizeDirection, ImRect> resize_rects;
 	ImVec2 last_size;

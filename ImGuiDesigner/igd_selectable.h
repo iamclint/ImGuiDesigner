@@ -69,7 +69,6 @@ namespace igd
 		
 		std::string ScriptInternal() {
 			std::stringstream code;
-			code << igd::script::GetWidthScript(this)  << std::endl;
 			code << "if (ImGui::Selectable(\"" << v_id << "\", false, " << igd::script::BuildFlagString(this) << ", " << igd::script::GetSizeScript(this) << "))" << std::endl;
 			code << "{" << std::endl << "\t//selectable clicked" << std::endl;
 			code << "\t" << this->v_parent->GetIDForVariable() << " = \"" << v_id << "\";" << std::endl << "}";
@@ -81,12 +80,6 @@ namespace igd
 		virtual std::string RenderHead(bool script_only) override
 		{
 			ImGuiContext& g = *GImGui;
-			return "";
-		}
-
-		virtual std::string RenderInternal(bool script_only) override
-		{
-			ImGuiContext& g = *GImGui;
 			std::stringstream code;
 			bool did_select = false;
 			if (script_only)
@@ -95,11 +88,16 @@ namespace igd
 				return "";
 			if (this->v_parent)
 				selected = this->v_parent->v_label == this->v_id;
-						
+
 			did_select = ImGui::Selectable(v_id.c_str(), &selected, v_flags, this->GetSize());
 			if (did_select && this->v_parent)
 				this->v_parent->v_label = this->v_id;
 			return ScriptInternal();
+		}
+
+		virtual std::string RenderInternal(bool script_only) override
+		{
+			return "";
 		}
 
 		virtual std::string RenderFoot(bool script_only) override

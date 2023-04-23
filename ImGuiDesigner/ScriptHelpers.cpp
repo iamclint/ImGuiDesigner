@@ -38,6 +38,9 @@ namespace igd
 
 		std::string GetWidthScript(ImGuiElement* ele)
 		{
+			if (ele->v_size.value.x==0)
+				return "";
+
 			std::stringstream c;
 			c << "ImGui::SetNextItemWidth(";
 			if (ele->v_size.type == Vec2Type::Absolute)

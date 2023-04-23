@@ -613,7 +613,7 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 		if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift))
 		{
 			v_size.value.x = last_size.x + delta.x;
-			v_size.value.y = last_size.y + delta.x * v_aspect_ratio;
+			v_size.value.y = last_size.y + (delta.x * v_aspect_ratio);
 			last_size = v_size.value;
 		}
 		else

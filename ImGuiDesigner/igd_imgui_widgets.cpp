@@ -1,6 +1,7 @@
 #include "igd_imgui_widgets.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+
 namespace ImGui
 {
     void ImageRounded(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col, const float& rounding)
@@ -26,5 +27,12 @@ namespace ImGui
         {
             window->DrawList->AddImageRounded(user_texture_id, bb.Min, bb.Max, uv0, uv1, GetColorU32(tint_col), rounding);
         }
+    }
+    void SetDefaultText(std::string text)
+    {
+        ImGuiContext& g = *GImGui;
+        ImVec2 txt_size = ImGui::CalcTextSize(text.c_str());
+        ImColor col = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+        ImGui::GetWindowDrawList()->AddText({ g.LastItemData.NavRect.Min.x + g.Style.FramePadding.x, g.LastItemData.NavRect.Min.y+g.Style.FramePadding.y }, col, text.c_str());
     }
 }

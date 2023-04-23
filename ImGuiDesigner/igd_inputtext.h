@@ -15,6 +15,7 @@ namespace igd
 	public:
 		static inline std::string json_identifier = "inputtext";
 		std::string input_data;
+		std::string default_txt;
 		InputText() {
 			v_icon = igd::textures.images["input"];
 			v_tooltip = "Input Text";
@@ -25,7 +26,7 @@ namespace igd
 			v_size = ImVec2(0, 0);
 			v_id = ("InputText##" + RandomID()).c_str();
 			v_label = "";
-
+			default_txt = "Enter text here";
 			v_custom_flags[ImGuiInputTextFlags_AllowTabInput] = "ImGuiInputTextFlags_AllowTabInput";
 			v_custom_flags[ImGuiInputTextFlags_CharsDecimal] = "ImGuiInputTextFlags_CharsDecimal";
 			v_custom_flags[ImGuiInputTextFlags_CharsHexadecimal] = "ImGuiInputTextFlags_CharsHexadecimal";
@@ -75,16 +76,23 @@ namespace igd
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
-
+			igd::properties->PropertyLabel("Default Text");
+			ImGui::PushItemWidth(120);
+			ImGui::InputText("##property_default_text", &default_txt);
 		}
 		std::string ScriptHead() {
 			return "";
 		};
+
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "static std::string " << this->GetIDForVariable() << ";" << std::endl;
 			code << igd::script::GetWidthScript(this) << std::endl;
 			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::script::BuildFlagString(this) << ");";
+			code << "ImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
+
+			code << "if (" << this->GetIDForVariable() << ".size() == 0)";
+			code << "ImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
 			return code.str();
 		};
 
@@ -98,12 +106,14 @@ namespace igd
 
 		virtual std::string RenderInternal(bool script_only) override
 		{
+			ImGuiContext& g = *GImGui;
 			if (script_only)
 				return ScriptInternal();
-			ImGuiContext& g = *GImGui;
+
 			this->SetNextWidth();
 			ImGui::InputText((v_label + "##" + v_id).c_str(), &input_data, v_flags);
-			
+			if (input_data.size()==0)
+				ImGui::SetDefaultText(default_txt);
 			return ScriptInternal();
 		}
 

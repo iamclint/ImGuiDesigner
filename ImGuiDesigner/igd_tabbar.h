@@ -26,7 +26,7 @@ namespace igd
 			v_can_have_children = true;
 			v_requires_open = false;
 			v_is_open = false;
-
+			v_parent_required_id = (int)element_type::window | (int)element_type::childwindow;
 			
 			//available child window flags
 			v_custom_flags[ImGuiTabBarFlags_Reorderable] = "ImGuiTabBarFlags_Reorderable";

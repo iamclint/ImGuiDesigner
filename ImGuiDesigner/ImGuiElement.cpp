@@ -70,9 +70,11 @@ ImGuiElement::ImGuiElement()
 
 void ImGuiElement::SetNextWidth()
 {
-	if (v_size.type == Vec2Type::Absolute && v_size.value.x != 0)
+	if (v_size.value.x == 0)
+		return;
+	if (v_size.type == Vec2Type::Absolute)
 		ImGui::SetNextItemWidth(v_size.value.x);
-	else if (v_size.type == Vec2Type::Relative && v_size.value.x != 0)
+	else if (v_size.type == Vec2Type::Relative)
 		ImGui::SetNextItemWidth(ContentRegionAvail.x * (v_size.value.x / 100));
 }
 ImVec2 ImGuiElement::GetRawSize()
@@ -414,7 +416,7 @@ void ImGuiElement::AddCode(std::string code, int depth)
 	if (this->v_workspace)
 	{
 		for (auto& data : sp_data)
-			v_workspace->code << GetCodeTabs(depth==-1 ? v_depth : depth) << data << std::endl;
+			v_workspace->code << GetCodeTabs(depth == -1 ? v_depth : depth) << data << std::endl;
 	}
 }
 
@@ -428,14 +430,12 @@ ImVec2 ImGuiElement::GetPos()
 }
 
 
-void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
+void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_depth, WorkSpace* workspace)
 {
-
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
-
 	is_child_hovered = false;
-	v_workspace = ws;
+	v_workspace = workspace;
 	v_depth = current_depth;
 	ContentRegionAvail = _ContentRegionAvail;
 	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
@@ -456,7 +456,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		}
 	}
 
-	bool need_disable_pop = false;
+	need_disable_pop = false;
 	color_pops = 0;
 	style_pops = 0;
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
@@ -467,10 +467,10 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 			need_disable_pop = true;
 			ImGui::BeginDisabled();
 		}
-			
+
 
 	}
-	
+
 	if (!this->v_inherit_all_colors)
 	{
 		for (auto& c : this->v_colors)
@@ -493,7 +493,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 				this->PushStyleVar(c.first, c.second.value.Vec2);
 		}
 	}
-	
+
 	if (this->v_font.font)
 	{
 		this->AddCode(STS() << "ImGui::PushFont(" << this->v_font.name << ");");
@@ -505,37 +505,42 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		this->AddCode("ImGui::SameLine();");
 		ImGui::SameLine();
 	}
+
 	std::string RenderHead = this->RenderHead(script_only);
-	if (RenderHead !="")
+	if (RenderHead != "")
 		this->AddCode(RenderHead);
+}
+void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+
 	if (ContentRegionAvail.x == 0 && ContentRegionAvail.y == 0)
 		ContentRegionAvail = ImGui::GetContentRegionAvail();
 	ContentRegionAvailSelf = ImGui::GetContentRegionAvail();
-	////irritating that we have to do this but imgui uses tab items sort of like buttons
-	//if (this->v_type_id == (int)element_type::tabitem)
-	//	Interact();
 
 	if (this->children.size() > 0)
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
 		std::string content_region_string = GetContentRegionString();
-		
+
 		this->AddCode("{");
-		
+
 		if (this->ChildrenUseRelative())
 			this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();", current_depth + 1);
 
-		for (int r =0;auto& child : this->children)
+		for (int r = 0; auto & child : this->children)
 		{
 			child->ContentRegionString = content_region_string;
 			if (child->delete_me)
 				continue;
 			child->v_render_index = r;
-			child->Render(region_avail, current_depth+1, ws);
+			child->Render(region_avail, current_depth + 1, ws);
 			r++;
 		}
 		//this->AddCode(" ", current_depth);
-		this->AddCode(this->RenderInternal(script_only), current_depth+1);
+		this->AddCode(this->RenderInternal(script_only), current_depth + 1);
 		this->AddCode("}");
 
 	}
@@ -548,22 +553,13 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 
 	if (this->v_can_have_children)
 		v_scroll_position = { ImGui::GetScrollX(), ImGui::GetScrollY() };
-
-	if (this->v_type_id != (int)element_type::window)
-	{
-		this->AddCode(this->RenderFoot(script_only));
-		this->last_position = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());// ImGui::GetCursorPos();
-		this->last_size = ImVec2(g.LastItemData.Rect.Max.x - g.LastItemData.Rect.Min.x, g.LastItemData.Rect.Max.y - g.LastItemData.Rect.Min.y);
-		this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
-		HandleHover();
-	}
-	else
-	{
-		this->item_rect = { ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize() };
-		HandleHover();
-		this->AddCode(this->RenderFoot(script_only));
-	}
-
+}
+void ImGuiElement::RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace)
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+	this->AddCode(this->RenderFoot(script_only));
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && this->v_parent)
 	{
 		ImGuiElement* p = this->v_parent;
@@ -584,9 +580,6 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	}
 
 
-	if (!is_child_hovered)
-		Interact();
-
 	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
 	{
 		ImGui::EndDisabled();
@@ -598,7 +591,91 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		this->AddCode("ImGui::PopFont();");
 	}
 	PopColorAndStyles();
+}
+
+void ImGuiElement::InteractionSelectable()
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	const float spacing_x = g.Style.ItemSpacing.x;
+	const float spacing_y = g.Style.ItemSpacing.y;
+	const float spacing_L = IM_FLOOR(spacing_x * 0.50f);
+	const float spacing_U = IM_FLOOR(spacing_y * 0.50f);
+	ImRect bb;
+	bb.Min.x -= spacing_L;
+	bb.Min.y -= spacing_U;
+	bb.Max.x += (spacing_x - spacing_L);
+	bb.Max.y += (spacing_y - spacing_U);
+	this->last_position = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());// ImGui::GetCursorPos();
+	this->last_size = ImVec2(g.LastItemData.NavRect.Max.x - g.LastItemData.NavRect.Min.x, g.LastItemData.NavRect.Max.y - g.LastItemData.NavRect.Min.y);
+	this->last_size -= bb.Max - bb.Min;
+	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
+	this->item_rect = ImRect(this->item_rect.Min + bb.Min, this->item_rect.Max + bb.Max);
+	HandleHover();
+	if (!is_child_hovered)
+		Interact();
+
+}
+
+
+void ImGuiElement::InteractionItem()
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	this->last_position = ImVec2(g.LastItemData.Rect.Min.x - window->Pos.x + ImGui::GetScrollX(), g.LastItemData.Rect.Min.y - window->Pos.y + ImGui::GetScrollY());// ImGui::GetCursorPos();
+	this->last_size = ImVec2(g.LastItemData.NavRect.Max.x - g.LastItemData.NavRect.Min.x, g.LastItemData.NavRect.Max.y - g.LastItemData.NavRect.Min.y);
+
+	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
 	
+	HandleHover();
+	if (!is_child_hovered)
+		Interact();
+	
+}
+
+void ImGuiElement::InteractionWindow()
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+	this->item_rect = { ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize() };
+	HandleHover();
+
+	if (!is_child_hovered)
+		Interact();
+
+
+}
+void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
+{
+
+	RenderHeadInternal(_ContentRegionAvail, current_depth, ws);
+	
+	//some elements need to interact before they add any children (like combo)
+	if (this->v_type_id == (int)element_type::combo)
+	{
+		InteractionItem();
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+	}
+	else if (this->v_type_id == (int)element_type::window)
+	{
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
+		InteractionWindow();
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+	}
+	else if (this->v_type_id == (int)element_type::selectable)
+	{
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		InteractionSelectable();
+	}
+	else
+	{
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		InteractionItem();
+	}
 }
 
 //random number generator
