@@ -70,8 +70,8 @@ namespace igd
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "if (ImGui::Selectable(\"" << v_id << "\", false, " << igd::script::BuildFlagString(this) << ", " << igd::script::GetSizeScript(this) << "))" << std::endl;
-			code << "{" << std::endl << "\t//selectable clicked" << std::endl;
-			code << "\t" << this->v_parent->GetIDForVariable() << " = \"" << v_id << "\";" << std::endl << "}";
+			code << "{" << std::endl;
+			code << "\t" << this->v_parent->v_variable_name << " = \"" << v_id << "\";" << std::endl << "}";
 			return code.str();
 		};
 

@@ -3,6 +3,7 @@
 #include "ImGuiElement.h"
 #include <vector>
 #include <chrono>
+#include "TextEditor.h"
 enum class InteractionMode : int
 {
 	designer,
@@ -60,8 +61,9 @@ public:
 	ImGuiElement* multi_drag_element;
 	
 private:
-	void GenerateStaticVars();
+	void GenerateVariables(ImGuiElement* p);
 	std::chrono::system_clock::time_point last_selection_time;
+	TextEditor editor;
 };
 
 //store the states of the elements for each workspace

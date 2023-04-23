@@ -15,14 +15,15 @@ namespace igd
 			v_type_id = (int)element_type::window;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::disabled ;
+			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::has_variable;
 			v_size = ImVec2(1024, 768);
 			v_id = ("Workspace##" + RandomID()).c_str();
 			v_label = "";
 			v_can_have_children = true;
 			v_inherit_all_colors = false;
 			v_inherit_all_styles = false;
-			
+			v_variable_name = json_identifier + "_" + RandomID();
+
 			v_custom_flags[ImGuiWindowFlags_NoTitleBar] = "ImGuiWindowFlags_NoTitleBar";
 			v_custom_flags[ImGuiWindowFlags_NoResize] = "ImGuiWindowFlags_NoResize";
 			v_custom_flags[ImGuiWindowFlags_NoDocking] = "ImGuiWindowFlags_NoDocking";
@@ -150,10 +151,17 @@ namespace igd
 		{
 
 		}
+
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "bool " << v_variable_name << " = true;";
+			return code_out.str();
+		}
+
 		std::string ScriptHead()
 		{
 			std::stringstream code_out;
-			code_out << "static bool igd_workspace=true;" << std::endl;
 			code_out << "ImGui::SetNextWindowSize(" << igd::script::GetVec2String(v_size.value) << ", ImGuiCond_Once); " << std::endl;
 			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << igd::script::BuildFlagString(this) << ");";
 			return code_out.str();

@@ -21,7 +21,8 @@ enum class property_flags : int
 	border = 1 << 2,
 	disabled = 1 << 3,
 	no_id = 1 << 4,
-	no_resize = 1 << 5
+	no_resize = 1 << 5,
+	has_variable = 1 << 6
 };
 
 enum class element_type : int
@@ -227,6 +228,7 @@ public:
 	virtual std::string RenderInternal(bool script_only=false) { return ""; };
 	//return code string for this element
 	virtual std::string RenderFoot(bool script_only=false) { return ""; };
+	virtual std::string GetVariableCode() { return ""; };
 	virtual ImGuiElement* Clone() { return nullptr; };
 	void InitState();
 	virtual nlohmann::json GetJson();
@@ -294,6 +296,7 @@ public:
 	bool v_auto_select;
 	float v_aspect_ratio;
 	bool v_is_dragging;
+	std::string v_variable_name;
 	Walnut::Image* v_icon;
 	std::string v_tooltip;
 	ImVec2 v_scroll_position;

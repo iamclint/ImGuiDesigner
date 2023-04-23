@@ -23,11 +23,11 @@ namespace igd
 			is_checked = false;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
+			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled | property_flags::has_variable;
 			v_size = ImVec2(0, 0);
 			v_id = ("CheckBox##" + RandomID()).c_str();
 			v_label = "";
-
+			v_variable_name = json_identifier + "_" + RandomID();
 			v_colors[ImGuiCol_Text] = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			v_colors[ImGuiCol_FrameBg] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
 			v_colors[ImGuiCol_FrameBgActive] = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
@@ -57,6 +57,12 @@ namespace igd
 		virtual void RenderPropertiesInternal() override
 		{
 		}
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "bool " << v_variable_name << " = " << (is_checked ? "true" : "false") << ";";
+			return code_out.str();
+		}
 
 		virtual std::string RenderHead(bool script_only) override
 		{
@@ -66,9 +72,8 @@ namespace igd
 		std::string ScriptHead() { return ""; };
 		std::string ScriptInternal() {
 			std::stringstream code;
-			code << "static bool " << this->GetIDForVariable() << ";" << std::endl;
-			code << "if (ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << "))" << std::endl;
-			code << "{" << std::endl << "//checkbox click event" << std::endl << "}";
+			code << "if (ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << "))" << std::endl;
+			code << "{" << std::endl << "\t\t//checkbox click event" << std::endl << "}";
 			return code.str();
 		};
 

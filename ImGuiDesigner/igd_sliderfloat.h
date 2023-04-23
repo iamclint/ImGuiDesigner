@@ -28,7 +28,8 @@ namespace igd
 			v_max = 100.f;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
+			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled | property_flags::has_variable;
+			v_variable_name = json_identifier + "_" + RandomID();
 			v_size = ImVec2(0, 0);
 			v_id = ("SliderFloat##" + RandomID()).c_str();
 			v_label = "";
@@ -72,6 +73,14 @@ namespace igd
 			return new_element;
 		}
 
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "float " << v_variable_name << " = " << igd::script::GetFloatString(input_data) << ";";
+			return code_out.str();
+		}
+
+
 		//Extends the property window with the properties specific of this element
 		virtual void RenderPropertiesInternal() override
 		{
@@ -90,9 +99,8 @@ namespace igd
 		};
 		std::string ScriptInternal() {
 			std::stringstream code;
-			code << "static float " << this->GetIDForVariable() << ";" << std::endl;
 			code << igd::script::GetWidthScript(this)  << std::endl;
-			code << "ImGui::SliderFloat(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::script::GetFloatString (v_min) << ", " << igd::script::GetFloatString (v_max) << ", \"" << format << "\", " << igd::script::BuildFlagString(this) << ");";
+			code << "ImGui::SliderFloat(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << ", " << igd::script::GetFloatString (v_min) << ", " << igd::script::GetFloatString (v_max) << ", \"" << format << "\", " << igd::script::BuildFlagString(this) << ");";
 			return code.str();
 		};
 

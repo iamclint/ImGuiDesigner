@@ -291,14 +291,18 @@ void Properties::General()
 		{
 			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
-		ImGui::SameLine();
-		bool checked = igd::active_workspace->GetSingleSelection()->v_size.type == Vec2Type::Relative;
-		if (ImGui::Checkbox("%##size_pct", &checked))
+		if (igd::active_workspace->GetSingleSelection()->v_type_id != (int)element_type::window)
 		{
-			if (!checked)
-				igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Absolute;
-			else
-				igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Relative;
+			ImGui::SameLine();
+
+			bool checked = igd::active_workspace->GetSingleSelection()->v_size.type == Vec2Type::Relative;
+			if (ImGui::Checkbox("%##size_pct", &checked))
+			{
+				if (!checked)
+					igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Absolute;
+				else
+					igd::active_workspace->GetSingleSelection()->v_size.type = Vec2Type::Relative;
+			}
 		}
 	}
 
@@ -310,14 +314,17 @@ void Properties::General()
 		{
 			igd::active_workspace->GetSingleSelection()->PushUndo();
 		}
-		ImGui::SameLine();
-		bool checked = igd::active_workspace->GetSingleSelection()->v_pos.type == Vec2Type::Relative;
-		if (ImGui::Checkbox("%##pos_pct", &checked))
+		if (igd::active_workspace->GetSingleSelection()->v_type_id != (int)element_type::window)
 		{
-			if (!checked)
-				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Absolute;
-			else
-				igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Relative;
+			ImGui::SameLine();
+			bool checked = igd::active_workspace->GetSingleSelection()->v_pos.type == Vec2Type::Relative;
+			if (ImGui::Checkbox("%##pos_pct", &checked))
+			{
+				if (!checked)
+					igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Absolute;
+				else
+					igd::active_workspace->GetSingleSelection()->v_pos.type = Vec2Type::Relative;
+			}
 		}
 		/*if (ImGui::BeginTabBar(getPropertyId("pos_type"), igd::active_workspace->GetSingleSelection()->v_pos.type == Vec2Type::Absolute ? "Absolute" : "Relative (%)"))
 		{
@@ -353,6 +360,12 @@ void Properties::General()
 //	if (igd::active_workspace->GetSingleSelection()->v_can_have_children && igd::active_workspace->GetSingleSelection()->children.size() > 0)
 //	{
 //	}
+	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::has_variable)
+	{
+		PropertyLabel("Variable Name:");
+		if (ImGui::InputText("##property_variable", &igd::active_workspace->GetSingleSelection()->v_variable_name))
+			igd::active_workspace->GetSingleSelection()->PushUndo();
+	}
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();

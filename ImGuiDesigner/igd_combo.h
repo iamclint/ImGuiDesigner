@@ -17,7 +17,8 @@ namespace igd
 			v_can_contain_own_type = false;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border | property_flags::label;
+			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border | property_flags::label | property_flags::has_variable;
+			v_variable_name = json_identifier + "_" + RandomID();
 			v_size = ImVec2(0, 0);
 			v_id = ("Combo box##" + RandomID()).c_str();
 			v_label = "";
@@ -100,11 +101,19 @@ namespace igd
 
 		}
 
+
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "std::string " << v_variable_name << " = \"\";";
+			return code_out.str();
+		}
+
+
 		std::string ScriptHead() { 
 			std::stringstream code;
-			code << "static std::string " << this->GetIDForVariable() << " = \"\";" << std::endl;
 			code << igd::script::GetWidthScript(this)  << std::endl;
-			code << "if (ImGui::BeginCombo(\"" << v_id << "\"," << this->GetIDForVariable() << ".c_str(), " << igd::script::BuildFlagString(this) << "))";
+			code << "if (ImGui::BeginCombo(\"" << v_id << "\"," << v_variable_name << ".c_str(), " << igd::script::BuildFlagString(this) << "))";
 			return code.str(); 
 		};
 		std::string ScriptInternal() {

@@ -27,7 +27,8 @@ namespace igd
 			max = 100;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
+			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled | property_flags::has_variable;
+			v_variable_name = json_identifier + "_" + RandomID();
 			v_size = ImVec2(0, 0);
 			v_id = ("SliderInt##" + RandomID()).c_str();
 			v_label = "";
@@ -90,11 +91,17 @@ namespace igd
 		
 		std::string ScriptInternal() {
 			std::stringstream code;
-			code << "static int " << this->GetIDForVariable() << ";" << std::endl;
 			code << igd::script::GetWidthScript(this)  << std::endl;
-			code << "ImGui::SliderInt(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::script::GetFloatString (min) << ", " << igd::script::GetFloatString (max) << ", \"" << format << "\", " << igd::script::BuildFlagString(this) << ");";
+			code << "ImGui::SliderInt(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << ", " << igd::script::GetFloatString (min) << ", " << igd::script::GetFloatString (max) << ", \"" << format << "\", " << igd::script::BuildFlagString(this) << ");";
 			return code.str();
 		};
+
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "int " << v_variable_name << " = " << input_data << ";";
+			return code_out.str();
+		}
 
 		std::string ScriptFoot() { return ""; };
 

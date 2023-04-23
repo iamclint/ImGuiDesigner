@@ -529,7 +529,6 @@ void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_dep
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
 		std::string content_region_string = GetContentRegionString();
-
 		this->AddCode("{");
 		this->AddCode(this->RenderInternal(script_only), current_depth + 1);
 		if (this->ChildrenUseRelative())

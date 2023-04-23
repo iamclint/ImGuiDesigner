@@ -28,6 +28,68 @@ WorkSpace::WorkSpace()
 	basic_workspace_element = (ImGuiElement*)(new igd::Window());
 	basic_workspace_element->v_window_bool = &is_open;
 	is_open = true;
+	auto lang = TextEditor::LanguageDefinition::CPlusPlus();
+
+	// set your own known preprocessor symbols...
+	static const char* ppnames[] = { "NULL", "PM_REMOVE",
+		"ZeroMemory", "DXGI_SWAP_EFFECT_DISCARD", "D3D_FEATURE_LEVEL", "D3D_DRIVER_TYPE_HARDWARE", "WINAPI","D3D11_SDK_VERSION", "assert" };
+	// ... and their corresponding values
+	static const char* ppvalues[] = {
+		"#define NULL ((void*)0)",
+		"#define PM_REMOVE (0x0001)",
+		"Microsoft's own memory zapper function\n(which is a macro actually)\nvoid ZeroMemory(\n\t[in] PVOID  Destination,\n\t[in] SIZE_T Length\n); ",
+		"enum DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD = 0",
+		"enum D3D_FEATURE_LEVEL",
+		"enum D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE  = ( D3D_DRIVER_TYPE_UNKNOWN + 1 )",
+		"#define WINAPI __stdcall",
+		"#define D3D11_SDK_VERSION (7)",
+		" #define assert(expression) (void)(                                                  \n"
+		"    (!!(expression)) ||                                                              \n"
+		"    (_wassert(_CRT_WIDE(#expression), _CRT_WIDE(__FILE__), (unsigned)(__LINE__)), 0) \n"
+		" )"
+	};
+
+	for (int i = 0; i < sizeof(ppnames) / sizeof(ppnames[0]); ++i)
+	{
+		TextEditor::Identifier id;
+		id.mDeclaration = ppvalues[i];
+		lang.mPreprocIdentifiers.insert(std::make_pair(std::string(ppnames[i]), id));
+	}
+
+	// set your own identifiers
+	static const char* identifiers[] = {
+		"HWND", "HRESULT", "LPRESULT","D3D11_RENDER_TARGET_VIEW_DESC", "DXGI_SWAP_CHAIN_DESC","MSG","LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
+		"ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
+		"ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
+		"IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "TextEditor" };
+	static const char* idecls[] =
+	{
+		"typedef HWND_* HWND", "typedef long HRESULT", "typedef long* LPRESULT", "struct D3D11_RENDER_TARGET_VIEW_DESC", "struct DXGI_SWAP_CHAIN_DESC",
+		"typedef tagMSG MSG\n * Message structure","typedef LONG_PTR LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
+		"ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
+		"ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
+		"IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "class TextEditor" };
+	for (int i = 0; i < sizeof(identifiers) / sizeof(identifiers[0]); ++i)
+	{
+		TextEditor::Identifier id;
+		id.mDeclaration = std::string(idecls[i]);
+		lang.mIdentifiers.insert(std::make_pair(std::string(identifiers[i]), id));
+	}
+	editor.SetLanguageDefinition(lang);
+	editor.SetShowWhitespaces(false);
+	//editor.SetPalette(TextEditor::GetLightPalette());
+
+	// error markers
+	//TextEditor::ErrorMarkers markers;
+	//markers.insert(std::make_pair<int, std::string>(6, "Example error here:\nInclude file not found: \"TextEditor.h\""));
+	//markers.insert(std::make_pair<int, std::string>(41, "Another example error"));
+	//editor.SetErrorMarkers(markers);
+
+	// "breakpoint" markers
+	//TextEditor::Breakpoints bpts;
+	//bpts.insert(24);
+	//bpts.insert(47);
+	//editor.SetBreakpoints(bpts);
 }
 
 void WorkSpace::ResetSelectTimeout()
@@ -369,15 +431,22 @@ void WorkSpace::RenderCode()
 	if (this != igd::active_workspace)
 		this->code.str("");
 
+	static std::string co = this->code.str();
+
 	if (this == igd::active_workspace)
 	{
 		ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 		igd::push_designer_theme();
 		if (ImGui::Begin("Code Generation", 0))
 		{
-			std::string co = this->code.str();
+			if (ImGui::IsWindowAppearing())
+			{
+				co = this->code.str();
+				editor.SetText(co);
+			}
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.0f, 0.0f, 0.0f, 1.0f });
-			ImGui::InputTextMultiline("##asdfasdfsdaf", &co, {ImGui::GetContentRegionAvail().x-5,ImGui::GetContentRegionAvail().y-5}, ImGuiInputTextFlags_ReadOnly);
+			editor.Render("TextEditor", { ImGui::GetContentRegionAvail().x - 5,ImGui::GetContentRegionAvail().y - 5 });
+			//ImGui::InputTextMultiline("##asdfasdfsdaf", &co, {ImGui::GetContentRegionAvail().x-5,ImGui::GetContentRegionAvail().y-5}, ImGuiInputTextFlags_ReadOnly);
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
@@ -503,6 +572,14 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 	return true;
 }
 
+void WorkSpace::GenerateVariables(ImGuiElement* p)
+{
+	std::string d = p->GetVariableCode();
+	if (d.length()>0)
+		igd::active_workspace->code << p->GetVariableCode() << std::endl;
+	for (auto& e : p->children)
+		GenerateVariables(e);
+}
 
 void WorkSpace::OnUIRender() {
 	
@@ -514,24 +591,22 @@ void WorkSpace::OnUIRender() {
 			is_open = true;
 		return;
 	}
-	
-	//if (igd::active_workspace == this)
-	//{
-	//	igd::active_workspace->KeyBinds();
-	//}
+
 
 	if (!igd::active_workspace->selected_elements.size())
 		igd::active_workspace->selected_elements.push_back(igd::active_workspace->basic_workspace_element);
 
-	//if (hovered_element)
-	//{
-	//	ImGui::GetForegroundDrawList()->AddRect(hovered_element->item_rect.Min, hovered_element->item_rect.Max, ImColor(1.0f, 1.0f, 0.0f, 1.0f), 1.f, 0, 2.0f);
-	//}
 
 	this->FixParentChildRelationships(nullptr);
 	hovered_element = nullptr;
+	if (this == igd::active_workspace)
+	{
+		igd::active_workspace->code << "//ImGuiDesigner generated variables" << std::endl;
+		GenerateVariables(igd::active_workspace->basic_workspace_element);
+		igd::active_workspace->code << std::endl << std::endl;
+	}
 
-	basic_workspace_element->Render({0,0}, 1, this, std::bind(&WorkSpace::KeyBinds, this));
+	basic_workspace_element->Render({0,0}, 0, this, std::bind(&WorkSpace::KeyBinds, this));
 
 
 	if (this == igd::active_workspace)

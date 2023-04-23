@@ -22,7 +22,8 @@ namespace igd
 			v_type_id = (int)element_type::inputtext;
 			ImGuiContext& g = *GImGui;
 			v_flags = ImGuiInputTextFlags_None;
-			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled;
+			v_property_flags = property_flags::pos | property_flags::label | property_flags::disabled | property_flags::has_variable;
+			v_variable_name = json_identifier + "_" + RandomID();
 			v_size = ImVec2(0, 0);
 			v_id = ("InputText##" + RandomID()).c_str();
 			v_label = "";
@@ -84,15 +85,19 @@ namespace igd
 			return "";
 		};
 
+		std::string GetVariableCode()
+		{
+			std::stringstream code_out;
+			code_out << "std::string " << v_variable_name << " = \"" << input_data << "\";";
+			return code_out.str();
+		}
+
 		std::string ScriptInternal() {
 			std::stringstream code;
-			code << "static std::string " << this->GetIDForVariable() << ";" << std::endl;
 			code << igd::script::GetWidthScript(this) << std::endl;
-			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << this->GetIDForVariable() << ", " << igd::script::BuildFlagString(this) << ");";
-			code << "ImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
-
-			code << "if (" << this->GetIDForVariable() << ".size() == 0)";
-			code << "ImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
+			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << ", " << igd::script::BuildFlagString(this) << ");" << std::endl;
+			code << "if (" << v_variable_name << ".size() == 0)" << std::endl;
+			code << "\t\tImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
 			return code.str();
 		};
 
