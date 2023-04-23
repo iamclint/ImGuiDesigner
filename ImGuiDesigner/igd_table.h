@@ -148,13 +148,14 @@ namespace igd
 		std::string ScriptHead()
 		{
 			std::stringstream code_out;
-			code_out << "if (ImGui::BeginTable(\"" << v_id << "\"," << columns << ", " << igd::script::BuildFlagString(this) << ", " << igd::script::GetSizeScript(this) << ", " << igd::script::GetFloatString(inner_width) << "))" << std::endl << "{";
+			code_out << "if (ImGui::BeginTable(\"" << v_id << "\"," << columns << ", " << igd::script::BuildFlagString(this) << ", " << igd::script::GetSizeScript(this) << ", " << igd::script::GetFloatString(inner_width) << "))";
+
 			return code_out.str();
 		}
 
 		std::string ScriptFoot()
 		{
-			return "ImGui::EndTable();\n}";
+			return "ImGui::EndTable();";
 		}
 
 		virtual std::string RenderHead(bool script_only) override
@@ -164,6 +165,9 @@ namespace igd
 			if (script_only)
 				return ScriptHead();
 			ImGuiContext& g = *GImGui;
+
+			if (columns < 1)
+				columns = 1;
 
 			v_is_open = ImGui::BeginTable(v_id.c_str(), columns, v_flags, this->GetSize(), inner_width);
 			if (v_is_open)
@@ -184,8 +188,20 @@ namespace igd
 		}
 		virtual std::string RenderInternal(bool script_only) override
 		{
+			std::stringstream code_out;
+			if (freeze_cols_rows[0] != 0 || freeze_cols_rows[1] != 0)
+				code_out << "ImGui::TableSetupScrollFreeze(" << freeze_cols_rows[0] << ", " << freeze_cols_rows[1] << ");" << std::endl;
+
+			if (use_headers)
+			{
+				for (auto& e : headers)
+				{
+					code_out << "ImGui::TableSetupColumn(\"" << e << "\");" << std::endl;;
+				}
+				code_out << "ImGui::TableHeadersRow();";
+			}
 			//iterate all children handled by imguielement cpp
-			return "";
+			return code_out.str();
 		}
 		virtual std::string RenderFoot(bool script_only) override
 		{
