@@ -27,7 +27,6 @@ bool ToolBar::Tool(std::string name, ImVec2 size, bool handle_click, std::string
 		return false;
 	else if (ref->v_parent_required_id && !(ref->v_parent_required_id & active->v_type_id))
 		return false;
-
 	if (!active || !active->v_element_filter || (active->v_element_filter && (active->v_element_filter & ref->v_type_id)))
 	{
 		ImGui::TableNextColumn();
@@ -36,9 +35,10 @@ bool ToolBar::Tool(std::string name, ImVec2 size, bool handle_click, std::string
 			ImGui::PushStyleColor(ImGuiCol_Button, ImColor(65, 67, 74, 65).Value);
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(65, 67, 74, 255).Value);
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(65, 67, 74, 255).Value);
-
+			ImGui::PushID(name.c_str());
 			if (igd::ImageButton(ref->v_icon->GetDescriptorSet(), ref->v_icon->GetSize() / 2))
 				clicked = true;
+			ImGui::PopID();
 //			ImGui::Image(ref->v_icon->GetDescriptorSet(), ref->v_icon->GetSize()/2);
 
 			ImGui::PopStyleColor(3);
@@ -130,9 +130,9 @@ void ToolBar::RenderElements()
 	this->Tool<igd::Separator>("Separator", size);
 	this->Tool<igd::Combo>("Combo", size);
 	this->Tool<igd::Selectable>("Selectable", size);
+	this->Tool<igd::Table>("Table", size);
 	this->Tool<igd::TabBar>("TabBar", size);
 	this->Tool<igd::TabItem>("TabItem", size);
-
 	this->Tool<igd::Texture>("Texture", size);
 	ImGui::EndTable();
 	//ImGui::Text("path: %s", std::filesystem::current_path().string().c_str());

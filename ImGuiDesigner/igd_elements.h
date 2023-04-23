@@ -17,6 +17,7 @@
 #include "igd_tabbar.h"
 #include "igd_tabitem.h"
 #include "igd_texture.h"
+#include "igd_table.h"
 namespace igd
 {
 	static inline std::unordered_map<std::string, std::function<ImGuiElement*(ImGuiElement*, nlohmann::json)>> element_load_functions = {
@@ -36,5 +37,6 @@ namespace igd
 		{igd::TabBar::json_identifier, igd::TabBar::load},
 		{igd::TabItem::json_identifier, igd::TabItem::load},
 		{igd::Texture::json_identifier, igd::Texture::load},
+		{igd::Table::json_identifier, igd::Table::load},
 	};
 }

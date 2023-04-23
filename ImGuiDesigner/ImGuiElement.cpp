@@ -468,8 +468,6 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 			need_disable_pop = true;
 			ImGui::BeginDisabled();
 		}
-
-
 	}
 
 	if (!this->v_inherit_all_colors)
@@ -505,6 +503,12 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	{
 		this->AddCode("ImGui::SameLine();");
 		ImGui::SameLine();
+	}
+
+	if (this->v_parent && this->v_parent->v_type_id == (int)element_type::table)
+	{
+		ImGui::TableNextColumn();
+		this->AddCode("ImGui::TableNextColumn();");
 	}
 
 	std::string RenderHead = this->RenderHead(script_only);

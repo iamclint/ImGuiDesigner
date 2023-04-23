@@ -18,6 +18,7 @@ void Properties::PropertyLabel(const char* lbl)
 	ImGui::TableNextColumn();
 	ImGui::Text(lbl);
 	ImGui::TableNextColumn();
+	ImGui::PushItemWidth(item_width);
 }
 void Properties::PropertySeparator()
 {
@@ -212,13 +213,13 @@ void Properties::General()
 	if (!(igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::no_id))
 	{
 		PropertyLabel("ID:");
-		ImGui::PushItemWidth(item_width);
+		
 		ImGui::InputText("##property_id", &igd::active_workspace->GetSingleSelection()->v_id);
 	}
 	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::label)
 	{
 		PropertyLabel("Label:");
-		ImGui::PushItemWidth(item_width);
+		
 		if (ImGui::InputText(getPropertyId("label"), &igd::active_workspace->GetSingleSelection()->v_label))
 		{
 			igd::active_workspace->GetSingleSelection()->PushUndo();
@@ -227,7 +228,7 @@ void Properties::General()
 
 
 	PropertyLabel("Font:");
-	ImGui::PushItemWidth(item_width);
+	
 	std::filesystem::path font_path = igd::active_workspace->GetSingleSelection()->v_font.path;
 	static bool do_update = false;
 	if (ImGui::BeginCombo(getPropertyId("font"), font_path.stem().string() == "" ? "Inherit" : font_path.stem().string().c_str()))
@@ -278,14 +279,14 @@ void Properties::General()
 		do_update = true;
 
 	PropertyLabel("Font Size:");
-	ImGui::PushItemWidth(item_width);
+	
 	if (ImGui::InputInt(getPropertyId("font_size"), &igd::active_workspace->GetSingleSelection()->v_font.size, 0, 0) && igd::active_workspace->GetSingleSelection()->v_font.size > 0 && igd::active_workspace->GetSingleSelection()->v_font.font)
 		igd::font_manager->LoadFont(igd::active_workspace->GetSingleSelection()->v_font.path, igd::active_workspace->GetSingleSelection()->v_font.size, igd::active_workspace->GetSingleSelection());
 
 	if (!(igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::no_resize))
 	{
 		PropertyLabel("Size:");
-		ImGui::PushItemWidth(item_width);
+		
 		if (ImGui::InputFloat2(getPropertyId("size"), (float*)&igd::active_workspace->GetSingleSelection()->v_size.value))
 		{
 			igd::active_workspace->GetSingleSelection()->PushUndo();
@@ -304,7 +305,7 @@ void Properties::General()
 	if (igd::active_workspace->GetSingleSelection()->v_property_flags & property_flags::pos)
 	{
 		PropertyLabel("Position:");
-		ImGui::PushItemWidth(item_width);
+		
 		if (ImGui::InputFloat2(getPropertyId("pos"), (float*)&igd::active_workspace->GetSingleSelection()->v_pos.value))
 		{
 			igd::active_workspace->GetSingleSelection()->PushUndo();
@@ -388,7 +389,7 @@ void Properties::Colors()
 	for (auto& c : igd::active_workspace->GetSingleSelection()->v_colors)
 	{
 		PropertyLabel(ImGui::GetStyleColorName(c.first));
-		ImGui::PushItemWidth(item_width);
+		
 		if (ImGui::ColorEdit4(getPropertyId("color_" + std::string(ImGui::GetStyleColorName(c.first))), (float*)&c.second, ImGuiColorEditFlags_NoInputs))
 		{
 			modified = true;
@@ -450,7 +451,7 @@ void Properties::Styles()
 	for (auto& c : igd::active_workspace->GetSingleSelection()->v_styles)
 	{
 		PropertyLabel(GetFlagName(ImGuiStyleVar_Strings[c.first]).c_str());
-		ImGui::PushItemWidth(item_width);
+		
 		if (c.second.type == StyleVarType::Float)
 		{
 			if (ImGui::InputFloat(getPropertyId("style_" + std::string(ImGuiStyleVar_Strings[c.first])), (float*)&c.second.value.Float))
@@ -480,7 +481,7 @@ void Properties::Flags()
 	for (auto& [flag, str] : igd::active_workspace->GetSingleSelection()->v_custom_flags)
 	{
 		PropertyLabel(GetFlagName(str).c_str());
-		ImGui::PushItemWidth(item_width);
+		
 		ImGui::CheckboxFlags(("##" + str).c_str(), &igd::active_workspace->GetSingleSelection()->v_flags, flag);
 	}
 	ImGui::EndTable();

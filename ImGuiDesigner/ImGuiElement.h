@@ -41,7 +41,8 @@ enum class element_type : int
 	tabitem = 1 << 12,
 	text = 1 << 13,
 	texture = 1 << 14,
-	window = 1 << 15
+	window = 1 << 15,
+	table = 1 << 16
 };
 
 static inline const char* ImGuiStyleVar_Strings[] = {
