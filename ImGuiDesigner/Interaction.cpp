@@ -987,6 +987,9 @@ void ImGuiElement::DrawSelection()
 {
 	ImGuiContext& g = *GImGui;
 	float rounding = 0;
+	if (this->v_type_id == (int)element_type::window)
+		return;
+
 	if (this->v_type_id!=(int)element_type::childwindow)
 		rounding = g.Style.FrameRounding;
 	else 

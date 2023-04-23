@@ -335,6 +335,7 @@ void ImGuiElement::Delete()
 {
 	igd::active_workspace->undoStack.push_back(this);
 	this->delete_me = true;
+	igd::active_workspace->selected_elements.clear();
 	for (auto& e : igd::active_workspace->copied_elements)
 	{
 		if (e == this)

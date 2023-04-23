@@ -654,7 +654,31 @@ void Properties::OnUIRender() {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Delete##property_delete", { width, button_height }))
-			igd::active_workspace->GetSingleSelection()->Delete();
+		{
+			if (!igd::active_workspace->selected_elements.size())
+				return;
+			std::string msg;
+			if (igd::active_workspace->selected_elements.size() == 1)
+				msg = "Are you sure you wish to delete " + igd::active_workspace->selected_elements.front()->v_id;
+			else
+				msg = "Are you sure you wish to delete all the selected elements?";
+
+			igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
+				if (!conf)
+					return;
+
+				for (auto& e : igd::active_workspace->selected_elements)
+				{
+					if (e->children.size() > 0)
+					{
+						for (auto& child : e->children)
+							child->Delete();
+					}
+					e->Delete();
+				}
+				igd::active_workspace->selected_elements.clear();
+				});
+		}
 	
 
 		ImGui::End();
