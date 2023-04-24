@@ -267,7 +267,32 @@ void WorkSpace::SelectAll(ImGuiElement* element, int level)
 			selected_elements.push_back(e);
 	}
 }
+void WorkSpace::DeleteElement()
+{
+	std::string msg;
+	if (!this->selected_elements.size())
+		return;
+	if (this->selected_elements.size() == 1)
+		msg = "Are you sure you wish to delete " + this->selected_elements.front()->v_id;
+	else
+		msg = "Are you sure you wish to delete all the selected elements?";
 
+	igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
+		if (!conf)
+			return;
+
+		for (auto& e : this->selected_elements)
+		{
+			if (e->children.size() > 0)
+			{
+				for (auto& child : e->children)
+					child->Delete();
+			}
+			e->Delete();
+		}
+		this->selected_elements.clear();
+		});
+}
 void WorkSpace::KeyBinds()
 {
 	ImGuiContext& g = *GImGui;
@@ -290,28 +315,7 @@ void WorkSpace::KeyBinds()
 	{
 		std::string msg = "";
 		std::cout << "Press delete?" << std::endl;
-		if (!this->selected_elements.size())
-			return;
-		if (this->selected_elements.size() == 1)
-			msg = "Are you sure you wish to delete " + this->selected_elements.front()->v_id;
-		else
-			msg = "Are you sure you wish to delete all the selected elements?";
-
-		igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
-			if (!conf)
-				return;
-
-			for (auto& e : this->selected_elements)
-			{
-				if (e->children.size() > 0)
-				{
-					for (auto& child : e->children)
-						child->Delete();
-				}
-				e->Delete();
-			}
-			this->selected_elements.clear();
-			});
+		this->DeleteElement();
 	}
 	
 	if (ImGui::GetIO().KeyShift)

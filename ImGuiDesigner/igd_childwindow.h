@@ -94,7 +94,8 @@ namespace igd
 			v_colors[ImGuiCol_NavWindowingHighlight] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingHighlight);
 			v_colors[ImGuiCol_NavWindowingDimBg] = ImGui::GetStyleColorVec4(ImGuiCol_NavWindowingDimBg);
 			
-			
+			v_styles[ImGuiStyleVar_LayoutAlign] = g.Style.LayoutAlign;
+			v_styles[ImGuiStyleVar_CellPadding] = g.Style.CellPadding;
 			v_styles[ImGuiStyleVar_ChildBorderSize] = g.Style.ChildBorderSize;
 			v_styles[ImGuiStyleVar_ChildRounding] = g.Style.ChildRounding;
 			v_styles[ImGuiStyleVar_ButtonTextAlign] = g.Style.ButtonTextAlign;

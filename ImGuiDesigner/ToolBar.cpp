@@ -199,6 +199,7 @@ void ToolBar::RenderCustomWidgets()
 		//ImGui::TableNextColumn();
 		//check if exists in map
 		bool clicked = false;
+		ImGui::PushFont(igd::font_manager->GetFont("designer", 12)->font);
 		if (w.icon_name != "" && igd::textures.images.find(w.icon_name) != igd::textures.images.end())
 		{
 			if (igd::ImageButtonText(igd::textures.images[w.icon_name]->GetDescriptorSet(), igd::textures.images[w.icon_name]->GetSize() / 2, w.desc!="" ? w.desc : w.name, {ImGui::GetContentRegionAvail().x, 50}))
@@ -206,7 +207,7 @@ void ToolBar::RenderCustomWidgets()
 		}
 		else if (igd::ImageButtonText(igd::textures.images["widget2"]->GetDescriptorSet(), igd::textures.images["widget2"]->GetSize() / 2, w.desc != "" ? w.desc : w.name, { ImGui::GetContentRegionAvail().x, 50}))
 			clicked = true;
-
+		ImGui::PopFont();
 		if (clicked)
 			igd::active_workspace->load(w.file);
 	//	ImGui::TableNextColumn();

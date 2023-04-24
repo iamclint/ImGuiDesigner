@@ -97,7 +97,7 @@ namespace igd
 			code << igd::script::GetWidthScript(this) << std::endl;
 			code << "ImGui::InputText(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << ", " << igd::script::BuildFlagString(this) << ");" << std::endl;
 			code << "if (" << v_variable_name << ".size() == 0)" << std::endl;
-			code << "\t\tImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
+			code << "\tImGui::SetDefaultText(\"" << default_txt << "\");" << std::endl;
 			return code.str();
 		};
 

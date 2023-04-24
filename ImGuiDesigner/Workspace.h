@@ -35,6 +35,7 @@ public:
 	void PushUndo(ImGuiElement* ele);
 	void Styles();
 	void Colors();
+	void DeleteElement();
 	void Save(std::string file_path);
 	void Open(std::string file_path);
 	bool FixParentChildRelationships(ImGuiElement* element);

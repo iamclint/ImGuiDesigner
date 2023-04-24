@@ -5,11 +5,10 @@
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
 #include "GLFW/glfw3.h"
-#include "..\icon.embed"
-#include "..\logo.embed"
+#include "..\textures\icon.embed"
+#include "..\textures\logo.embed"
 #include "..\..\Walnut\vendor\stb_image\stb_image.h"
-#include "..\arial.embed"
-#include "..\corbel.embed"
+#include "..\fonts\pt.embed"
 #include <iostream>
 
 namespace igd
@@ -201,7 +200,6 @@ namespace igd
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
-
 		ImGui::KeepAliveID(id);
 
 		const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + full_rect_size);
@@ -219,10 +217,12 @@ namespace igd
 		if (bg_col.w > 0.0f)
 			window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(bg_col));
 
+		
 		ImRect ImageRect = { bb.Min + ImVec2(10, ((full_rect_size.y - size.y) / 2)), bb.Min + ImVec2(size.x + 10, (((full_rect_size.y - size.y) / 2) + size.y)) };
 		window->DrawList->AddImage(texture_id, ImageRect.Min, ImageRect.Max, uv0, uv1, GetColorU32(tint_col));
 		ImVec2 TextPos = ImVec2(ImageRect.Max.x+10, bb.Min.y+(((bb.Max.y-bb.Min.y)- ImGui::CalcTextSize(text.c_str()).y)/2));// ((ImageRect.Max.y - ImageRect.Min.y) - ImGui::CalcTextSize(text.c_str()).y) / 2);
-		window->DrawList->AddText(TextPos, GetColorU32(ImGuiCol_Text), text.c_str());
+		window->DrawList->AddText(TextPos, GetColorU32(ImGuiCol_Text),text.c_str());
+
 		return pressed;
 	}
 	bool ImageButtonText(ImTextureID user_texture_id, const ImVec2& size, std::string text, ImVec2 full_size, ImColor bg_color)
@@ -231,6 +231,12 @@ namespace igd
 		ImGuiWindow* window = g.CurrentWindow;
 		if (window->SkipItems)
 			return false;
+
+		text = WordWrap(text, 10);
+		ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+		if (full_size.y < text_size.y)
+			full_size.y = text_size.y;
+
 
 		// Default to using texture ID as ID. User can still push string/integer prefixes.
 		ImGui::PushID((void*)(intptr_t)user_texture_id);
@@ -259,6 +265,7 @@ namespace igd
 		int frame_padding = -1;
 		const ImVec4& tint_col = ImVec4(1, 1, 1, 1);
 		const ImVec2 padding = full_size;
+
 		return ImageButtonEx(id, user_texture_id, size, uv0, uv1, full_size, bg_color, tint_col);
 	}
 
@@ -393,9 +400,9 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "ImGui Designer";
 	spec.Width = 1600;
 	spec.Height = 800;
-	spec.Font = (void*)embedded::arial;
-	spec.FontDataSize = sizeof(embedded::arial);
-	spec.FontSize = 16;
+	spec.Font = (void*)embedded::pt;
+	spec.FontDataSize = sizeof(embedded::pt);
+	spec.FontSize = 15;
 	igd::app = new Walnut::Application(spec);
 	GLFWimage Images[1];
 	Images[0].pixels = stbi_load_from_memory(embedded::icon, sizeof(embedded::icon), &Images[0].width, &Images[0].height, 0, 4);
@@ -406,10 +413,12 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Dialogs> dialogs = std::make_shared<Dialogs>();
 	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
-	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 20, nullptr);
-	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 24, nullptr);
-	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 28, nullptr);
-	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 36, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 12, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 14, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 20, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 24, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 28, nullptr);
+	font_manager->LoadFont(spec.Font, spec.FontDataSize, "designer", 36, nullptr);
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();

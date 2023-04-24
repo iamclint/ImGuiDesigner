@@ -73,7 +73,7 @@ namespace igd
 		std::string ScriptInternal() {
 			std::stringstream code;
 			code << "if (ImGui::CheckBox(\"" << v_label << "##" << v_id << "\", &" << v_variable_name << "))" << std::endl;
-			code << "{" << std::endl << "\t\t//checkbox click event" << std::endl << "}";
+			code << "{" << std::endl << "\t//checkbox click event" << std::endl << "}";
 			return code.str();
 		};
 

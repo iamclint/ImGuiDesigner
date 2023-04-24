@@ -391,13 +391,20 @@ bool Properties::ColorSelector(ImVec4 color, std::string title)
 }
 void Properties::Colors()
 {
-	ImGui::BeginTable("PropertiesTableColors", 2, ImGuiTableFlags_SizingFixedFit);
+	ImGuiContext& g = *GImGui;
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8, 2));
+	ImGui::BeginTable("PropertiesTableColors", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable);
+	ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 105.f);
+	ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 20.f);
+	ImGui::TableSetupColumn("Inherit");
+	ImGui::TableHeadersRow();
 	if (igd::active_workspace->GetSingleSelection()->v_colors.size() > 0)
 	{
+		PropertyLabel("All Colors");
 		ImGui::TableNextColumn();
-		if (ImGui::Checkbox("Inherit all Colors##inherit_colors", &igd::active_workspace->GetSingleSelection()->v_inherit_all_colors))
+		if (ImGui::Checkbox("##inherit_colors", &igd::active_workspace->GetSingleSelection()->v_inherit_all_colors))
 			modified = true;
-		ImGui::TableNextColumn();
 	}
 	for (auto& c : igd::active_workspace->GetSingleSelection()->v_colors)
 	{
@@ -434,9 +441,10 @@ void Properties::Colors()
 			
 			
 		}
-		ImGui::SameLine();
-		if (ImGui::Checkbox(("Inherit##" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), &c.second.inherit))
+		ImGui::TableNextColumn();
+		if (ImGui::Checkbox(("##Inherit_" + std::string(ImGui::GetStyleColorName(c.first))).c_str(), &c.second.inherit))
 			modified = true;
+
 	}
 	float square_sz = ImGui::GetFrameHeight();
 	if (ImGui::BeginPopup("picker1"))
@@ -448,17 +456,23 @@ void Properties::Colors()
 		ImGui::EndPopup();
 	}
 	ImGui::EndTable();
+	ImGui::PopStyleVar(2);
 }
 void Properties::Styles()
 {
-	ImGui::BeginTable("PropertiesTableStyles", 2, ImGuiTableFlags_SizingFixedFit);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8, 2));
+	ImGui::BeginTable("PropertiesTableStyles", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable);
+	ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 105.f);
+	ImGui::TableSetupColumn("Value");
+	ImGui::TableSetupColumn("Inherit");
+	ImGui::TableHeadersRow();
 	if (igd::active_workspace->GetSingleSelection()->v_styles.size() > 0)
 	{
-		PropertySeparator();
+		PropertyLabel("All Styles");
 		ImGui::TableNextColumn();
-		if (ImGui::Checkbox("Inherit all styles##inherit_styles", &igd::active_workspace->GetSingleSelection()->v_inherit_all_styles))
+		if (ImGui::Checkbox("##inherit_styles", &igd::active_workspace->GetSingleSelection()->v_inherit_all_styles))
 			modified = true;
-		ImGui::TableNextColumn();
 	}
 
 	for (auto& c : igd::active_workspace->GetSingleSelection()->v_styles)
@@ -482,15 +496,21 @@ void Properties::Styles()
 				c.second.inherit = false;
 			}
 		}
-		ImGui::SameLine();
-		if (ImGui::Checkbox(("Inherit##" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
+		ImGui::TableNextColumn();
+		if (ImGui::Checkbox(("##Inherit_" + std::string(ImGuiStyleVar_Strings[c.first])).c_str(), &c.second.inherit))
 			modified = true;
 	}
 	ImGui::EndTable();
+	ImGui::PopStyleVar(2);
 }
 void Properties::Flags()
 {
-	ImGui::BeginTable("PropertiesTableFlags", 2, ImGuiTableFlags_SizingFixedFit);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8, 2));
+	ImGui::BeginTable("PropertiesTableFlags", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings);
+	ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 105.f);
+	ImGui::TableSetupColumn("Toggle", ImGuiTableColumnFlags_WidthFixed, 60.f);
+	ImGui::TableHeadersRow();
 	for (auto& [flag, str] : igd::active_workspace->GetSingleSelection()->v_custom_flags)
 	{
 		PropertyLabel(GetFlagName(str).c_str());
@@ -498,6 +518,7 @@ void Properties::Flags()
 		ImGui::CheckboxFlags(("##" + str).c_str(), &igd::active_workspace->GetSingleSelection()->v_flags, flag);
 	}
 	ImGui::EndTable();
+	ImGui::PopStyleVar(2);
 }
 void Properties::Tree()
 {
@@ -631,6 +652,8 @@ void Properties::OnUIRender() {
 						Styles();
 						ImGui::TreePop();
 					}
+					//if (draw_styles)
+					//	Styles();
 				}
 				if (igd::active_workspace->GetSingleSelection()->v_custom_flags.size() > 0)
 				{
@@ -671,27 +694,7 @@ void Properties::OnUIRender() {
 		{
 			if (!igd::active_workspace->selected_elements.size())
 				return;
-			std::string msg;
-			if (igd::active_workspace->selected_elements.size() == 1)
-				msg = "Are you sure you wish to delete " + igd::active_workspace->selected_elements.front()->v_id;
-			else
-				msg = "Are you sure you wish to delete all the selected elements?";
-
-			igd::dialogs->Confirmation("Delete", msg, "", [this](bool conf) {
-				if (!conf)
-					return;
-
-				for (auto& e : igd::active_workspace->selected_elements)
-				{
-					if (e->children.size() > 0)
-					{
-						for (auto& child : e->children)
-							child->Delete();
-					}
-					e->Delete();
-				}
-				igd::active_workspace->selected_elements.clear();
-				});
+			igd::active_workspace->DeleteElement();
 		}
 	
 
