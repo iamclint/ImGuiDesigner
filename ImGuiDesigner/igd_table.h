@@ -214,11 +214,27 @@ namespace igd
 		virtual void FromJSON(nlohmann::json data) override
 		{
 			StylesColorsFromJson(data);
+			columns = data["columns"];
+			//headers.resize(data["column_array"].size());
+			headers.clear();
+			for (auto& e : data["column_array"])
+			{
+				headers.push_back(e);
+			}
+			freeze_cols_rows[0] = data["freeze_cols_rows"]["x"];
+			freeze_cols_rows[1] = data["freeze_cols_rows"]["y"];
+			inner_width = data["inner_width"];
 		}
 		virtual nlohmann::json GetJson() override
 		{
 			nlohmann::json j;
 			GenerateStylesColorsJson(j, json_identifier);
+			j["columns"] = columns;
+			j["column_array"] = nlohmann::json::array();
+			for (auto& e : headers)
+				j["column_array"].push_back(e);
+			j["freeze_cols_rows"] = { { "x", freeze_cols_rows[0] }, {"y", freeze_cols_rows[1]} };
+			j["inner_width"] = inner_width;
 			return j;
 		}
 
