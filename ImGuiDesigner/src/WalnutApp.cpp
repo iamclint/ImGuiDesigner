@@ -393,8 +393,8 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "ImGui Designer";
 	spec.Width = 1600;
 	spec.Height = 800;
-	spec.Font = (void*)embedded::corbel;
-	spec.FontDataSize = sizeof(embedded::corbel);
+	spec.Font = (void*)embedded::arial;
+	spec.FontDataSize = sizeof(embedded::arial);
 	spec.FontSize = 16;
 	igd::app = new Walnut::Application(spec);
 	GLFWimage Images[1];
@@ -406,10 +406,10 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<WorkSpace> work = std::make_shared<WorkSpace>();
 	std::shared_ptr<Dialogs> dialogs = std::make_shared<Dialogs>();
 	std::shared_ptr<FontManager> font_manager = std::make_shared<FontManager>();
-	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 20, nullptr);
-	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 24, nullptr);
-	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 28, nullptr);
-	font_manager->LoadFont((void*)embedded::corbel, sizeof(embedded::corbel), "designer", 36, nullptr);
+	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 20, nullptr);
+	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 24, nullptr);
+	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 28, nullptr);
+	font_manager->LoadFont((void*)embedded::arial, sizeof(embedded::arial), "designer", 36, nullptr);
 	igd::active_workspace = work.get();
 	igd::workspaces.push_back(igd::active_workspace);
 	igd::properties = properties.get();

@@ -163,7 +163,7 @@ namespace igd
 		{
 			std::stringstream code_out;
 			code_out << "ImGui::SetNextWindowSize(" << igd::script::GetVec2String(v_size.value) << ", ImGuiCond_Once); " << std::endl;
-			code_out << "ImGui::Begin(\"" << v_id << "\", &igd_workspace, " << igd::script::BuildFlagString(this) << ");";
+			code_out << "ImGui::Begin(\"" << v_id << "\", &" << v_variable_name << ", " << igd::script::BuildFlagString(this) << "); ";
 			return code_out.str();
 		}
 

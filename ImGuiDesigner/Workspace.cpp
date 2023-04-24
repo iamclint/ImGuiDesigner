@@ -575,8 +575,10 @@ bool WorkSpace::FixParentChildRelationships(ImGuiElement* element)
 void WorkSpace::GenerateVariables(ImGuiElement* p)
 {
 	std::string d = p->GetVariableCode();
-	if (d.length()>0)
+	if (d.length() > 0 && !p->delete_me)
+	{
 		igd::active_workspace->code << p->GetVariableCode() << std::endl;
+	}
 	for (auto& e : p->children)
 		GenerateVariables(e);
 }
