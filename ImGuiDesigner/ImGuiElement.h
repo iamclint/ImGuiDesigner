@@ -13,6 +13,30 @@
 #include "Walnut/Image.h"
 struct ElementFont;
 class WorkSpace;
+
+enum class HorizontalDistance : int
+{
+	LeftToLeft,
+	LeftToRight,
+	RightToRight,
+	RightToLeft,
+	MiddleToMiddle,
+	LeftToMiddle,
+	RightToMiddle
+};
+
+enum class VerticalDistance : int
+{
+	TopToTop,
+	BottomToTop,
+	BottomToBottom,
+	TopToBottom,
+	MiddleToMiddle,
+	TopToMiddle,
+	BottomToMiddle
+};
+
+
 enum class property_flags : int
 {
 	None = 0,
@@ -256,6 +280,7 @@ public:
 	void RenderDrag();
 	void KeyMove();
 	void DragSnap();
+
 	ImVec2 GetPos();
 	nlohmann::json ColorToJson(ImVec4 col);
 	nlohmann::json ColorToJson(ImColor col);
@@ -350,6 +375,10 @@ private:
 	void RenderHeadInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
 	void RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback);
 	void RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
+	std::unordered_map<HorizontalDistance, float> GetHorizontalDistance(ImGuiElement* nearest, bool use_abs = true);
+	std::unordered_map<VerticalDistance, float> GetVerticalDistance(ImGuiElement* nearest, bool use_abs = true);
+	void SnapHorizontal(std::unordered_map<HorizontalDistance, float>& distances, ImGuiElement* nearest, float mouse_delta_threshold, float distance_threshold, bool& reset_snap);
+	void SnapVertical(std::unordered_map<VerticalDistance, float>& distances, ImGuiElement* nearest, float mouse_delta_threshold, float distance_threshold, bool& reset_snap);
 	std::string GetContentRegionString();
 
 	void AddCode(std::string code, int depth=-1);

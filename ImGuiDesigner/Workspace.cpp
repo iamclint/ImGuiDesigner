@@ -293,6 +293,13 @@ void WorkSpace::DeleteElement()
 		this->selected_elements.clear();
 		});
 }
+void WorkSpace::ResetDrag(ImGuiElement* Parent)
+{
+	this->is_dragging = false;
+	Parent->v_is_dragging = false;
+	for (auto& e : Parent->children)
+		ResetDrag(e);
+}
 void WorkSpace::KeyBinds()
 {
 	ImGuiContext& g = *GImGui;
@@ -300,6 +307,7 @@ void WorkSpace::KeyBinds()
 
 	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && !ImGui::IsAnyItemActive() && !igd::dialogs->IsShowing())
 	{
+		ResetDrag(this->basic_workspace_element);
 		igd::active_workspace->selected_elements.clear();
 	}
 
@@ -337,6 +345,7 @@ void WorkSpace::KeyBinds()
 
 	if (ImGui::IsKeyPressed(ImGuiKey_V) && ImGui::GetIO().KeyCtrl)
 	{
+		ResetDrag(this->basic_workspace_element);
 		if (igd::active_workspace->copied_elements.size()>0)
 		{
 			for (auto& e : igd::active_workspace->copied_elements)

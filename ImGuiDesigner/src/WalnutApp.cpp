@@ -88,14 +88,19 @@ namespace igd
 	}
 
 
-	ImGuiElement* GetNearestElement(ImGuiElement* element)
+	ImGuiElement* GetNearestElement(ImGuiElement* element, bool use_cursor_pos)
 	{
 		float current_nearest_dist = FLT_MAX;
 		ImGuiElement* nearest=nullptr;
 		ImGuiElement* parent = element->v_parent;
 		if (!parent)
 			parent = igd::active_workspace->basic_workspace_element;
-
+		ImRect r = element->GetItemRect();
+		if (use_cursor_pos)
+		{
+			ImVec2 mp = ImGui::GetMousePos();
+			r = { mp, mp + ImVec2(10,10) };
+		}
 		for (auto& e : parent->children)
 		{
 			if (e == element || e == parent || e->delete_me || e->v_is_dragging)
@@ -103,15 +108,46 @@ namespace igd
 			//float current_dist = std::min(std::min(std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x), std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x)),
 		//		std::min(std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y), std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y)));
 
-			float current_dist = std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x) + std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y)
-				+ std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x) + std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y);
-			//current_dist =  GetDistance(element->GetPos() + ImVec2(element->GetRawSize() / 2), e->GetPos() + ImVec2(e->GetRawSize()/2));
 
-			if (current_dist < current_nearest_dist && current_dist>0)
-			{
+			//float distanceLeft = abs(r.Min.x - e->GetItemRect().Max.x);
+			//float distanceRight = abs(r.Max.x - e->GetItemRect().Min.x);
+			//float distanceTop = abs(r.Min.y - e->GetItemRect().Max.y);
+			//float distanceBottom = abs(r.Max.y - e->GetItemRect().Min.y);
+
+			//calc 2d distance from every corner
+			float distanceLeft = sqrt(pow(e->GetItemRect().Min.x - r.Min.x, 2) + pow(e->GetItemRect().Min.y - r.Min.y, 2));
+			float distanceRight = sqrt(pow(e->GetItemRect().Max.x - r.Max.x, 2) + pow(e->GetItemRect().Max.y - r.Max.y, 2));
+			float distanceTop = sqrt(pow(e->GetItemRect().Min.x - r.Min.x, 2) + pow(e->GetItemRect().Max.y - r.Max.y, 2));
+			float distanceBottom = sqrt(pow(e->GetItemRect().Max.x - r.Max.x, 2) + pow(e->GetItemRect().Min.y - r.Min.y, 2));
+			
+
+			// Check if any of the distances are smaller than the current closest distance
+			if (distanceLeft < current_nearest_dist && distanceLeft) {
 				nearest = e;
-				current_nearest_dist = current_dist;
+				current_nearest_dist = distanceLeft;
 			}
+			if (distanceRight < current_nearest_dist && distanceRight) {
+				nearest = e;
+				current_nearest_dist = distanceRight;
+			}
+			if (distanceTop < current_nearest_dist && distanceTop) {
+				nearest = e;
+				current_nearest_dist = distanceTop;
+			}
+			if (distanceBottom < current_nearest_dist && distanceBottom) {
+				nearest = e;
+				current_nearest_dist = distanceBottom;
+			}
+
+			//float current_dist = std::abs(e->GetItemRect().Min.x - element->GetItemRect().Min.x) + std::abs(e->GetItemRect().Min.y - element->GetItemRect().Min.y)
+			//	+ std::abs(e->GetItemRect().Max.x - element->GetItemRect().Max.x) + std::abs(e->GetItemRect().Max.y - element->GetItemRect().Max.y);
+			////current_dist =  GetDistance(element->GetPos() + ImVec2(element->GetRawSize() / 2), e->GetPos() + ImVec2(e->GetRawSize()/2));
+
+			//if (current_dist < current_nearest_dist && current_dist>0)
+			//{
+			//	nearest = e;
+			//	current_nearest_dist = current_dist;
+			//}
 		}
 		return nearest;
 	}

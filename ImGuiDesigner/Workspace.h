@@ -47,6 +47,7 @@ public:
 	bool CanSelect();
 	void ResetSelectTimeout();
 	void SelectElement(ImGuiElement* element);
+	void ResetDrag(ImGuiElement* Parent);
 	ImRect GetSelectedRect();
 	WorkSpace();
 	~WorkSpace();
