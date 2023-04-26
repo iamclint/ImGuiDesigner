@@ -223,36 +223,36 @@ void ImGuiElement::SnapVertical(std::unordered_map<VerticalDistance, float>& dis
 {
 	if (distances[VerticalDistance::TopToTop] < distance_threshold)
 	{
-		this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-		if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+		nearest->SnapDelta[0].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+		if (fabs(nearest->SnapDelta[0].y) < mouse_delta_threshold)
 			this->v_pos_dragging.value.y = nearest->GetItemRect().Min.y;
 		reset_snap = true;
 	}
 	else if (distances[VerticalDistance::BottomToTop] < distance_threshold)
 	{
-		this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-		if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+		nearest->SnapDelta[1].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+		if (fabs(nearest->SnapDelta[1].y) < mouse_delta_threshold)
 			this->v_pos_dragging.value.y = nearest->GetItemRect().Min.y-this->GetRawSize().y;
 		reset_snap = true;
 	}
 	else if (distances[VerticalDistance::MiddleToMiddle] < distance_threshold)
 	{
-		this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-		if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+		nearest->SnapDelta[2].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+		if (fabs(nearest->SnapDelta[2].y) < mouse_delta_threshold)
 			this->v_pos_dragging.value.y = nearest->GetItemRect().Min.y + ((nearest->GetRawSize().y - this->GetRawSize().y) / 2);
 		reset_snap = true;
 	}
 	else if (distances[VerticalDistance::TopToBottom] < distance_threshold)
 	{
-		this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-		if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+		nearest->SnapDelta[3].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+		if (fabs(nearest->SnapDelta[3].y) < mouse_delta_threshold)
 			this->v_pos_dragging.value.y = nearest->GetItemRect().Max.y;
 		reset_snap = true;
 	}
 	else if (distances[VerticalDistance::BottomToBottom] < distance_threshold)
 	{
-		this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-		if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+		nearest->SnapDelta[4].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+		if (fabs(nearest->SnapDelta[4].y) < mouse_delta_threshold)
 			this->v_pos_dragging.value.y = nearest->GetItemRect().Max.y - this->GetRawSize().y;
 		reset_snap = true;
 	}
@@ -261,36 +261,36 @@ void ImGuiElement::SnapHorizontal(std::unordered_map<HorizontalDistance, float>&
 {
 	if (distances[HorizontalDistance::LeftToLeft] < distance_threshold)
 	{
-		this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+		nearest->SnapDelta[5].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+		if (fabs(nearest->SnapDelta[5].x) < mouse_delta_threshold)
 			this->v_pos_dragging.value.x = nearest->GetItemRect().Min.x;
 		reset_snap = true;
 	}
 	else if (distances[HorizontalDistance::LeftToRight] < distance_threshold)
 	{
-		this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+		nearest->SnapDelta[6].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+		if (fabs(nearest->SnapDelta[6].x) < mouse_delta_threshold)
 			this->v_pos_dragging.value.x = nearest->GetItemRect().Max.x;
 		reset_snap = true;
 	}
 	else if (distances[HorizontalDistance::MiddleToMiddle] < distance_threshold)
 	{
-		this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+		nearest->SnapDelta[7].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+		if (fabs(nearest->SnapDelta[7].x) < mouse_delta_threshold)
 			this->v_pos_dragging.value.x = nearest->GetItemRect().Min.x + ((nearest->GetRawSize().x - this->GetRawSize().x) / 2);
 		reset_snap = true;
 	}
 	else if (distances[HorizontalDistance::RightToRight] < distance_threshold)
 	{
-		this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+		nearest->SnapDelta[8].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+		if (fabs(nearest->SnapDelta[8].x) < mouse_delta_threshold)
 			this->v_pos_dragging.value.x = nearest->GetItemRect().Max.x - this->GetRawSize().x;
 		reset_snap = true;
 	}
 	else if (distances[HorizontalDistance::RightToLeft] < distance_threshold)
 	{
-		this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+		nearest->SnapDelta[9].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+		if (fabs(nearest->SnapDelta[9].x) < mouse_delta_threshold)
 			this->v_pos_dragging.value.x = nearest->GetItemRect().Min.x - this->GetRawSize().x;
 		reset_snap = true;
 	}
@@ -314,146 +314,164 @@ void ImGuiElement::DragSnap()
 			ImGui::GetForegroundDrawList()->AddRectFilled(this->GetItemRect().Min, this->GetItemRect().Max, ImColor(255, 255, 255, 15));
 		}
 		
-		nearest = igd::GetNearestElement(this, true);
-		if (nearest)// && igd::GetDistance(this->GetPos(), nearest->GetPos()) < 600)
+		//nearest = igd::GetNearestElement(this, true);
+		for (auto& nearest : this->v_parent->children)
 		{
-			ImGui::GetForegroundDrawList()->AddRectFilled(nearest->GetItemRect().Min, nearest->GetItemRect().Max, ImColor(255, 255, 255, 15));
-			RectSide side = igd::getNearestSide(nearest->GetItemRect(), { this->GetPos(),this->GetPos() + this->GetRawSize() }, FLT_MAX);// , nearest->GetItemRect().Max.x - nearest->GetItemRect().Min.x, nearest->GetItemRect().Max.y - nearest->GetItemRect().Min.y);
-			ImVec2 spacing = this->GetAverageSpacing();
-			bool reset_snap = false;
-			std::unordered_map<VerticalDistance, float> distances_vertical = this->GetVerticalDistance(nearest);
-			std::unordered_map<HorizontalDistance, float> distances_horizontal = this->GetHorizontalDistance(nearest);
-			this->SnapVertical(distances_vertical, nearest, mouse_delta_threshold, distance_threshold, reset_snap);
-			this->SnapHorizontal(distances_horizontal, nearest, mouse_delta_threshold, distance_threshold, reset_snap);
+			if (nearest == this)
+				continue;
+			//if (nearest)// && igd::GetDistance(this->GetPos(), nearest->GetPos()) < 600)
+			//{
+				//ImGui::GetForegroundDrawList()->AddRectFilled(nearest->GetItemRect().Min, nearest->GetItemRect().Max, ImColor(255, 255, 255, 15));
+				RectSide side = igd::getNearestSide(nearest->GetItemRect(), { this->GetPos(),this->GetPos() + this->GetRawSize() }, FLT_MAX);// , nearest->GetItemRect().Max.x - nearest->GetItemRect().Min.x, nearest->GetItemRect().Max.y - nearest->GetItemRect().Min.y);
+				ImVec2 spacing = this->GetAverageSpacing();
+				bool reset_switch = false;
+				std::unordered_map<VerticalDistance, float> distances_vertical = this->GetVerticalDistance(nearest);
+				std::unordered_map<HorizontalDistance, float> distances_horizontal = this->GetHorizontalDistance(nearest);
+				this->SnapVertical(distances_vertical, nearest, mouse_delta_threshold, distance_threshold, reset_switch);
+				this->SnapHorizontal(distances_horizontal, nearest, mouse_delta_threshold, distance_threshold, reset_switch);
+				ImVec2 this_mid = { this->GetItemRect().Min.x + ((this->GetItemRect().Max.x - this->GetItemRect().Min.x) / 2) , this->GetItemRect().Min.y + ((this->GetItemRect().Max.y - this->GetItemRect().Min.y) / 2) };
+				ImVec2 nearest_mid = { nearest->GetItemRect().Min.x + ((nearest->GetItemRect().Max.x - nearest->GetItemRect().Min.x) / 2) , nearest->GetItemRect().Min.y + ((nearest->GetItemRect().Max.y - nearest->GetItemRect().Min.y) / 2) };
 
-			ImVec2 this_mid = { this->GetItemRect().Min.x + ((this->GetItemRect().Max.x - this->GetItemRect().Min.x) / 2) , this->GetItemRect().Min.y + ((this->GetItemRect().Max.y - this->GetItemRect().Min.y) / 2) };
-			ImVec2 nearest_mid = { nearest->GetItemRect().Min.x + ((nearest->GetItemRect().Max.x - nearest->GetItemRect().Min.x) / 2) , nearest->GetItemRect().Min.y + ((nearest->GetItemRect().Max.y - nearest->GetItemRect().Min.y) / 2) };
-
-			if (this_mid.y >= nearest_mid.y)
-			{
-				//bottom
-				if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Max.y  }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-			}
-			//top
-			else if (this_mid.y < nearest_mid.y)
-			{
-				if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Min.y - line_offset }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-			}
-
-			if (this_mid.x <= nearest_mid.x)
-			{
-				//left
-				if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-			}
-
-			else if (this_mid.x > nearest_mid.x)
-			{
-				//right
-				if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-				if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
-			}
-			switch (side)
-			{
-				case RectSide::Bottom:
+				if (this_mid.y >= nearest_mid.y)
 				{
-					float Spacing = (this->GetPos().y - (nearest->GetItemRect().Max.y + spacing.y));
-					if (spacing.y>10)
-						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Max.y + spacing.y }, { nearest->GetItemRect().Max.x, nearest->GetItemRect().Max.y + spacing.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
-					if (fabs(Spacing) < distance_threshold)
+					//bottom
+					if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Max.y }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+				}
+				//top
+				else if (this_mid.y < nearest_mid.y)
+				{
+					if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Min.y - line_offset }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+				}
+
+				if (this_mid.x <= nearest_mid.x)
+				{
+					//left
+					if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+				}
+
+				else if (this_mid.x > nearest_mid.x)
+				{
+					//right
+					if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+					if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
+						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
+				}
+				switch (side)
+				{
+					case RectSide::Bottom:
 					{
-						this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-						if (fabs(this->SnapDist.y) < mouse_delta_threshold)
-							this->v_pos_dragging.value.y = nearest->GetItemRect().Max.y + spacing.y;
-						reset_snap = true;
+						float Spacing = (this->GetPos().y - (nearest->GetItemRect().Max.y + spacing.y));
+						if (spacing.y > 10)
+							DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Max.y + spacing.y }, { nearest->GetItemRect().Max.x, nearest->GetItemRect().Max.y + spacing.y }, ImColor(255, 0, 0, 60), 1.f, 5.f);
+						if (fabs(Spacing) < distance_threshold)
+						{
+							nearest->SnapDelta[9].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+							if (fabs(nearest->SnapDelta[9].y) < mouse_delta_threshold)
+								this->v_pos_dragging.value.y = nearest->GetItemRect().Max.y + spacing.y;
+							else
+								reset_switch = true;
+						}
+						break;
+					}
+					case RectSide::Top:
+					{
+						float Spacing = ((this->GetPos().y + this->GetRawSize().y) - (nearest->GetItemRect().Min.y - spacing.y));
+						if (spacing.y > 10)
+							DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Min.y - spacing.y }, { nearest->GetItemRect().Max.x, nearest->GetItemRect().Min.y - spacing.y }, ImColor(255, 0, 0, 60), 1.f, 5.f);
+						if (fabs(Spacing) < distance_threshold)
+						{
+							nearest->SnapDelta[10].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+							if (fabs(nearest->SnapDelta[10].y) < mouse_delta_threshold)
+								this->v_pos_dragging.value.y = nearest->GetItemRect().Min.y - spacing.y - this->GetRawSize().y;
+							else
+								reset_switch = true;
+						}
+
+
+						break;
+					}
+					case RectSide::Left:
+					{
+						float Spacing = (this->GetPos().x - (nearest->GetItemRect().Min.x - spacing.x));
+						if (spacing.y > 10)
+							DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x - spacing.x, nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Min.x - spacing.x, nearest->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 1.f, 5.f);
+						if (fabs(Spacing) < distance_threshold)
+						{
+							nearest->SnapDelta[11].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+							if (fabs(nearest->SnapDelta[11].x) < mouse_delta_threshold)
+								this->v_pos_dragging.value.x = nearest->GetItemRect().Min.x - spacing.x;
+							else
+								reset_switch = true;
+						}
+						break;
+					}
+					case RectSide::Right:
+					{
+						float Spacing = (this->GetPos().x - (nearest->GetItemRect().Max.x + spacing.x));
+						if (spacing.y > 10)
+							DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x + spacing.x, nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x + spacing.x, nearest->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 1.f, 5.f);
+						if (fabs(Spacing) < distance_threshold)
+						{
+							nearest->SnapDelta[11].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+							if (fabs(nearest->SnapDelta[12].x) < mouse_delta_threshold)
+								this->v_pos_dragging.value.x = nearest->GetItemRect().Max.x + spacing.x;
+							else
+								reset_switch = true;
+						}
+
+						break;
+					}
+				}
+				
+				if (reset_switch)
+				{
+					if (ImGui::GetMouseDragDelta().x < 0 && previous_drag_delta.x > 0)
+					{
+						for (auto& e : nearest->SnapDelta)
+							e.second.x = 0;
+					}
+					if (ImGui::GetMouseDragDelta().x > 0 && previous_drag_delta.x < 0)
+					{
+						for (auto& e : nearest->SnapDelta)
+							e.second.x = 0;
 					}
 
-
-					break;
-				}
-				case RectSide::Top:
-				{
-					float Spacing = ((this->GetPos().y + this->GetRawSize().y) - (nearest->GetItemRect().Min.y - spacing.y));
-					if (spacing.y > 10)
-						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x, nearest->GetItemRect().Min.y - spacing.y }, { nearest->GetItemRect().Max.x, nearest->GetItemRect().Min.y - spacing.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
-					if (fabs(Spacing) < distance_threshold)
+					if (ImGui::GetMouseDragDelta().y < 0 && previous_drag_delta.y > 0)
 					{
-						this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-						if (fabs(this->SnapDist.y) < mouse_delta_threshold)
-							this->v_pos_dragging.value.y = nearest->GetItemRect().Min.y - spacing.y - this->GetRawSize().y;
-						reset_snap = true;
+						for (auto& e : nearest->SnapDelta)
+							e.second.y = 0;
 					}
 
-
-					break;
-				}
-				case RectSide::Left:
-				{
-					float Spacing = (this->GetPos().x - (nearest->GetItemRect().Min.x - spacing.x));
-					if (spacing.y > 10)
-						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x-spacing.x, nearest->GetItemRect().Max.y}, { nearest->GetItemRect().Min.x - spacing.x, nearest->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
-					if (fabs(Spacing) < distance_threshold)
+					if (ImGui::GetMouseDragDelta().y > 0 && previous_drag_delta.y < 0)
 					{
-						this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-						if (fabs(this->SnapDist.x) < mouse_delta_threshold)
-							this->v_pos_dragging.value.x = nearest->GetItemRect().Min.x - spacing.x;
-						reset_snap = true;
+						for (auto& e : nearest->SnapDelta)
+							e.second.y = 0;
 					}
 
-
-					break;
 				}
-				case RectSide::Right:
-				{
-					float Spacing = (this->GetPos().x - (nearest->GetItemRect().Max.x + spacing.x));
-					if (spacing.y > 10)
-						DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x + spacing.x, nearest->GetItemRect().Max.y }, { nearest->GetItemRect().Max.x + spacing.x, nearest->GetItemRect().Min.y }, ImColor(255, 0, 0, 60), 3.f, 5.f);
-					if (fabs(Spacing) < distance_threshold)
-					{
-						this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-						if (fabs(this->SnapDist.x) < mouse_delta_threshold)
-							this->v_pos_dragging.value.x = nearest->GetItemRect().Max.x + spacing.x;
-						reset_snap = true;
-					}
 
-					break;
-				}
-			}
-			if (!reset_snap)
-				this->SnapDist = { 0,0 };
-			if (reset_snap)
-			{
-				if (ImGui::GetMouseDragDelta().x < 0 && previous_drag_delta.x > 0)
-					this->SnapDist = { 0,0 };
-				if (ImGui::GetMouseDragDelta().x > 0 && previous_drag_delta.x < 0)
-					this->SnapDist = { 0,0 };
-				if (ImGui::GetMouseDragDelta().y < 0 && previous_drag_delta.y > 0)
-					this->SnapDist = { 0,0 };
-				if (ImGui::GetMouseDragDelta().y > 0 && previous_drag_delta.y < 0)
-					this->SnapDist = { 0,0 };
-			}
-
+			//}
+			if (ImGui::GetMouseDragDelta().x != 0 || ImGui::GetMouseDragDelta().y != 0)
+				previous_drag_delta = ImGui::GetMouseDragDelta();
 		}
-		if (ImGui::GetMouseDragDelta().x !=0 || ImGui::GetMouseDragDelta().y!=0)
-			previous_drag_delta = ImGui::GetMouseDragDelta();
 }
 
 
@@ -708,12 +726,12 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 	const float distance_threshold = 7; //distance from the snap location before it snaps the element to it
 	const float snap_dist_draw = 1000;
 	bool rval = false;
-	ImGuiElement* nearest = igd::GetNearestElement(this, true);
+	//ImGuiElement* nearest = igd::GetNearestElement(this, true);
+
 	this->v_is_dragging = false;
-	if (nearest)
+	for (auto& nearest : this->v_parent->children)
 	{
 		bool reset_snap = false;
-		ImGui::GetForegroundDrawList()->AddRectFilled(nearest->GetItemRect().Min, nearest->GetItemRect().Max, ImColor(255, 255, 255, 15));
 		RectSide side = igd::getNearestSide(nearest->GetItemRect(), { this->GetPos(),this->GetPos() + this->GetRawSize() }, FLT_MAX);
 		ImVec2 this_mid = { this->GetItemRect().Min.x + ((this->GetItemRect().Max.x - this->GetItemRect().Min.x) / 2) , this->GetItemRect().Min.y + ((this->GetItemRect().Max.y - this->GetItemRect().Min.y) / 2) };
 		ImVec2 nearest_mid = { nearest->GetItemRect().Min.x + ((nearest->GetItemRect().Max.x - nearest->GetItemRect().Min.x) / 2) , nearest->GetItemRect().Min.y + ((nearest->GetItemRect().Max.y - nearest->GetItemRect().Min.y) / 2) };
@@ -725,21 +743,21 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 			{
 				//bottom
 				if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Max.y }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Max.y }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y + this->GetRawSize().y + line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 			}
 			//top
 			else if (this_mid.y < nearest_mid.y)
 			{
 				if (distances_horizontal[HorizontalDistance::LeftToLeft] < snap_dist_draw || distances_horizontal[HorizontalDistance::RightToLeft] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Min.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_horizontal[HorizontalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Min.y - line_offset }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),nearest->GetItemRect().Min.y - line_offset }, { (nearest->GetItemRect().Min.x + (nearest->GetRawSize().x / 2)),this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_horizontal[HorizontalDistance::RightToRight] < snap_dist_draw || distances_horizontal[HorizontalDistance::LeftToRight] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x,nearest->GetItemRect().Min.y - line_offset }, { nearest->GetItemRect().Max.x,this->GetPos().y - line_offset }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 			}
 		}
 		if (resize_direction == ResizeDirection::top || resize_direction == ResizeDirection::bottom)
@@ -748,21 +766,21 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 			{
 				//left
 				if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x - line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Min.x + line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x - line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 			}
 			else if (this_mid.x > nearest_mid.x)
 			{
 				//right
 				if (distances_vertical[VerticalDistance::TopToTop] < snap_dist_draw || distances_vertical[VerticalDistance::BottomToTop] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_vertical[VerticalDistance::MiddleToMiddle] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Min.y + (nearest->GetRawSize().y / 2) }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 				if (distances_vertical[VerticalDistance::BottomToBottom] < snap_dist_draw || distances_vertical[VerticalDistance::TopToBottom] < snap_dist_draw)
-					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 3.f, 5.f);
+					DrawDashedLine(ImGui::GetForegroundDrawList(), { nearest->GetItemRect().Max.x - line_offset,nearest->GetItemRect().Max.y }, { this->GetPos().x + this->GetRawSize().x + line_offset, nearest->GetItemRect().Max.y }, ImColor(66, 150, 250, 102), 1.f, 5.f);
 			}
 		}
 		distances_horizontal = this->GetHorizontalDistance(nearest,false);
@@ -773,8 +791,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 			{
 				if (fabs(distances_horizontal[HorizontalDistance::LeftToLeft]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[13].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[13].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ -distances_horizontal[HorizontalDistance::LeftToLeft], 0 });
 						ApplyDeltaResize({ distances_horizontal[HorizontalDistance::LeftToLeft],0 });
@@ -784,8 +802,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_horizontal[HorizontalDistance::LeftToRight]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[13].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[13].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ -distances_horizontal[HorizontalDistance::LeftToRight], 0 });
 						ApplyDeltaResize({ distances_horizontal[HorizontalDistance::LeftToRight],0 });
@@ -795,8 +813,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_horizontal[HorizontalDistance::LeftToMiddle]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[13].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[13].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ -distances_horizontal[HorizontalDistance::LeftToMiddle], 0 });
 						ApplyDeltaResize({ distances_horizontal[HorizontalDistance::LeftToMiddle],0 });
@@ -805,15 +823,15 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 					reset_snap = true;
 				}
 				else
-					this->SnapDist.x = 0;
+					nearest->SnapDelta[13].x = 0;
 				break;
 			}
 			case ResizeDirection::right:
 			{
 				if (fabs(distances_horizontal[HorizontalDistance::RightToRight]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[14].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[14].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ -distances_horizontal[HorizontalDistance::RightToRight],0 });
 						rval = true;
@@ -822,8 +840,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_horizontal[HorizontalDistance::RightToMiddle]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[14].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[14].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ -distances_horizontal[HorizontalDistance::RightToMiddle],0 });
 						rval = true;
@@ -832,8 +850,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_horizontal[HorizontalDistance::RightToLeft]) < distance_threshold)
 				{
-					this->SnapDist.x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-					if (fabs(this->SnapDist.x) < mouse_delta_threshold)
+					nearest->SnapDelta[14].x += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
+					if (fabs(nearest->SnapDelta[14].x) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ -distances_horizontal[HorizontalDistance::RightToLeft],0 });
 						rval = true;
@@ -841,7 +859,7 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 					reset_snap = true;
 				}
 				else
-					this->SnapDist.x = 0;
+					nearest->SnapDelta[14].x = 0;
 				break;
 			}
 			case ResizeDirection::top:
@@ -849,8 +867,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 
 				if (fabs(distances_vertical[VerticalDistance::TopToTop]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[15].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[15].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ 0, -distances_vertical[VerticalDistance::TopToTop] });
 						ApplyDeltaResize({ 0, distances_vertical[VerticalDistance::TopToTop] });
@@ -860,8 +878,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_vertical[VerticalDistance::TopToMiddle]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[15].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[15].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ 0, -distances_vertical[VerticalDistance::TopToMiddle] });
 						ApplyDeltaResize({ 0, distances_vertical[VerticalDistance::TopToMiddle] });
@@ -871,8 +889,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_vertical[VerticalDistance::TopToBottom]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[15].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[15].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaPos({ 0, -distances_vertical[VerticalDistance::TopToBottom] });
 						ApplyDeltaResize({ 0, distances_vertical[VerticalDistance::TopToBottom] });
@@ -881,15 +899,15 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 					reset_snap = true;
 				}
 				else
-					this->SnapDist.y = 0;
+					nearest->SnapDelta[15].y = 0;
 				break;
 			}
 			case ResizeDirection::bottom:
 			{
 				if (fabs(distances_vertical[VerticalDistance::BottomToBottom]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[16].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[16].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ 0, -distances_vertical[VerticalDistance::BottomToBottom]});
 						rval = true;
@@ -898,8 +916,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_vertical[VerticalDistance::BottomToMiddle]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[16].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[16].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ 0, -distances_vertical[VerticalDistance::BottomToMiddle] });
 						rval = true;
@@ -908,8 +926,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 				}
 				else if (fabs(distances_vertical[VerticalDistance::BottomToTop]) < distance_threshold)
 				{
-					this->SnapDist.y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
-					if (fabs(this->SnapDist.y) < mouse_delta_threshold)
+					nearest->SnapDelta[16].y += ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
+					if (fabs(nearest->SnapDelta[16].y) < mouse_delta_threshold)
 					{
 						ApplyDeltaResize({ 0, -distances_vertical[VerticalDistance::BottomToTop] });
 						rval = true;
@@ -917,7 +935,7 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 					reset_snap = true;
 				}
 				else
-					this->SnapDist.y = 0;
+					nearest->SnapDelta[16].y = 0;
 				break;
 			}
 		}
@@ -925,15 +943,20 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 		if (reset_snap)
 		{
 			if (ImGui::GetMouseDragDelta().x < 0 && previous_drag_delta.x > 0)
-				this->SnapDist = { 0,0 };
+				for (auto& e : nearest->SnapDelta)
+					e.second.x = 0;
 			if (ImGui::GetMouseDragDelta().x > 0 && previous_drag_delta.x < 0)
-				this->SnapDist = { 0,0 };
+				for (auto& e : nearest->SnapDelta)
+					e.second.x = 0;
 			if (ImGui::GetMouseDragDelta().y < 0 && previous_drag_delta.y > 0)
-				this->SnapDist = { 0,0 };
+				for (auto& e : nearest->SnapDelta)
+					e.second.y = 0;
 			if (ImGui::GetMouseDragDelta().y > 0 && previous_drag_delta.y < 0)
-				this->SnapDist = { 0,0 };
+				for (auto& e : nearest->SnapDelta)
+					e.second.y = 0;
 		}
-
+		if (rval)
+			break;
 	}
 	if (ImGui::GetMouseDragDelta().x != 0 || ImGui::GetMouseDragDelta().y != 0)
 		previous_drag_delta = ImGui::GetMouseDragDelta();

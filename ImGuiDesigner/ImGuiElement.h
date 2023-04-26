@@ -384,7 +384,7 @@ private:
 	void AddCode(std::string code, int depth=-1);
 	bool drop_new_parent;
 	bool was_dragging;
-	ImVec2 SnapDist;
+	std::unordered_map<int,ImVec2> SnapDelta;
 	int color_pops;
 	int style_pops;
 	int undoStackIndex;
