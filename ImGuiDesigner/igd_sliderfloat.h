@@ -117,12 +117,20 @@ namespace igd
 			if (script_only)
 				return ScriptInternal();
 			this->SetNextWidth();
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer)
+			{
+				if (!v_disabled)
+					GImGui->Style.DisabledAlpha = 1.0f;
+				ImGui::BeginDisabled();
+			}
 			ImGui::SliderFloat((v_label + "##" + v_id).c_str(), &input_data, v_min, v_max, format.c_str(), v_flags);
 			return ScriptInternal();
 		}
 
 		virtual std::string RenderFoot(bool script_only) override
 		{
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer && !script_only)
+				ImGui::EndDisabled();
 			return "";
 		}
 		virtual void FromJSON(nlohmann::json data) override

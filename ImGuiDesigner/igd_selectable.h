@@ -88,7 +88,12 @@ namespace igd
 				return "";
 			if (this->v_parent)
 				selected = this->v_parent->v_label == this->v_id;
-
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer)
+			{
+				if (!v_disabled)
+					GImGui->Style.DisabledAlpha = 1.0f;
+				ImGui::BeginDisabled();
+			}
 			did_select = ImGui::Selectable(v_id.c_str(), &selected, v_flags, this->GetSize());
 			if (did_select && this->v_parent)
 				this->v_parent->v_label = this->v_id;
@@ -102,6 +107,8 @@ namespace igd
 
 		virtual std::string RenderFoot(bool script_only) override
 		{
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer && !script_only)
+				ImGui::EndDisabled();
 			return "";
 
 		}

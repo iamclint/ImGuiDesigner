@@ -460,15 +460,20 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	need_disable_pop = false;
 	color_pops = 0;
 	style_pops = 0;
-	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
+	bool was_disabled = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
+	if (v_disabled && !was_disabled)
 	{
-		if ((g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
-		{
+			g.Style.DisabledAlpha = 0.6;
 			this->AddCode("ImGui::BeginDisabled();");
 			need_disable_pop = true;
 			ImGui::BeginDisabled();
-		}
 	}
+	//else if (!was_disabled && this->v_type_id!=(int)element_type::window)
+	//{
+	//	need_disable_pop = true;
+	//	g.Style.DisabledAlpha = 1.f;
+	//	ImGui::BeginDisabled();
+	//}
 
 	if (!this->v_inherit_all_colors)
 	{
@@ -561,9 +566,20 @@ void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_dep
 void ImGuiElement::RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace)
 {
 	ImGuiContext& g = *GImGui;
+	bool was_disabled = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
 	ImGuiWindow* window = g.CurrentWindow;
 	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	this->AddCode(this->RenderFoot(script_only));
+	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
+	{
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+		{
+			g.ActiveId = 0;
+			g.LastActiveId = 0;
+			g.HoveredId = 0;
+			g.MouseCursor = ImGuiMouseCursor_Hand;
+		}
+	}
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && this->v_parent)
 	{
 		ImGuiElement* p = this->v_parent;
@@ -584,11 +600,18 @@ void ImGuiElement::RenderFootInternal(ImVec2& ContentRegionAvail, int current_de
 	}
 
 
-	if (v_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0 && need_disable_pop)
+	if (v_disabled && was_disabled && need_disable_pop)
 	{
 		ImGui::EndDisabled();
 		this->AddCode("ImGui::EndDisabled();");
 	}
+	//else if (was_disabled && !v_disabled && need_disable_pop && this->v_type_id != (int)element_type::window)
+	//{
+	//	g.Style.DisabledAlpha = 0.6f;
+	//	ImGui::EndDisabled();
+	//}
+
+
 	if (this->v_font.font)
 	{
 		ImGui::PopFont();
@@ -685,6 +708,7 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
 		InteractionItem();
 	}
+
 }
 
 //random number generator

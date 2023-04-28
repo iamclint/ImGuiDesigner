@@ -131,6 +131,12 @@ namespace igd
 				return "";
 			ImGuiContext& g = *GImGui;
 			this->SetNextWidth();
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer)
+			{
+				if (!v_disabled)
+					GImGui->Style.DisabledAlpha = 1.0f;
+				ImGui::BeginDisabled();
+			}
 			v_is_open = ImGui::BeginCombo(v_id.c_str(), v_label.c_str(), v_flags);
 			return ScriptHead();
 		}
@@ -145,6 +151,9 @@ namespace igd
 				return "";
 			if (v_is_open && !script_only)
 				ImGui::EndCombo();
+
+			if (igd::active_workspace->interaction_mode == InteractionMode::designer && !script_only)
+				ImGui::EndDisabled();
 			return "";
 		}
 		virtual void FromJSON(nlohmann::json data) override

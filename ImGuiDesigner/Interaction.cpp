@@ -317,7 +317,7 @@ void ImGuiElement::DragSnap()
 		//nearest = igd::GetNearestElement(this, true);
 		for (auto& nearest : this->v_parent->children)
 		{
-			if (nearest == this)
+			if (nearest == this || nearest->delete_me)
 				continue;
 			//if (nearest)// && igd::GetDistance(this->GetPos(), nearest->GetPos()) < 600)
 			//{
@@ -676,6 +676,12 @@ void ImGuiElement::ApplyDeltaResize(ImVec2 delta)
 
 		last_size += delta;
 	}
+
+	//if ((v_type_id & (int)element_type::inputfloat) || (v_type_id & (int)element_type::inputint) || (v_type_id & (int)element_type::inputtext) || (v_type_id & (int)element_type::sliderfloat) || (v_type_id & (int)element_type::sliderint))
+	//{
+	//	this->v_styles[ImGuiStyleVar_FramePadding].value.Vec2.y += delta.y;
+	//}
+
 }
 
 void ImGuiElement::ApplyDeltaPosDrag(ImVec2 delta)
@@ -731,6 +737,8 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 	this->v_is_dragging = false;
 	for (auto& nearest : this->v_parent->children)
 	{
+		if (nearest == this || nearest->delete_me)
+			continue;
 		bool reset_snap = false;
 		RectSide side = igd::getNearestSide(nearest->GetItemRect(), { this->GetPos(),this->GetPos() + this->GetRawSize() }, FLT_MAX);
 		ImVec2 this_mid = { this->GetItemRect().Min.x + ((this->GetItemRect().Max.x - this->GetItemRect().Min.x) / 2) , this->GetItemRect().Min.y + ((this->GetItemRect().Max.y - this->GetItemRect().Min.y) / 2) };
@@ -967,7 +975,7 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 bool ImGuiElement::Resize()
 {
 	//GetResizeRects();
-	if ((v_property_flags & property_flags::no_resize) || !igd::active_workspace->CanSelect() || igd::active_workspace->dragging_select)
+	if ((v_property_flags & property_flags::no_resize) || !igd::active_workspace->CanSelect() || igd::active_workspace->dragging_select || this->v_is_dragging)
 		return false;
 
 	float delta_offset_outter = 8.0f;
@@ -989,6 +997,9 @@ bool ImGuiElement::Resize()
 	bool is_mouse_hovering_bl = fabs(mouse_delta_bl.x) < delta_offset_outter && fabs(mouse_delta_bl.y) < delta_offset_outter;
 	bool is_mouse_hovering_tl = fabs(mouse_delta_tl.x) < delta_offset_outter && fabs(mouse_delta_tl.y) < delta_offset_outter;
 
+	if (ImGui::IsItemHovered() && resize_direction == ResizeDirection::none)
+		return false;
+
 	if (is_mouse_hovering_br)
 		g.MouseCursor = ImGuiMouseCursor_ResizeNWSE;
 	else if (is_mouse_hovering_tr)
@@ -1005,6 +1016,7 @@ bool ImGuiElement::Resize()
 		g.MouseCursor = ImGuiMouseCursor_ResizeNS;
 	else if (is_mouse_hovering_t)
 		g.MouseCursor = ImGuiMouseCursor_ResizeNS;
+	
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && !igd::active_workspace->is_dragging && resize_direction == ResizeDirection::none)
 	{
