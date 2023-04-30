@@ -492,12 +492,13 @@ bool ImGuiElement::Drag()
 			e->v_pos_dragging.value = { e->item_rect.Min.x, e->item_rect.Min.y };
 		}
 	}
-
-	if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && igd::active_workspace->is_dragging)
+	for (auto& e : igd::active_workspace->selected_elements)
 	{
-		igd::active_workspace->ResetSelectTimeout();
-		for (auto& e : igd::active_workspace->selected_elements)
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && e->v_is_dragging)
+		{
+			igd::active_workspace->ResetSelectTimeout();
 			e->v_is_dragging = false;
+		}
 	}
 
 	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->v_is_dragging)
@@ -552,13 +553,16 @@ void ImGuiElement::RenderDrag()
 			if (e->delete_me)
 				continue;
 			ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
-			ImGui::SetNextWindowBgAlpha(0);
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(125, 125, 125, 125));
+			ImGui::SetNextWindowBgAlpha(0.5);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+			ImGui::SetNextWindowSize(e->GetRawSize(), ImGuiCond_Always);
 			int color_pops = 0;
 			int style_pops = 0;
 			if (ImGui::Begin(("Drag##Drag_" + e->v_id).c_str(), NULL, flags))
 			{
+				ImGui::SetNextItemWidth(e->GetRawSize().x);
 				bool need_disable_pop = false;
 				color_pops = 0;
 				style_pops = 0;
@@ -612,6 +616,7 @@ void ImGuiElement::RenderDrag()
 				ImGui::End();
 			}
 			ImGui::PopStyleVar(2);
+			ImGui::PopStyleColor();
 		}
 }
 
@@ -735,9 +740,14 @@ bool ImGuiElement::ResizeSnap(ResizeDirection resize_direction)
 	//ImGuiElement* nearest = igd::GetNearestElement(this, true);
 
 	this->v_is_dragging = false;
+	if (!this->v_parent)
+		return false;
 	for (auto& nearest : this->v_parent->children)
 	{
 		if (nearest == this || nearest->delete_me)
+			continue;
+
+		if (nearest->v_render_index > this->v_render_index && nearest->v_pos.value.x == 0 && nearest->v_pos.value.y == 0)
 			continue;
 		bool reset_snap = false;
 		RectSide side = igd::getNearestSide(nearest->GetItemRect(), { this->GetPos(),this->GetPos() + this->GetRawSize() }, FLT_MAX);

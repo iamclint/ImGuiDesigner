@@ -442,7 +442,6 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	if (ContentRegionString == "")
 		ContentRegionString = "ContentRegionAvail";
-
 	if (v_pos.value.x != 0 || v_pos.value.y != 0)
 	{
 		if (v_pos.type == Vec2Type::Absolute)
