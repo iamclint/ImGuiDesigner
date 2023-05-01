@@ -6,7 +6,7 @@
 #include "ImGuiDesigner.h"
 #include <iostream>
 #include <map>
-#include "../includes/Image.h"
+#include "includes/Image.h"
 #include <filesystem>
 namespace igd
 {

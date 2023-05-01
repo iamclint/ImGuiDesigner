@@ -43,6 +43,18 @@
     <ClCompile Include="TextEditor.cpp">
       <Filter>CPP</Filter>
     </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>CPP\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_tables.cpp">
+      <Filter>CPP\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>CPP\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>CPP\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -56,6 +68,12 @@
     </Filter>
     <Filter Include="Headers\Includes">
       <UniqueIdentifier>{b693396d-9b83-4f45-b838-018e8649da26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPP\ImGui">
+      <UniqueIdentifier>{dce602d5-fb1c-448f-9a02-5c185f4b9b14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPP\GLFW">
+      <UniqueIdentifier>{69d2b0a6-677f-4910-a9c7-8f25e3501343}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

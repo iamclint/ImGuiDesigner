@@ -10,7 +10,7 @@
 #include "imgui_internal.h"
 #include "Workspace.h"
 #include "ScriptHelpers.h"
-#include "../includes/Image.h"
+#include "includes/Image.h"
 struct ElementFont;
 class WorkSpace;
 
