@@ -2,7 +2,7 @@
 .vs/
 bin/
 bin-int/
-/
+Walnut/
 
 # Files
 #*.vcxproj
