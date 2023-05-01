@@ -10,7 +10,7 @@ bin-int/
 # *.sln
 
 # Exclude
-/Walnut/
+/Walnut
 !vendor/bin
 /ImGuiDesigner/widgets
 /ImGuiDesigner/imgui.ini
