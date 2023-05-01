@@ -6,7 +6,7 @@
 #include "ImGuiDesigner.h"
 #include <iostream>
 #include <map>
-#include "Walnut/Image.h"
+#include "../includes/Image.h"
 #include <filesystem>
 namespace igd
 {

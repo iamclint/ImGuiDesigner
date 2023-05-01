@@ -6,7 +6,7 @@ bin-int/
 # Files
 #*.vcxproj
 #*.vcxproj.user
-*.vcxproj.filters
+#*.vcxproj.filters
 #*.sln
 
 # Exclude

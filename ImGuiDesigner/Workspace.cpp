@@ -1,5 +1,5 @@
 #include "Workspace.h"
-#include "Walnut/Image.h"
+#include "../includes/Image.h"
 #include "imgui_internal.h"
 #include "ImGuiElement.h"
 #include "ImGuiDesigner.h"

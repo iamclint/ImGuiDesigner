@@ -1,6 +1,6 @@
 #pragma once
 #include "..\..\Walnut\vendor\stb_image\stb_image.h"
-#include "Walnut/Image.h"
+#include "../includes/Image.h"
 #include <unordered_map>
 class Textures
 {

@@ -60,7 +60,7 @@
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\Walnut\</OutDir>
+    <OutDir>..\..\Includes\</OutDir>
     <IntDir>..\bin-int\Release-windows-x86_64\Walnut\</IntDir>
     <TargetName>Walnut</TargetName>
     <TargetExt>.lib</TargetExt>

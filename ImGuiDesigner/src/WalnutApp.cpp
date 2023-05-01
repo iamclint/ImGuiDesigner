@@ -1,5 +1,5 @@
-#include "Walnut/Application.h"
-#include "Walnut/EntryPoint.h"
+#include "..\includes\Application.h"
+#include "..\includes\EntryPoint.h"
 #include "..\ToolBar.h"
 #include "..\Properties.h"
 #include "..\Workspace.h"
@@ -7,7 +7,7 @@
 #include "GLFW/glfw3.h"
 #include "..\textures\icon.embed"
 #include "..\textures\logo.embed"
-#include "..\..\Walnut\vendor\stb_image\stb_image.h"
+#include "..\includes\stb_image.h"
 #include "..\fonts\pt.embed"
 #include <iostream>
 
