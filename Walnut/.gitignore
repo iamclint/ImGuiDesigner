@@ -5,9 +5,9 @@ bin-int/
 
 # Files
 *.vcxproj
-*.vcxproj.user
+#*.vcxproj.user
 *.vcxproj.filters
-*.sln
+#*.sln
 
 # Exclude
 !vendor/bin
