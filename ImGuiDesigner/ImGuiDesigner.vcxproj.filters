@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ToolBar.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WalnutApp.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Properties.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Workspace.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiElement.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Walnut\vendor\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="FontManager.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptHelpers.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Interaction.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="igd_imgui_widgets.cpp">
+      <Filter>Headers\Includes</Filter>
+    </ClCompile>
+    <ClCompile Include="TextEditor.cpp">
+      <Filter>CPP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{1e1aae21-9e7b-4bed-bdf2-0e570e23acb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPP">
+      <UniqueIdentifier>{5c7d2883-82cd-4210-8f2d-3fbacab5ba9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Elements">
+      <UniqueIdentifier>{f3052b64-c233-4ab2-9fdc-333e0478787c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Includes">
+      <UniqueIdentifier>{b693396d-9b83-4f45-b838-018e8649da26}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ToolBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Properties.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Workspace.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiElement.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_button.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_childwindow.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiDesigner.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_elements.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FontManager.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_text.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_window.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_separator.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_inputtext.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_inputfloat.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_inputint.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_sliderfloat.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_sliderint.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_checkbox.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_combo.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_selectable.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_tabbar.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_tabitem.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="igd_texture.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptHelpers.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_imgui_widgets.h">
+      <Filter>Headers\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="igd_table.h">
+      <Filter>Headers\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="TextEditor.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ImGuiDesigner.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico" />
+  </ItemGroup>
+</Project>

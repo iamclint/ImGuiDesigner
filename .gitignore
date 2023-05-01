@@ -4,10 +4,10 @@ bin/
 bin-int/
 
 # Files
-*.vcxproj
+# *.vcxproj
 *.vcxproj.user
-*.vcxproj.filters
-*.sln
+#*.vcxproj.filters
+# *.sln
 
 # Exclude
 !vendor/bin
