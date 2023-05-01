@@ -262,7 +262,7 @@ public:
 //methods
 public:
 	
-	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback=nullptr);
+	void Render(ImVec2 ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback=nullptr, bool script_only = false);
 	
 	void Delete();
 	void Redo();
@@ -372,9 +372,9 @@ private:
 	void InteractionWindow();
 	void InteractionSelectable();
 	void InteractionItem();
-	void RenderHeadInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
-	void RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback);
-	void RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace);
+	void RenderHeadInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, bool script_only);
+	void RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, std::function<void()> callback, bool script_only);
+	void RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, bool script_only);
 	std::unordered_map<HorizontalDistance, float> GetHorizontalDistance(ImGuiElement* nearest, bool use_abs = true);
 	std::unordered_map<VerticalDistance, float> GetVerticalDistance(ImGuiElement* nearest, bool use_abs = true);
 	void SnapHorizontal(std::unordered_map<HorizontalDistance, float>& distances, ImGuiElement* nearest, float mouse_delta_threshold, float distance_threshold, bool& reset_snap);

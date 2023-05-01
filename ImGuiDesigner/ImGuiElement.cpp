@@ -431,7 +431,7 @@ ImVec2 ImGuiElement::GetPos()
 }
 
 
-void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_depth, WorkSpace* workspace)
+void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_depth, WorkSpace* workspace, bool script_only)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
@@ -439,7 +439,7 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	v_workspace = workspace;
 	v_depth = current_depth;
 	ContentRegionAvail = _ContentRegionAvail;
-	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+	//bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	if (ContentRegionString == "")
 		ContentRegionString = "ContentRegionAvail";
 	if (v_pos.value.x != 0 || v_pos.value.y != 0)
@@ -519,21 +519,23 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	if (RenderHead != "")
 		this->AddCode(RenderHead);
 }
-void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
+void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback, bool script_only)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
-	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+
 
 	if (ContentRegionAvail.x == 0 && ContentRegionAvail.y == 0)
 		ContentRegionAvail = ImGui::GetContentRegionAvail();
 	ContentRegionAvailSelf = ImGui::GetContentRegionAvail();
+	if (this->v_requires_open || this->v_can_have_children)
+		this->AddCode("{");
 
 	if (this->children.size() > 0)
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
 		std::string content_region_string = GetContentRegionString();
-		this->AddCode("{");
+		
 		this->AddCode(this->RenderInternal(script_only), current_depth + 1);
 		if (this->ChildrenUseRelative())
 			this->AddCode(STS() << "ImVec2 " << content_region_string << " = ImGui::GetContentRegionAvail();", current_depth + 1);
@@ -544,31 +546,39 @@ void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_dep
 			if (child->delete_me)
 				continue;
 			child->v_render_index = r;
-			child->Render(region_avail, current_depth + 1, ws);
+			child->Render(region_avail, current_depth + 1, ws, nullptr, (v_requires_open && !v_is_open) || script_only); //no callbacks on children
 			r++;
 		}
 		//this->AddCode(" ", current_depth);
 		
-		this->AddCode("}");
+		//this->AddCode("}");
 
 	}
 	else
 	{
 		this->AddCode(this->RenderInternal(script_only));
 	}
+
 	if (callback)
 		callback();
 
 	if (this->v_can_have_children)
 		v_scroll_position = { ImGui::GetScrollX(), ImGui::GetScrollY() };
 }
-void ImGuiElement::RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace)
+void ImGuiElement::RenderFootInternal(ImVec2& ContentRegionAvail, int current_depth, WorkSpace* workspace, bool script_only)
 {
 	ImGuiContext& g = *GImGui;
 	bool was_disabled = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
 	ImGuiWindow* window = g.CurrentWindow;
-	bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
-	this->AddCode(this->RenderFoot(script_only));
+	//bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
+	if (this->v_requires_open || this->v_can_have_children)
+	{
+		this->AddCode(this->RenderFoot(script_only), current_depth + 1);
+		this->AddCode("}");
+	}
+	else
+		this->AddCode(this->RenderFoot(script_only));
+	
 	if (igd::active_workspace->interaction_mode == InteractionMode::designer)
 	{
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
@@ -672,39 +682,39 @@ void ImGuiElement::InteractionWindow()
 
 
 }
-void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback)
+void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback, bool script_only)
 {
 	ImGuiContext& g = *GImGui;
-	RenderHeadInternal(_ContentRegionAvail, current_depth, ws);
+	RenderHeadInternal(_ContentRegionAvail, current_depth, ws, script_only);
 	
 	//some elements need to interact before they add any children (like combo)
 	if (this->v_type_id == (int)element_type::combo)
 	{
 		InteractionItem();
-		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
-		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
 	}
 	else if (this->v_type_id == (int)element_type::window)
 	{
-		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
 		InteractionWindow();
 		if (g.MouseCursor >= 2 && g.MouseCursor <= 6)
 		{
 			ImGui::SetCursorPos({ 0, 0 });
 			ImGui::InvisibleButton("resize window move blocker!", ImGui::GetWindowSize() - ImVec2(10, 10)); //some bs way to block the window from moving when resizing
 		}
-		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
 	}
 	else if (this->v_type_id == (int)element_type::selectable)
 	{
-		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
-		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
 		InteractionSelectable();
 	}
 	else
 	{
-		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback);
-		RenderFootInternal(_ContentRegionAvail, current_depth, ws);
+		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
+		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
 		InteractionItem();
 	}
 

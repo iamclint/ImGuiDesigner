@@ -621,7 +621,7 @@ void WorkSpace::OnUIRender() {
 		igd::active_workspace->code << std::endl << std::endl;
 	}
 
-	basic_workspace_element->Render({0,0}, 0, this, std::bind(&WorkSpace::KeyBinds, this));
+	basic_workspace_element->Render({0,0}, 0, this, std::bind(&WorkSpace::KeyBinds, this), false);
 
 
 	if (this == igd::active_workspace)

@@ -603,6 +603,9 @@ void Properties::OnUIRender() {
 	strcpy_s(buf, 25, "Input");
 	ImGuiContext& g = *GImGui;
 	ImGuiIO& io = g.IO;
+	if (!igd::active_workspace)
+		return;
+
 	if (!igd::active_workspace->GetSingleSelection())
 		igd::active_workspace->SetSingleSelection(igd::active_workspace->basic_workspace_element);
 	is_workspace = igd::active_workspace->GetSingleSelection() == igd::active_workspace->basic_workspace_element;

@@ -103,10 +103,10 @@ namespace igd
 			return code.str();
 		};
 		std::string ScriptInternal() {
-			return "ImGui::EndTabItem();";
+			return "";
 		};
 
-		std::string ScriptFoot() { return ""; };
+		std::string ScriptFoot() { return "ImGui::EndTabItem();"; };
 		
 		virtual std::string RenderHead(bool script_only) override
 		{
@@ -128,17 +128,12 @@ namespace igd
 		virtual std::string RenderFoot(bool script_only) override
 		{
 			if (v_id == "")
-				return "";
+				return ScriptFoot();
 			if (v_is_open && !script_only)
 			{
-
-				////a little bug fix for imgui hover when in tabs
-				//ImVec2 cp = ImGui::GetCursorPos();
-				//ImGui::Dummy({ 50,50 });
-				//ImGui::SetCursorPos(cp);
 				ImGui::EndTabItem();
 			}
-			return "";
+			return ScriptFoot();
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{

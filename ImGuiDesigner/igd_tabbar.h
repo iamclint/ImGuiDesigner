@@ -24,7 +24,7 @@ namespace igd
 			v_label = "";
 			v_border = true;
 			v_can_have_children = true;
-			v_requires_open = false;
+			v_requires_open = true;
 			v_is_open = false;
 			v_parent_required_id = (int)element_type::window | (int)element_type::childwindow;
 			
@@ -110,10 +110,10 @@ namespace igd
 			return code.str();
 		};
 		std::string ScriptInternal() {
-			return "ImGui::EndTabBar();";
+			return "";
 		};
 
-		std::string ScriptFoot() { return ""; };
+		std::string ScriptFoot() { return "ImGui::EndTabBar();"; };
 
 
 		virtual std::string RenderHead(bool script_only) override
@@ -136,10 +136,10 @@ namespace igd
 		virtual std::string RenderFoot(bool script_only) override
 		{
 			if (v_id == "")
-				return "";
+				return ScriptFoot();
 			if (v_is_open && !script_only)
 				ImGui::EndTabBar();
-			return "";
+			return ScriptFoot();
 		}
 		virtual void FromJSON(nlohmann::json data) override
 		{
