@@ -2,11 +2,11 @@
 .DS_Store
 _ReSharper*
 *.opensdf
-*.sdf
-*.suo
-*.dir
-*.vcxproj*
-*.sln
+#*.sdf
+#*.suo
+#*.dir
+#*.vcxproj*
+#*.sln
 .vs
 CMakeSettings.json
 Win32
