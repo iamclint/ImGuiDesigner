@@ -4,7 +4,7 @@
 #include "..\Properties.h"
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
-#include "GLFW/glfw3.h"
+#include "includes/glfw3.h"
 #include "..\textures\icon.embed"
 #include "..\textures\logo.embed"
 #include "..\includes\stb_image.h"

@@ -16,9 +16,6 @@
     <ClCompile Include="ImGuiElement.cpp">
       <Filter>CPP</Filter>
     </ClCompile>
-    <ClCompile Include="..\Walnut\vendor\imgui\misc\cpp\imgui_stdlib.cpp">
-      <Filter>CPP</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs.cpp">
       <Filter>CPP</Filter>
     </ClCompile>
@@ -55,6 +52,9 @@
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>CPP\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>CPP\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -71,9 +71,6 @@
     </Filter>
     <Filter Include="CPP\ImGui">
       <UniqueIdentifier>{dce602d5-fb1c-448f-9a02-5c185f4b9b14}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CPP\GLFW">
-      <UniqueIdentifier>{69d2b0a6-677f-4910-a9c7-8f25e3501343}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 #pragma once
-#include "imgui.h"
+#include "imgui/imgui.h"
 #include <algorithm>
 #include <string>
 #include <memory>
@@ -7,7 +7,7 @@
 #include <sstream>
 #include "../json/single_include/nlohmann/json.hpp"
 #include "FontManager.h"
-#include "imgui_internal.h"
+#include "imgui/imgui_internal.h"
 #include "Workspace.h"
 #include "ScriptHelpers.h"
 #include "includes/Image.h"
