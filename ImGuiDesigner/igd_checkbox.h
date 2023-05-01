@@ -19,6 +19,7 @@ namespace igd
 		CheckBox() {
 			v_icon = igd::textures.images["check"];
 			v_tooltip = "Checkbox";
+			v_label = "A checkbox";
 			v_type_id = (int)element_type::checkbox;
 			is_checked = false;
 			ImGuiContext& g = *GImGui;

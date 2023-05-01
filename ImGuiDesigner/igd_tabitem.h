@@ -17,7 +17,7 @@ namespace igd
 			v_can_contain_own_type = false;
 			ImGuiContext& g = *GImGui;
 			v_flags = 0;
-			v_property_flags = property_flags::pos | property_flags::disabled | property_flags::border;
+			v_property_flags = property_flags::disabled | property_flags::border;
 			v_size = ImVec2(0, 0);
 			v_id = ("TabItem##" + RandomID()).c_str();
 			v_label = "";

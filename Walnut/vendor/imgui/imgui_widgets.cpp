@@ -7932,7 +7932,7 @@ bool    ImGui::BeginTabItem(const char* label, bool* p_open, ImGuiTabItemFlags f
     return ret;
 }
 
-void    ImGui::EndTabItem()
+void ImGui::EndTabItem()
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;

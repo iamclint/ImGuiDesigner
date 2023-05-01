@@ -1198,7 +1198,10 @@ void ImGuiElement::Interact()
 		{
 			if (e == this)
 			{
-				if (Resize() || Drag())
+				bool drag = false;
+				if (this->v_property_flags & property_flags::pos)
+					drag = Drag();
+				if (Resize() || drag)
 					igd::active_workspace->is_interacting = true;
 				else
 					igd::active_workspace->is_interacting = false;

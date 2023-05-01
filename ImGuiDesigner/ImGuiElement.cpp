@@ -442,7 +442,7 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	//bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	if (ContentRegionString == "")
 		ContentRegionString = "ContentRegionAvail";
-	if (v_pos.value.x != 0 || v_pos.value.y != 0)
+	if ((v_pos.value.x != 0 || v_pos.value.y != 0 ) && (v_property_flags & property_flags::pos))
 	{
 		if (v_pos.type == Vec2Type::Absolute)
 		{
@@ -688,12 +688,13 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	RenderHeadInternal(_ContentRegionAvail, current_depth, ws, script_only);
 	
 	//some elements need to interact before they add any children (like combo)
-	if (this->v_type_id == (int)element_type::combo)
+	if (this->v_type_id == (int)element_type::combo || this->v_type_id == (int)element_type::tabitem)
 	{
 		InteractionItem();
 		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
 		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
 	}
+
 	else if (this->v_type_id == (int)element_type::window)
 	{
 		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
