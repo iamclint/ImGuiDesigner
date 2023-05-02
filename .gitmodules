@@ -1,4 +1,7 @@
 [submodule "json"]
-	path= json
+	path = json
 	url = https://github.com/nlohmann/json
 
+[submodule "Walnut"]
+	path = Walnut
+	url = https://github.com/iamclint/Walnut
