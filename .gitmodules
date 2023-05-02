@@ -1,0 +1,4 @@
+[submodule "[--]"]
+	url = D:\\vs2020 Projects\\ImGuiDesigner\\json
+[submodule "D:\\vs2020 Projects\\ImGuiDesigner\\json"]
+	url = https://github.com/nlohmann/json
