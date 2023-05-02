@@ -72,6 +72,9 @@
     <Filter Include="CPP\ImGui">
       <UniqueIdentifier>{dce602d5-fb1c-448f-9a02-5c185f4b9b14}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Walnut/GLFW">
+      <UniqueIdentifier>{d8820184-af04-4efc-ba8c-54424295aa74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToolBar.h">
@@ -164,6 +167,24 @@
     </ClInclude>
     <ClInclude Include="TextEditor.h">
       <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Application.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\EntryPoint.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\glfw3.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Layer.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\stb_image.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Image.h">
+      <Filter>Headers\Walnut/GLFW</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
