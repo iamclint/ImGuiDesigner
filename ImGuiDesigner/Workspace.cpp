@@ -1,5 +1,5 @@
 #include "Workspace.h"
-#include "includes/Image.h"
+#include "Image.h"
 #include "imgui_internal.h"
 #include "ImGuiElement.h"
 #include "ImGuiDesigner.h"
@@ -7,7 +7,6 @@
 #include <fstream>
 #include <filesystem>
 #include "igd_elements.h"
-#include "boost/algorithm/string.hpp"
 
 WorkSpace::~WorkSpace()
 {

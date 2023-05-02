@@ -1,13 +1,13 @@
-#include "..\includes\Application.h"
-#include "..\includes\EntryPoint.h"
+#include "Application.h"
+#include "EntryPoint.h"
 #include "..\ToolBar.h"
 #include "..\Properties.h"
 #include "..\Workspace.h"
 #include "..\ImGuiDesigner.h"
-#include "includes/glfw3.h"
+#include "glfw3.h"
 #include "..\textures\icon.embed"
 #include "..\textures\logo.embed"
-#include "..\includes\stb_image.h"
+#include "stb_image.h"
 #include "..\fonts\pt.embed"
 #include <iostream>
 

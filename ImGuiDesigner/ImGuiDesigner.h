@@ -6,7 +6,7 @@
 #include "FontManager.h"
 #include "Settings.h"
 #include <filesystem>
-#include "includes/Image.h"
+#include "Image.h"
 #include "Textures.h"
 #include "igd_imgui_widgets.h"
 

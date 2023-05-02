@@ -55,6 +55,7 @@
     <ClCompile Include="imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>CPP\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="StringAlgorithm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -186,6 +187,7 @@
     <ClInclude Include="includes\Image.h">
       <Filter>Headers\Walnut/GLFW</Filter>
     </ClInclude>
+    <ClInclude Include="StringAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ImGuiDesigner.rc" />

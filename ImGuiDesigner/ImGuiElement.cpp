@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <random>
 #include "Dialogs.h"
-#include <boost/algorithm/string.hpp>
+#include "StringAlgorithm.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 void ImGuiElement::ResetInteraction()
@@ -374,26 +374,22 @@ std::string GetCodeTabs(int depth)
 
 std::string ImGuiElement::GetIDForVariable()
 {
-	std::vector<std::string> sp_id;
-	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	std::vector<std::string> sp_id=StringAlgorithm::split(v_id, "##");
 	std::string var_str = sp_id.front();
-	boost::replace_all(var_str, " ", "_");
-	//add v_depth just as a scope indicator
+	StringAlgorithm::replaceAll(var_str, " ", "_");
 	return var_str + std::to_string(v_depth);
 }
 std::vector<std::string> ImGuiElement::GetSplitID()
 {
-	std::vector<std::string> sp_id;
-	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	std::vector<std::string> sp_id = StringAlgorithm::split(v_id, "##");
 	return sp_id;
 }
 
 std::string ImGuiElement::GetContentRegionString()
 {
-	std::vector<std::string> sp_id;
-	boost::split(sp_id, v_id, boost::is_any_of("##"));
+	std::vector<std::string> sp_id = StringAlgorithm::split(v_id, "##");
 	std::string content_region_id = sp_id.front();
-	boost::replace_all(content_region_id, " ", "_");
+	StringAlgorithm::replaceAll(content_region_id, " ", "_");
 	return "ContentRegionAvail_" + content_region_id + std::to_string(v_depth);
 }
 
@@ -412,8 +408,7 @@ void ImGuiElement::AddCode(std::string code, int depth)
 {
 	if (code == "")
 		return;
-	std::vector<std::string> sp_data;
-	boost::split(sp_data, code, boost::is_any_of("\n"));
+	std::vector<std::string> sp_data = StringAlgorithm::split(code, "\n");
 	if (this->v_workspace)
 	{
 		for (auto& data : sp_data)

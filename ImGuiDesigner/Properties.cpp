@@ -1,5 +1,5 @@
 #include "Properties.h"
-#include "includes/Image.h"
+#include "Image.h"
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "ImGuiElement.h"
@@ -9,9 +9,9 @@
 #include "vulkan/vulkan.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
-#include <boost/algorithm/string.hpp>
 #include "../json/single_include/nlohmann/json.hpp"
 #include <fstream>
+#include "StringAlgorithm.h"
 
 void Properties::PropertyLabel(const char* lbl)
 {
@@ -56,14 +56,12 @@ void Properties::getAllChildren(ImGuiElement* parent)
 }
 std::vector<std::string> GetIDSplit(std::string id)
 {
-	std::vector<std::string> sp_id;
-	boost::split(sp_id, id, boost::is_any_of("##"));
+	std::vector<std::string> sp_id = StringAlgorithm::split(id, "##");
 	return sp_id;
 }
 std::string GetFlagName(std::string flag)
 {
-	std::vector<std::string> sp_flag;
-	boost::split(sp_flag, flag, boost::is_any_of("_"));
+	std::vector<std::string> sp_flag = StringAlgorithm::split(flag, "_");
 	if (sp_flag.size() > 0)
 		return sp_flag[sp_flag.size() - 1];
 	else

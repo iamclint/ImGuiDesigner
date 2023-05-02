@@ -106,7 +106,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WL_PLATFORM_WINDOWS;WL_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>imgui;includes;D:\vs2020 Projects\boost_1_81_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>imgui;includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -167,6 +167,7 @@
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
+    <ClCompile Include="StringAlgorithm.cpp" />
     <ClCompile Include="TextEditor.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="ToolBar.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScriptHelpers.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="StringAlgorithm.h" />
     <ClInclude Include="TextEditor.h" />
     <ClInclude Include="Textures.h" />
     <ClInclude Include="ToolBar.h" />
