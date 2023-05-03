@@ -675,6 +675,8 @@ void ImGuiElement::InteractionWindow()
 	if (!is_child_hovered)
 		Interact();
 
+	igd::active_workspace->HandleInteraction(); //workspace interactions
+
 
 }
 void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpace* ws, std::function<void()> callback, bool script_only)
@@ -694,12 +696,8 @@ void ImGuiElement::Render(ImVec2 _ContentRegionAvail, int current_depth, WorkSpa
 	{
 		RenderMidInternal(_ContentRegionAvail, current_depth, ws, callback, script_only);
 		InteractionWindow();
-		if (g.MouseCursor >= 2 && g.MouseCursor <= 6)
-		{
-			ImGui::SetCursorPos({ 0, 0 });
-			ImGui::InvisibleButton("resize window move blocker!", ImGui::GetWindowSize() - ImVec2(10, 10)); //some bs way to block the window from moving when resizing
-		}
 		RenderFootInternal(_ContentRegionAvail, current_depth, ws, script_only);
+
 	}
 	else if (this->v_type_id == (int)element_type::selectable)
 	{

@@ -76,6 +76,9 @@
     <Filter Include="Headers\Walnut/GLFW">
       <UniqueIdentifier>{d8820184-af04-4efc-ba8c-54424295aa74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\ImGui">
+      <UniqueIdentifier>{830cc747-f9ab-45dd-8d95-5370208feefa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToolBar.h">
@@ -188,6 +191,9 @@
       <Filter>Headers\Walnut/GLFW</Filter>
     </ClInclude>
     <ClInclude Include="StringAlgorithm.h" />
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ImGuiDesigner.rc" />

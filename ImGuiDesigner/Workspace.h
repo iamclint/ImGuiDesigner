@@ -48,6 +48,7 @@ public:
 	void ResetSelectTimeout();
 	void SelectElement(ImGuiElement* element);
 	void ResetDrag(ImGuiElement* Parent);
+	void HandleInteraction();
 	ImRect GetSelectedRect();
 	WorkSpace();
 	~WorkSpace();

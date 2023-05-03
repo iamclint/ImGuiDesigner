@@ -184,7 +184,7 @@ namespace igd
 			ImGui::SetNextWindowDockID(ImGui::GetID("VulkanAppDockspace"), ImGuiCond_Once);
 			ImGui::SetNextWindowSize(v_size.value, ImGuiCond_Once);
 			//igd::push_designer_theme();
-			ImGui::Begin(v_id.c_str(), v_window_bool, v_flags);
+			ImGui::Begin(v_id.c_str(), v_window_bool, v_flags | ImGuiWindowFlags_NoBringToFrontOnFocus);
 			//igd::pop_designer_theme(); //only around begin so the title bar matches designers theme
 			if (ImGui::IsWindowAppearing())
 			{

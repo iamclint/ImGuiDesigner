@@ -226,7 +226,7 @@ void WorkSpace::SelectRect(ImGuiElement* element)
 void WorkSpace::DragSelect()
 {
 	ImGuiContext& g = *GImGui;
-	if (!ImGui::IsAnyItemHovered() && (g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput))
+	if ((g.MouseCursor == ImGuiMouseCursor_Hand || g.MouseCursor == ImGuiMouseCursor_Arrow || g.MouseCursor == ImGuiMouseCursor_TextInput))
 	{
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
@@ -299,6 +299,56 @@ void WorkSpace::ResetDrag(ImGuiElement* Parent)
 	for (auto& e : Parent->children)
 		ResetDrag(e);
 }
+
+void WorkSpace::HandleInteraction()
+{
+	ImGuiContext& g = *GImGui;
+	if ((g.MouseCursor >= 2 && g.MouseCursor <= 6) || ImGui::GetIO().KeyShift)
+	{
+		ImGui::SetCursorPos({ 0, 0 });
+		ImGui::InvisibleButton("resize window move blocker!", ImGui::GetWindowSize() - ImVec2(10, 10)); //some bs way to block the window from moving when resizing
+
+	}
+	if (this->is_dragging)
+	{
+		this->basic_workspace_element->RenderDrag();
+	}
+	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging && this->selected_elements.size() > 0)
+	{
+		if (this->selected_elements.size() > 1) //some witchcrafted drag snapping for multiselected elements
+		{
+			ImRect total_selected_rect = this->GetSelectedRect();
+			ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
+			if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
+			{
+				this->multi_drag_element->item_rect = total_selected_rect;
+				this->multi_drag_element->v_parent = this->selected_elements.front()->v_parent;
+				this->multi_drag_element->v_pos.value = total_selected_rect.Min;
+				this->multi_drag_element->v_size.value = total_selected_rect_size;
+				this->multi_drag_element->v_pos.type = Vec2Type::Absolute;
+				this->multi_drag_element->v_size.type = Vec2Type::Absolute;
+				this->multi_drag_element->v_pos_dragging = total_selected_rect.Min;
+				this->multi_drag_element->DragSnap();
+				for (auto& e : this->selected_elements)
+				{
+					e->v_pos_dragging.value = this->multi_drag_element->v_pos_dragging.value + e->multi_select_offset;
+				}
+			}
+		}
+		else
+		{
+			for (auto& e : this->selected_elements)
+				e->DragSnap();
+
+		}
+		ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+	}
+	else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && this->is_dragging)
+	{
+		this->is_dragging = false;
+	}
+}
+
 void WorkSpace::KeyBinds()
 {
 	ImGuiContext& g = *GImGui;
@@ -626,45 +676,6 @@ void WorkSpace::OnUIRender() {
 	if (this == igd::active_workspace)
 	{
 
-		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->is_dragging && this->selected_elements.size()>0 )
-		{
-			if (this->selected_elements.size() > 1) //some witchcrafted drag snapping for multiselected elements
-			{
-				ImRect total_selected_rect = GetSelectedRect();
-				ImVec2 total_selected_rect_size = total_selected_rect.GetSize();
-				if (total_selected_rect_size.x > 0 && total_selected_rect_size.y > 0)
-				{
-					multi_drag_element->item_rect = total_selected_rect;
-					multi_drag_element->v_parent = this->selected_elements.front()->v_parent;
-					multi_drag_element->v_pos.value = total_selected_rect.Min;
-					multi_drag_element->v_size.value = total_selected_rect_size;
-					multi_drag_element->v_pos.type = Vec2Type::Absolute;
-					multi_drag_element->v_size.type = Vec2Type::Absolute;
-					multi_drag_element->v_pos_dragging = total_selected_rect.Min;
-					multi_drag_element->DragSnap();
-					for (auto& e : this->selected_elements)
-					{
-						e->v_pos_dragging.value =multi_drag_element->v_pos_dragging.value+e->multi_select_offset;
-					}
-				}
-			}
-			else
-			{
-				for (auto& e : this->selected_elements)
-					e->DragSnap();
-
-			}
-			ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
-		}
-		else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && this->is_dragging)
-		{
-			igd::active_workspace->is_dragging = false;
-		}
-
-		if (this->is_dragging)
-		{
-			this->basic_workspace_element->RenderDrag();
-		}
 		if (this->hovered_element)
 		{
 			this->hovered_element->HandleDrop();

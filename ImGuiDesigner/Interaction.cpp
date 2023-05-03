@@ -315,6 +315,8 @@ void ImGuiElement::DragSnap()
 		}
 		
 		//nearest = igd::GetNearestElement(this, true);
+		if (!this->v_parent)
+			return;
 		for (auto& nearest : this->v_parent->children)
 		{
 			if (nearest == this || nearest->delete_me)
@@ -501,7 +503,7 @@ bool ImGuiElement::Drag()
 		}
 	}
 
-	if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->v_is_dragging)
+	if ((ImGui::IsMouseDragging(ImGuiMouseButton_Left) && this->v_is_dragging) || (ImGui::IsMouseDown(ImGuiMouseButton_Left) && this->v_is_dragging))
 	{
 		igd::active_workspace->is_dragging = true;
 		did_move = true;
@@ -552,7 +554,8 @@ void ImGuiElement::RenderDrag()
 
 			if (e->delete_me)
 				continue;
-			ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
+			ImGui::GetForegroundDrawList()->AddRectFilled(e->v_pos_dragging.value, e->v_pos_dragging.value + e->GetRawSize(), ImColor(125, 125, 125, 125), g.Style.FrameRounding);
+			/*ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(125, 125, 125, 125));
 			ImGui::SetNextWindowBgAlpha(0.5);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -616,7 +619,7 @@ void ImGuiElement::RenderDrag()
 				ImGui::End();
 			}
 			ImGui::PopStyleVar(2);
-			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();*/
 		}
 }
 
@@ -1196,7 +1199,7 @@ void ImGuiElement::Interact()
 
 		for (auto& e : igd::active_workspace->selected_elements)
 		{
-			if (e == this)
+			if (e == this && this!=igd::active_workspace->basic_workspace_element)
 			{
 				bool drag = false;
 				if (this->v_property_flags & property_flags::pos)

@@ -203,6 +203,7 @@
     <ClInclude Include="igd_window.h" />
     <ClInclude Include="ImGuiElement.h" />
     <ClInclude Include="Dialogs.h" />
+    <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="includes\Application.h" />
     <ClInclude Include="includes\EntryPoint.h" />
     <ClInclude Include="includes\glfw3.h" />
