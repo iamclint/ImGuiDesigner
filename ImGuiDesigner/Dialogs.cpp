@@ -2,8 +2,10 @@
 #include <Windows.h>
 #include "Application.h"
 #include "ImGuiDesigner.h"
+#include "SettingsTabs.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <iostream>
+
 void Dialogs::GenericNotification(std::string title, std::string message, std::string icon_path, std::string button_text, std::function<void()> callback)
 {
 	this->show_generic = true;
@@ -170,39 +172,82 @@ void Dialogs::ShowSettings()
 	show_settings = true;
 }
 
+
+template<typename T, typename... U>
+size_t getAddress(std::function<T(U...)> f) {
+	typedef T(fnType)(U...);
+	fnType** fnPointer = f.template target<fnType*>();
+	if (fnPointer)
+		return (size_t)*fnPointer;
+	else 
+		return 0;
+}
+
+
 void Dialogs::Settings()
 {
-	if (this->show_settings)
-	{
-		this->title = "Settings";
-		ImGui::OpenPopup("Settings");
-		this->show_settings = false;
-	}
+	if (!this->show_settings)
+		return;
+
 	ImGui::SetNextWindowSize({ 800, 600 });
-	if (this->BeginDialog("Settings"))
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10177, 0.10177, 0.10177, 0.847059));
+	if (ImGui::Begin("Settings", &this->show_settings, ImGuiWindowFlags_NoResize))
 	{
-		/*ImGui::PushFont(igd::font_manager->GetFont("designer", 36)->font);
-		ImVec2 size = ImGui::CalcTextSize("Settings");
-		ImGui::SetCursorPosX((ImGui::GetWindowWidth() - size.x) / 2);
-		ImGui::Text("Settings");
-		ImGui::PopFont();*/
-		ImGui::Dummy({ 0,20 });
-		if (ImGui::Checkbox("Select all selects all children", &igd::settings->bools["select_children"]))
-			igd::settings->save();
-		if (ImGui::Checkbox("Select parent after copy", &igd::settings->bools["select_copy_parent"]))
-			igd::settings->save();
-		ImVec2 b_size = ImGui::GetContentRegionAvail();
-		float width = b_size.x - GImGui->Style.FramePadding.x;
-		
-		ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetWindowSize().y  - (GImGui->Style.FramePadding.y*2)-60 });
-		if (ImGui::Button("Ok", { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		ImVec2 ContentRegionAvail_Options0 = ImGui::GetContentRegionAvail();
+		ImGui::BeginChild("List##l7b3dHVRn8RjD1i", { (ContentRegionAvail_Options0.x * 0.2f) - GImGui->Style.FramePadding.x, (ContentRegionAvail_Options0.y * 0.f) - GImGui->Style.FramePadding.y }, 1, 0);
 		{
-			igd::UnPressKey(ImGuiKey_Escape);
-			ImGui::CloseCurrentPopup();
+			for (auto& [name, callback] : igd::settings_tabs)
+			{
+				if (ImGui::Selectable(name, getAddress(callback)==getAddress(settings_tab), 0, { 0.f,0.f }))
+					settings_tab = callback;
+			}
+			ImGui::EndChild();
 		}
-		ImGui::Spacing();
+		ImGui::SameLine();
+		ImGui::BeginChild("Data##J9SBpNgZ1DZvdaj", { (ContentRegionAvail_Options0.x * 0.8f) - GImGui->Style.FramePadding.x, (ContentRegionAvail_Options0.y * 0.9f) - GImGui->Style.FramePadding.y }, 1, 0);
+		{
+			if (!settings_tab)
+				settings_tab = igd::settings_tabs.begin()->second;
+			if (settings_tab)
+				settings_tab();
+			ImGui::EndChild();
+		}
+		ImGui::SetCursorPos({ ContentRegionAvail_Options0.x * 0.801858f - 60.f, ContentRegionAvail_Options0.y * 0.977887f });
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6);
+		ImGui::BeginChild("child window##xwDsrDFdaNZAMI6", { 210.f,38.f }, 1, 0);
+		{
+			if (ImGui::Button("OK##0znowJM1UXy3x9M", { 100.f,35.f }) || ImGui::IsKeyPressed(ImGuiKey_Enter))
+			{
+				igd::UnPressKey(ImGuiKey_Enter);
+				this->show_settings = false;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel##KRTzUeDOSI0VNUX", { 100.f,35.f }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+			{
+				igd::UnPressKey(ImGuiKey_Escape);
+				this->show_settings = false;
+			}
+			ImGui::EndChild();
+		}
+
+		ImGui::PopStyleVar(1);
+		ImGui::PopStyleColor(1);
+				
+		//ImVec2 b_size = ImGui::GetContentRegionAvail();
+		//float width = b_size.x - GImGui->Style.FramePadding.x;
+		//
+		//ImGui::SetCursorPos({ ImGui::GetCursorPosX(), ImGui::GetWindowSize().y  - (GImGui->Style.FramePadding.y*2)-60 });
+		//if (ImGui::Button("Ok", { width, 45 }) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		//{
+		//	igd::UnPressKey(ImGuiKey_Escape);
+		//	ImGui::CloseCurrentPopup();
+		//}
+		//ImGui::Spacing();
 	}
-	this->EndDialog();
+	ImGui::End();
+	ImGui::PopStyleColor();
 }
 
 

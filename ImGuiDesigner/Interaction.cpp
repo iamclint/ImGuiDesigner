@@ -554,7 +554,8 @@ void ImGuiElement::RenderDrag()
 
 			if (e->delete_me)
 				continue;
-			ImGui::GetForegroundDrawList()->AddRectFilled(e->v_pos_dragging.value, e->v_pos_dragging.value + e->GetRawSize(), ImColor(125, 125, 125, 125), g.Style.FrameRounding);
+			//simple rect drag render to solve some bugs the other way was causing
+			ImGui::GetWindowDrawList()->AddRectFilled(e->v_pos_dragging.value, e->v_pos_dragging.value + e->GetRawSize(), ImColor(125, 125, 125, 125), g.Style.FrameRounding);
 			/*ImGui::SetNextWindowPos(ImVec2(e->v_pos_dragging.value.x, e->v_pos_dragging.value.y), ImGuiCond_Always, ImVec2(0, 0));
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(125, 125, 125, 125));
 			ImGui::SetNextWindowBgAlpha(0.5);

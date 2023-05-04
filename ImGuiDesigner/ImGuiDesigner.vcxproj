@@ -169,6 +169,7 @@
     <ClCompile Include="Properties.cpp" />
     <ClCompile Include="ScriptHelpers.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SettingsTabs.cpp" />
     <ClCompile Include="src\WalnutApp.cpp">
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -214,6 +215,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScriptHelpers.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="SettingsTabs.h" />
     <ClInclude Include="StringAlgorithm.h" />
     <ClInclude Include="TextEditor.h" />
     <ClInclude Include="Textures.h" />

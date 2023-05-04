@@ -10,7 +10,7 @@
 #include "stb_image.h"
 #include "..\fonts\pt.embed"
 #include <iostream>
-
+#include "..\SettingsTabs.h"
 namespace igd
 { 
 	WorkSpace* active_workspace;
@@ -512,6 +512,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 		{
 			if (ImGui::MenuItem("About"))
 			{
+				igd::dialogs->settings_tab = igd::settings_tabs["About"];
 				igd::dialogs->ShowSettings();
 			}
 			ImGui::EndMenu();

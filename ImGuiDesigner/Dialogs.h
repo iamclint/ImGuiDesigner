@@ -23,7 +23,7 @@ public:
 	void SaveFile(std::function<void(std::string)> callback);
 	void OpenFile(std::function<void(std::string)> callback, const char* filter = "ImGuiDesigner Files (*.igd)\0*.igd\0All Files\0*.*\0\0");
 	bool IsShowing();
-	
+	std::function<void()> settings_tab;
 	virtual void OnUIRender() override;
 private:
 	bool BeginDialog(const char* title);
@@ -49,6 +49,7 @@ private:
 	std::function<void(bool, std::vector<std::string>)> callback_inputtext_vec;
 	std::function<void(bool, std::vector<std::string>, std::string)> callback_widget;
 	
+
 	std::string title;
 	std::string message;
 	std::string icon_path;
