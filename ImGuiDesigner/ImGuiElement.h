@@ -165,6 +165,29 @@ inline int operator&(property_flags a, property_flags b)
 {
 	return static_cast<int>(static_cast<int>(a) & static_cast<int>(b));
 }
+
+static const char* AlignmentStrings[] = {
+	"none",
+	"top left",
+	"top right",
+	"bottom left",
+	"bottom right",
+	"center",
+	"horizontal center",
+	"verticle center"
+};
+enum class Alignments : int
+{
+	none,
+	top_left,
+	top_right,
+	bottom_left,
+	bottom_right,
+	center,
+	horizontal_center,
+	verticle_center
+};
+
 enum class ResizeDirection : int
 {
 	none,
@@ -321,6 +344,8 @@ public:
 	bool v_auto_select;
 	float v_aspect_ratio;
 	bool v_is_dragging;
+	
+	Alignments v_alignment;
 	std::string v_variable_name;
 	Walnut::Image* v_icon;
 	std::string v_tooltip;
@@ -396,4 +421,5 @@ private:
 	ImVec2 last_position;
 	ImVec2 last_known_cursor;
 	ImVec2 mouse_drag_delta;
+	ImVec2 cursor_pos;
 };

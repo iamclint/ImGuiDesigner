@@ -7,12 +7,13 @@
 #pragma comment(lib, "shell32.lib")
 namespace igd
 {
-	void Link(std::string url)
+	void Link(std::string url, std::string title="")
 	{
+		std::string caption = title.empty() ? url : title;
 		ImColor color = ImColor(21, 199, 255, 255);
-		ImVec2 size = ImGui::CalcTextSize(url.c_str());
+		ImVec2 size = ImGui::CalcTextSize(caption.c_str());
 		ImVec2 pos = ImGui::GetWindowPos()+ImGui::GetCursorPos();
-		ImGui::TextColored(color, url.c_str());
+		ImGui::TextColored(color, caption.c_str());
 		ImGui::GetWindowDrawList()->AddLine({ pos.x, pos.y + size.y + 2 }, { pos.x + size.x, pos.y + size.y + 2 }, color, 1.0f);
 		if (ImGui::IsItemHovered())
 		{
@@ -34,9 +35,19 @@ namespace igd
 	}
 	void About()
 	{
-		ImGui::Text("Icons provided by"); 
-		ImGui::SameLine(0, -1);
-		Link("https://icons8.com/");
+		ImGui::BeginTable("##about", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit);
+		ImGui::TableNextColumn();	ImGui::Text("Main Gui"); ImGui::TableNextColumn();	ImGui::Text("Dear ImGui Docking Branch"); ImGui::TableNextColumn(); Link("https://github.com/ocornut/imgui/tree/docking", "GitHub");
+		ImGui::TableNextColumn();	ImGui::Text("Application framework");	ImGui::TableNextColumn();	ImGui::Text("Walnut by The Cherno"); ImGui::TableNextColumn(); Link("https://github.com/TheCherno/Walnut", "GitHub");
+		ImGui::TableNextColumn();	ImGui::Text("Application framework");	ImGui::TableNextColumn();	ImGui::Text("My fork of Walnut"); ImGui::TableNextColumn(); Link("https://github.com/iamclint/Walnut", "GitHub");
+		ImGui::TableNextColumn();	ImGui::Text("Icons");	ImGui::TableNextColumn();	ImGui::Text("Icons 8"); ImGui::TableNextColumn(); Link("https://icons8.com/", "Website");
+		ImGui::EndTable();
+	
+		ImGui::TextWrapped("I would like to extend a sincere thank you to everyone who has contributed their time and expertise to help shape ImGuiDesigner. Your valuable feedback and ideas have been essential to the development process, and I couldn't have done it without you.");
+		ImGui::TextWrapped("Special thanks to"); ImGui::SameLine(); Link("https://github.com/veteri", "Zeez,"); ImGui::SameLine(); Link("https://github.com/TerryS94", "Terry,");  ImGui::SameLine(); Link("https://github.com/imgemmy", "J$k"); ImGui::SameLine(); ImGui::Text("and Joe for their exceptional contributions"); 
+		ImGui::TextWrapped("and tireless efforts in testing and providing feedback.Their input has been instrumental in identifying issues and improving the overall user experience.");
+		ImGui::TextWrapped("I'm grateful to have such a dedicated and supportive community, and I look forward to continuing to work together to make ImGuiDesigner the best it can be.");
+		ImGui::TextWrapped("Thank you all again for your invaluable contributions.");
+
 		
 	}
 	std::unordered_map<const char*, std::function<void()>> settings_tabs =

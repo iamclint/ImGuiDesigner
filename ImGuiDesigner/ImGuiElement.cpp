@@ -63,7 +63,7 @@ ImGuiElement::ImGuiElement()
 	v_font(), v_sameline(false), v_depth(0), ContentRegionAvail(ImVec2(0, 0)), v_workspace(nullptr), v_render_index(0), needs_resort(false), v_requires_open(false), v_is_open(false), v_window_bool(nullptr),
 	v_type_id(0), v_can_contain_own_type(true), v_element_filter(0), v_parent_required_id(0), v_auto_select(true), v_path(""),
 	v_aspect_ratio(1.0f), is_child_hovered(false), drop_new_parent(false), was_dragging(false), v_tooltip(""), v_icon(nullptr),
-	v_is_dragging(false), SnapDelta()
+	v_is_dragging(false), SnapDelta(), v_alignment(Alignments::none)
 {
 	v_property_flags = property_flags::disabled;
 }
@@ -437,7 +437,68 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 	//bool script_only = (v_parent && v_parent->v_requires_open && !v_parent->v_is_open);
 	if (ContentRegionString == "")
 		ContentRegionString = "ContentRegionAvail";
-	if ((v_pos.value.x != 0 || v_pos.value.y != 0 ) && (v_property_flags & property_flags::pos))
+	
+	if (v_alignment != Alignments::none && this->v_parent)
+	{
+		std::string size_var = "size_" + this->v_parent->GetIDForVariable();
+		std::string size_x = igd::script::GetFloatString(this->GetRawSize().x);
+		std::string size_y = igd::script::GetFloatString(this->GetRawSize().y);
+
+		if (v_size.type == Vec2Type::Relative)
+		{
+			size_x = "ContentRegionAvail.x * " + igd::script::GetFloatString(v_size.value.x / 100);
+			size_y = "ContentRegionAvail.y * " + igd::script::GetFloatString(v_size.value.y/100);
+		}
+		if (this->v_parent->v_type_id == (int)element_type::window)
+			size_var = "ImGui::GetWindowSize()";
+
+		switch (v_alignment)
+		{
+			case(Alignments::top_left):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPos(cursor_pos);");
+				ImGui::SetCursorPos(this->v_parent->cursor_pos);
+				break;
+			}
+			case(Alignments::top_right):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + ImGui::GetContentRegionMax().x - " << size_x << ", cursor_pos.y}); ");
+				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + ImGui::GetContentRegionMax().x - this->GetRawSize().x - g.Style.WindowPadding.x, this->v_parent->cursor_pos.y });
+				break;
+			}
+			case(Alignments::bottom_left):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x , cursor_pos.y + ImGui::GetContentRegionMax().y - " << size_y << "}); ");
+				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x, this->v_parent->cursor_pos.y+ ImGui::GetContentRegionMax().y - this->GetRawSize().y });
+				break;
+			}
+			case(Alignments::bottom_right):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + ImGui::GetContentRegionMax().x - " << size_x << ", cursor_pos.y + ImGui::GetContentRegionMax().y - " << size_y << "}); ");
+				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + ImGui::GetContentRegionMax().x - this->GetRawSize().x, this->v_parent->cursor_pos.y + ImGui::GetContentRegionMax().y - this->GetRawSize().y });
+				break;
+			}
+			case(Alignments::center):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2), cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2)}); ");
+				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (this->GetRawSize().x/2), this->v_parent->cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (this->GetRawSize().y/2) });
+				break;
+			}
+			case(Alignments::horizontal_center):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPosX(cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2));");
+				ImGui::SetCursorPosX(this->v_parent->cursor_pos.x + (ImGui::GetContentRegionMax().x / 2) - (this->GetRawSize().x / 2));
+				break;
+			}
+			case(Alignments::verticle_center):
+			{
+				this->AddCode(STS() << "ImGui::SetCursorPosY(cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2));");
+				ImGui::SetCursorPosY(this->v_parent->cursor_pos.y + (ImGui::GetContentRegionMax().y / 2) - (this->GetRawSize().y / 2));
+				break;
+			}
+		}
+	}
+	else if ((v_pos.value.x != 0 || v_pos.value.y != 0 ) && (v_property_flags & property_flags::pos))
 	{
 		if (v_pos.type == Vec2Type::Absolute)
 		{
@@ -519,13 +580,20 @@ void ImGuiElement::RenderMidInternal(ImVec2& ContentRegionAvail, int current_dep
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
 
-
 	if (ContentRegionAvail.x == 0 && ContentRegionAvail.y == 0)
 		ContentRegionAvail = ImGui::GetContentRegionAvail();
 	ContentRegionAvailSelf = ImGui::GetContentRegionAvail();
 	if (this->v_requires_open || this->v_can_have_children)
 		this->AddCode("{");
-
+	if (v_can_have_children && this->v_type_id != (int)element_type::window)
+	{
+		this->AddCode(STS() << "static ImVec2 size_" << this->GetIDForVariable() << "= {1,1};", current_depth + 1);
+	}
+	if (v_can_have_children)
+	{
+		this->AddCode("ImVec2 cursor_pos = ImGui::GetCursorPos();", current_depth + 1);
+		this->cursor_pos = ImGui::GetCursorPos();
+	}
 	if (this->children.size() > 0)
 	{
 		ImVec2 region_avail = ImGui::GetContentRegionAvail();
@@ -642,6 +710,7 @@ void ImGuiElement::InteractionSelectable()
 	this->last_size -= bb.Max - bb.Min;
 	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
 	this->item_rect = ImRect(this->item_rect.Min + bb.Min, this->item_rect.Max + bb.Max);
+
 	HandleHover();
 	if (!is_child_hovered)
 		Interact();
@@ -657,7 +726,10 @@ void ImGuiElement::InteractionItem()
 	this->last_size = ImVec2(g.LastItemData.NavRect.Max.x - g.LastItemData.NavRect.Min.x, g.LastItemData.NavRect.Max.y - g.LastItemData.NavRect.Min.y);
 
 	this->item_rect = ImRect({ g.LastItemData.Rect.Min.x,g.LastItemData.Rect.Min.y }, { g.LastItemData.Rect.Max.x,g.LastItemData.Rect.Max.y });
-	
+	if (this->v_can_have_children && this->v_type_id!=(int)element_type::window)
+	{
+		this->AddCode(STS() << "size_" << this->GetIDForVariable() << " = ImVec2(g.LastItemData.NavRect.Max.x - g.LastItemData.NavRect.Min.x, g.LastItemData.NavRect.Max.y - g.LastItemData.NavRect.Min.y);");
+	}
 	HandleHover();
 	if (!is_child_hovered)
 		Interact();

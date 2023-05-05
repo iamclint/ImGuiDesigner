@@ -341,6 +341,29 @@ void Properties::General()
 	}
 
 	
+//	v_alignment
+		if (!is_workspace)
+		{
+			PropertyLabel("Alignment:");
+			if (ImGui::BeginCombo("##Aligment", AlignmentStrings[(int)igd::active_workspace->GetSingleSelection()->v_alignment]))
+			{
+				for (int i = 0; i < sizeof(AlignmentStrings) / sizeof(AlignmentStrings[0]); i++)
+				{
+					if (ImGui::Selectable(AlignmentStrings[i]))
+					{
+						igd::active_workspace->GetSingleSelection()->v_alignment = (Alignments)i;
+						modified = true;
+					}
+				}
+				ImGui::EndCombo();
+			}
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::Text("When you apply an alignment, the element will be positioned relative to its parent element, and the previously specified position value will be ignored.");
+				ImGui::EndTooltip();
+			}
+		}
 	if (modified && !ImGui::IsPopupOpen("picker", ImGuiPopupFlags_AnyPopup))
 	{
 		modified = false;

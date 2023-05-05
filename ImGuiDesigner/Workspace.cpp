@@ -643,6 +643,7 @@ void WorkSpace::GenerateVariables(ImGuiElement* p)
 	}
 	for (auto& e : p->children)
 		GenerateVariables(e);
+
 }
 
 void WorkSpace::OnUIRender() {
@@ -666,6 +667,7 @@ void WorkSpace::OnUIRender() {
 	if (this == igd::active_workspace)
 	{
 		igd::active_workspace->code << "//ImGuiDesigner generated variables" << std::endl;
+		igd::active_workspace->code << "ImGuiContext& g = *GImGui;" << std::endl;
 		GenerateVariables(igd::active_workspace->basic_workspace_element);
 		igd::active_workspace->code << std::endl << std::endl;
 	}

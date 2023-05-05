@@ -189,7 +189,7 @@ void Dialogs::Settings()
 	if (!this->show_settings)
 		return;
 
-	ImGui::SetNextWindowSize({ 800, 600 });
+	ImGui::SetNextWindowSize({ 850, 600 });
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10177, 0.10177, 0.10177, 0.847059));
 	if (ImGui::Begin("Settings", &this->show_settings, ImGuiWindowFlags_NoResize))
 	{
