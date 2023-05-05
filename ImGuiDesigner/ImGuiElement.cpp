@@ -462,38 +462,38 @@ void ImGuiElement::RenderHeadInternal(ImVec2& _ContentRegionAvail, int current_d
 			}
 			case(Alignments::top_right):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + ImGui::GetContentRegionMax().x - " << size_x << ", cursor_pos.y}); ");
-				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + ImGui::GetContentRegionMax().x - this->GetRawSize().x - g.Style.WindowPadding.x, this->v_parent->cursor_pos.y });
+				this->AddCode(STS() << "ImGui::SetCursorPos({ImGui::GetContentRegionMax().x - " << size_x << ", cursor_pos.y}); ");
+				ImGui::SetCursorPos({ ImGui::GetContentRegionMax().x - this->GetRawSize().x, this->v_parent->cursor_pos.y });
 				break;
 			}
 			case(Alignments::bottom_left):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x , cursor_pos.y + ImGui::GetContentRegionMax().y - " << size_y << "}); ");
-				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x, this->v_parent->cursor_pos.y+ ImGui::GetContentRegionMax().y - this->GetRawSize().y });
+				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x, ImGui::GetContentRegionMax().y - " << size_y << "}); ");
+				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x, ImGui::GetContentRegionMax().y - this->GetRawSize().y });
 				break;
 			}
 			case(Alignments::bottom_right):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + ImGui::GetContentRegionMax().x - " << size_x << ", cursor_pos.y + ImGui::GetContentRegionMax().y - " << size_y << "}); ");
-				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + ImGui::GetContentRegionMax().x - this->GetRawSize().x, this->v_parent->cursor_pos.y + ImGui::GetContentRegionMax().y - this->GetRawSize().y });
+				this->AddCode(STS() << "ImGui::SetCursorPos({ImGui::GetContentRegionMax().x - " << size_x << ", ImGui::GetContentRegionMax().y - " << size_y << "}); ");
+				ImGui::SetCursorPos({ ImGui::GetContentRegionMax().x - this->GetRawSize().x, ImGui::GetContentRegionMax().y - this->GetRawSize().y});
 				break;
 			}
 			case(Alignments::center):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPos({cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2), cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2)}); ");
-				ImGui::SetCursorPos({ this->v_parent->cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (this->GetRawSize().x/2), this->v_parent->cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (this->GetRawSize().y/2) });
+				this->AddCode(STS() << "ImGui::SetCursorPos({(ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2), (ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2)}); ");
+				ImGui::SetCursorPos({ (ImGui::GetContentRegionMax().x/2) - (this->GetRawSize().x/2), (ImGui::GetContentRegionMax().y/2) - (this->GetRawSize().y/2) });
 				break;
 			}
 			case(Alignments::horizontal_center):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPosX(cursor_pos.x + (ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2));");
-				ImGui::SetCursorPosX(this->v_parent->cursor_pos.x + (ImGui::GetContentRegionMax().x / 2) - (this->GetRawSize().x / 2));
+				this->AddCode(STS() << "ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x/2) - (" << size_x << "/2));");
+				ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x / 2) - (this->GetRawSize().x / 2));
 				break;
 			}
 			case(Alignments::verticle_center):
 			{
-				this->AddCode(STS() << "ImGui::SetCursorPosY(cursor_pos.y + (ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2));");
-				ImGui::SetCursorPosY(this->v_parent->cursor_pos.y + (ImGui::GetContentRegionMax().y / 2) - (this->GetRawSize().y / 2));
+				this->AddCode(STS() << "ImGui::SetCursorPosY((ImGui::GetContentRegionMax().y/2) - (" << size_y << "/2));");
+				ImGui::SetCursorPosY((ImGui::GetContentRegionMax().y / 2) - (this->GetRawSize().y / 2));
 				break;
 			}
 		}
