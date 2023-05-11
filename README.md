@@ -38,13 +38,29 @@ https://github.com/iamclint/ImGuiDesigner/assets/16273696/004ac8d9-f5cc-4552-a95
 
 
 Widgets example:
+
+
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/9a2934a1-7dd4-4247-b26c-fa224160a049
 
+
+
 Text/Font alignment example:
+
+
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/4a850e83-b0ca-43e6-ac01-065fba0900ba
 
+
+
 Drag/Resize snapping to other elements:
+
+
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/05a32360-9fa1-4312-9c75-6d139b25bd5d
 
+
+
 Drag and Drop onto different parent elements:
+
+
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/01abfe43-436f-4913-9643-b84fede37b6f
+
+
