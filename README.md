@@ -31,6 +31,8 @@ In summary, ImGuiDesigner is an easy-to-use interface builder that simplifies th
 It's worth noting that ImGuiDesigner utilizes Walnut, a C++ framework for building user interfaces developed by TheCherno. The framework has been modified to better suit the needs of ImGuiDesigner and provide a seamless experience for users.
 https://github.com/TheCherno/Walnut
 
+A few samples of the features
+
 Table example:
 
 
@@ -64,3 +66,14 @@ Drag and Drop onto different parent elements:
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/01abfe43-436f-4913-9643-b84fede37b6f
 
 
+Properties:
+
+
+https://github.com/iamclint/ImGuiDesigner/assets/16273696/4fc9a593-a0d0-40bd-8578-9d34261c3734
+
+
+Color Pallette:
+
+https://github.com/iamclint/ImGuiDesigner/assets/16273696/a9e920ed-0d12-4d93-ab6b-da7c3d22794c
+
+ 
