@@ -1,6 +1,10 @@
 # ImGui Designer
 ImGuiDesigner is a project aimed at simplifying the process of building user interfaces (UI) in C++ applications. The project provides an easy-to-use interface builder with interactive controls that allow users to create UIs using drag and drop, drag resizing, drag moving, and editing flags, colors, and styles. Furthermore, it generates C++ pseudo code that developers can use as a starting point for building their UIs.
 
+
+https://github.com/iamclint/ImGuiDesigner/assets/16273696/004ac8d9-f5cc-4552-a951-6aaa8d7d3231
+
+
 Features:
 The following are the key features of ImGuiDesigner:
 
