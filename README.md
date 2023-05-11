@@ -32,7 +32,10 @@ It's worth noting that ImGuiDesigner utilizes Walnut, a C++ framework for buildi
 https://github.com/TheCherno/Walnut
 
 Table example:
+
+
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/004ac8d9-f5cc-4552-a951-6aaa8d7d3231
+
 
 Widgets example:
 https://github.com/iamclint/ImGuiDesigner/assets/16273696/9a2934a1-7dd4-4247-b26c-fa224160a049
