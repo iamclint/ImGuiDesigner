@@ -32,7 +32,7 @@ namespace igd
 			igd::settings->save();
 		if (ImGui::Checkbox("Select parent after copy", &igd::settings->bools["select_copy_parent"]))
 			igd::settings->save();
-		if (ImGui::Checkbox("Relative sizing", &igd::settings->bools["relative_sizing"]))
+	/*	if (ImGui::Checkbox("Relative sizing", &igd::settings->bools["relative_sizing"]))
 			igd::settings->save();
 		if (ImGui::IsItemHovered())
 		{
@@ -42,7 +42,7 @@ namespace igd
 			ImGui::Text("the second item's 50%% width would only be 25%% of the total original width.");
 			ImGui::Text("So to have 2 rectangle fill the entire space the first one would be 50%% while the next one is 100%%");
 			ImGui::EndTooltip();
-		}
+		}*/
 	}
 	void About()
 	{
